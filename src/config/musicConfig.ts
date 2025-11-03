@@ -35,10 +35,10 @@ export const musicPlayerConfig: MusicPlayerConfig = {
     playlist: [
       {
         id: 1,
-        title: "使一颗心免于哀伤",
-        artist: "知更鸟 / HOYO-MiX / Chevy",
+        title: "女孩dj",
+        artist: "江南第一深情",
         cover: "/assets/music/cover/109951169585655912.jpg",
-        url: "/assets/music/使一颗心免于哀伤-哼唱.wav",
+        url: "/assets/music/女孩 dj.mp3",
         duration: 240,
       },
     ],
