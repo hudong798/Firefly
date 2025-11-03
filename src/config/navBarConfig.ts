@@ -22,15 +22,15 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
     children: [
       {
         name: "GitHub",
-        url: "https://github.com/CuteLeaf/Firefly",
+        url: "https://github.com/hudong798",
         external: true,
         icon: "fa6-brands:github",
       },
       {
-        name: "Bilibili",
-        url: "https://space.bilibili.com/38932988",
+        name: "douyin",
+        url: "https://www.douyin.com/user/MS4wLjABAAAA4UZncV9bemBJ9WFytjwrFTl75yfRuOn_I-qKdcke1I0E-3NEET5WFSiDDSIGlRUU?from_tab_name=main",
         external: true,
-        icon: "fa6-brands:bilibili",
+        icon: "fa6-brands:tiktok",
       },
     ],
   });

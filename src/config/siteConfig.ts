@@ -6,8 +6,8 @@ import { fontConfig } from "./fontConfig";
 const SITE_LANG = "zh_CN"; 
 
 export const siteConfig: SiteConfig = {
-  title: "Firefly",
-  subtitle: "Demo site",
+  title: "IIILLL",
+  subtitle: "site",
   description:
     "Firefly 是一款基于 Astro 框架开发的清新美观且现代化个人博客主题，专为技术爱好者和内容创作者设计。该主题融合了现代 Web 技术栈，提供了丰富的功能模块和高度可定制的界面，让您能够轻松打造出专业且美观的个人博客网站。",
   keywords: [
@@ -47,7 +47,7 @@ export const siteConfig: SiteConfig = {
     value: "/assets/images/LiuYingPure3.svg",
     alt: "🍀",
   },
-  navbarTitle: "Firefly", // 导航栏标题，可以设置为与 title 不同的值，如果不设置则使用 title
+  navbarTitle: "IIILLL", // 导航栏标题，可以设置为与 title 不同的值，如果不设置则使用 title
 
   
   // 追番配置
@@ -106,10 +106,10 @@ export const siteConfig: SiteConfig = {
         // 主页显示自定义文本（全局开关）
         enable: true,
         // 主页横幅主标题
-        title: "Lovely firefly!",
+        title: "",
         // 主页横幅副标题
         subtitle: [
-          "In Reddened Chrysalis, I Once Rest",
+          "把爱留在798!!!",
           "From Shattered Sky, I Free Fall",
           "Amidst Silenced Stars, I Deep Sleep",
           "Upon Lighted Fyrefly, I Soon Gaze",
@@ -125,7 +125,7 @@ export const siteConfig: SiteConfig = {
       },
       credit: {
         enable: {
-          desktop: true, // 桌面端显示横幅图片来源文本
+          desktop: false, // 桌面端显示横幅图片来源文本
           mobile: false, // 移动端显示横幅图片来源文本
         },
         text: {

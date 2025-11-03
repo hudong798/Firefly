@@ -37,7 +37,7 @@ export const musicPlayerConfig: MusicPlayerConfig = {
         id: 1,
         title: "女孩dj",
         artist: "江南第一深情",
-        cover: "/assets/music/cover/109951169585655912.jpg",
+        cover: "/assets/music/cover/女孩.webp",
         url: "/assets/music/女孩 dj.mp3",
         duration: 240,
       },
