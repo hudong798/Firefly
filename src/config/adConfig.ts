@@ -5,9 +5,9 @@ import type { AdConfig } from "../types/config";
 // 广告配置1 - 纯图片广告（无边距）
 export const adConfig1: AdConfig = {
   image: {
-    src: "/assets/images/d1.webp",
+    src: "/assets/images/ad.webp",
     alt: "广告横幅",
-    link: "#",
+    link: "https://52798.xyz",
     external: true,
   },
   closable: true, // 是否可关闭

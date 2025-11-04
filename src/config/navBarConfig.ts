@@ -21,10 +21,34 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
     icon: "material-symbols:link",
     children: [
       {
-        name: "GitHub",
-        url: "https://github.com/hudong798",
+        name: "linuxdo",
+        url: "https://linux.do",
         external: true,
-        icon: "fa6-brands:github",
+        icon: "fa6-solid:link",
+      },
+      {
+        name: "moontv",
+        url: "https://moon.52798.xyz",
+        external: true,
+        icon: "fa6-solid:video",
+      },
+       {
+        name: "music",
+        url: "https://music.52798.xyz",
+        external: true,
+        icon: "fa6-solid:music",
+      },
+      {
+        name: "童锦程写真",
+        url: "https://www.52798.xyz/article/xiezhen",
+        external: true,
+        icon: "fa6-solid:image",
+      },
+       {
+        name: "Builtful-girl",
+        url: "https://mv.1008008.xyz/",
+        external: true,
+        icon: "fa6-solid:video",
       },
       {
         name: "douyin",
