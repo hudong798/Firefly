@@ -16,7 +16,7 @@ export const sponsorConfig: SponsorConfig = {
     {
       name: "支付宝",
       icon: "fa6-brands:alipay",
-      qrCode: "/assets/images/sponsor/alipay.png", // 收款码图片路径（需要放在 public 目录下）
+      qrCode: "/assets/images/sponsor/zhifubao.jpg", // 收款码图片路径（需要放在 public 目录下）
       link: "",
       description: "使用 支付宝 扫码赞助",
       enabled: true,
@@ -24,27 +24,27 @@ export const sponsorConfig: SponsorConfig = {
     {
       name: "微信",
       icon: "fa6-brands:weixin",
-      qrCode: "/assets/images/sponsor/wechat.png", // 收款码图片路径
+      qrCode: "/assets/images/sponsor/weixin.jpg", // 收款码图片路径
       link: "",
       description: "使用 微信 扫码赞助",
       enabled: true,
     },
-    {
-      name: "爱发电",
-      icon: "simple-icons:afdian",
-      qrCode: "",
-      link: "https://afdian.com/a/cuteleaf",
-      description: "通过 爱发电 进行赞助",
-      enabled: true,
-    },
-    {
-      name: "Github",
-      icon: "fa6-brands:github",
-      qrCode: "",
-      link: "https://github.com/CuteLeaf/Firefly",
-      description: "点个Star就是最大的支持",
-      enabled: true,
-    },
+    // {
+    //   name: "爱发电",
+    //   icon: "simple-icons:afdian",
+    //   qrCode: "",
+    //   link: "https://afdian.com/a/cuteleaf",
+    //   description: "通过 爱发电 进行赞助",
+    //   enabled: true,
+    // },
+    // {
+    //   name: "Github",
+    //   icon: "fa6-brands:github",
+    //   qrCode: "",
+    //   link: "https://github.com/CuteLeaf/Firefly",
+    //   description: "点个Star就是最大的支持",
+    //   enabled: true,
+    // },
   ],
 
   // 赞助者列表（可选）

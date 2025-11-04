@@ -7,7 +7,7 @@ const SITE_LANG = "zh_CN";
 
 export const siteConfig: SiteConfig = {
   title: "IIILLL",
-  subtitle: "site",
+  subtitle: "",
   description:
     "Firefly 是一款基于 Astro 框架开发的清新美观且现代化个人博客主题，专为技术爱好者和内容创作者设计。该主题融合了现代 Web 技术栈，提供了丰富的功能模块和高度可定制的界面，让您能够轻松打造出专业且美观的个人博客网站。",
   keywords: [
@@ -109,18 +109,14 @@ export const siteConfig: SiteConfig = {
         title: "",
         // 主页横幅副标题
         subtitle: [
-          "把爱留在798!!!",
-          "From Shattered Sky, I Free Fall",
-          "Amidst Silenced Stars, I Deep Sleep",
-          "Upon Lighted Fyrefly, I Soon Gaze",
-          "From Undreamt Night, I Thence Shine",
-          "In Finalized Morrow, I Full Bloom",
+          "把爱留在798！！！",
+          "把钱留给自己花！！！",
         ],
         typewriter: {
           enable: true, // 启用副标题打字机效果
           speed: 100, // 打字速度（毫秒）
           deleteSpeed: 50, // 删除速度（毫秒）
-          pauseTime: 2000, // 完全显示后的暂停时间（毫秒）
+          pauseTime: 5000, // 完全显示后的暂停时间（毫秒）
         },
       },
       credit: {
