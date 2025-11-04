@@ -90,9 +90,9 @@ export const siteConfig: SiteConfig = {
     // 背景图片配置
     src: {
       // 桌面背景图片
-      desktop: "/assets/images/d1.webp",
+      desktop: "/assets/images/des1.webp",
       // 移动背景图片
-      mobile: "/assets/images/m1.webp",
+      mobile: "/assets/images/mb1.webp",
     },
 
     // 图片位置
