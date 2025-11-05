@@ -6,7 +6,7 @@ import { fontConfig } from "./fontConfig";
 const SITE_LANG = "zh_CN"; 
 
 export const siteConfig: SiteConfig = {
-  title: "IIILLL",
+  title: "798",
   subtitle: "",
   description:
     "Firefly 是一款基于 Astro 框架开发的清新美观且现代化个人博客主题，专为技术爱好者和内容创作者设计。该主题融合了现代 Web 技术栈，提供了丰富的功能模块和高度可定制的界面，让您能够轻松打造出专业且美观的个人博客网站。",
@@ -31,7 +31,7 @@ export const siteConfig: SiteConfig = {
   favicon: [
     // 留空以使用默认 favicon
     {
-      src: "/assets/images/favicon.ico", // 图标文件路径
+      src: "/assets/images/favicon-32x32.ico", // 图标文件路径
       theme: "light", // 可选，指定主题 'light' | 'dark'
       sizes: "32x32", // 可选，图标大小
     },
@@ -41,18 +41,18 @@ export const siteConfig: SiteConfig = {
   // navbarLogo 支持三种类型：Astro图标库，本地图片，网络图片
   // { type: "icon", value: "material-symbols:home-pin-outline" }
   // { type: "image", value: "/assets/images/logo.webp", alt: "Firefly Logo" }
-  // { type: "image", value: "https://example.com/logo.png", alt: "Firefly Logo" }
+  // { type: "image", value: "https://example.com/logo.png", alt: "Firefly Logo" }🍀
   navbarLogo: {
     type: "image",
-    value: "/assets/images/LiuYingPure3.svg",
-    alt: "🍀",
+    value: "/assets/images/345.png",
+    alt: "",
   },
-  navbarTitle: "IIILLL", // 导航栏标题，可以设置为与 title 不同的值，如果不设置则使用 title
+  navbarTitle: "798", // 导航栏标题，可以设置为与 title 不同的值，如果不设置则使用 title
 
   
   // 追番配置
   bangumi: {
-    userId: "1163581", // 在此处设置你的Bangumi用户ID
+    userId: "1163581", // 在此处设置你的Bangumi用户ID1163581
   },
 
   // 文章页底部的"上次编辑时间"卡片开关
@@ -63,7 +63,7 @@ export const siteConfig: SiteConfig = {
 
   // 页面开关配置 - 控制特定页面的访问权限，设为false会返回404
   pages: {
-    anime: true, // 追番页面开关
+    anime: false, // 追番页面开关
     sponsor: true, // 赞助页面开关
   },
 
@@ -116,7 +116,7 @@ export const siteConfig: SiteConfig = {
           enable: true, // 启用副标题打字机效果
           speed: 100, // 打字速度（毫秒）
           deleteSpeed: 50, // 删除速度（毫秒）
-          pauseTime: 5000, // 完全显示后的暂停时间（毫秒）
+          pauseTime: 2000, // 完全显示后的暂停时间（毫秒）
         },
       },
       credit: {
