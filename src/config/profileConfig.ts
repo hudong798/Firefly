@@ -2,7 +2,7 @@ import type { ProfileConfig } from "../types/config";
 
 export const profileConfig: ProfileConfig = {
   avatar: "/assets/images/1111.webp",
-  name: "798",
+  name: "童锦程798。",
   bio: "把爱留在798.",
   links: [
     {
