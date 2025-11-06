@@ -51,8 +51,8 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
         icon: "fa6-solid:video",
       },
       {
-        name: "抖音",
-        url: "https://www.douyin.com/user/MS4wLjABAAAA4UZncV9bemBJ9WFytjwrFTl75yfRuOn_I-qKdcke1I0E-3NEET5WFSiDDSIGlRUU?from_tab_name=main",
+        name: "作者抖音",
+        url: "https://www.douyin.com/user/MS4wLjABAAAAIvbqK_ALcr_o26t6LNsSMV8S1RIpGHRyFON_VchPPxk?from_tab_name=main",
         external: true,
         icon: "fa6-brands:tiktok",
       },

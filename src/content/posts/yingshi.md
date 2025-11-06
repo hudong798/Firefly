@@ -1,7 +1,7 @@
 ---
 title: 影视网站
-published: 2025-11-04
-pinned: false
+published: 2025-11-08
+pinned: true
 image: "./fm/2.webp"
 tags: [资源]
 category: 文章
@@ -73,6 +73,8 @@ draft: false
 | 2S0 解析     | `https://jx.2s0.cn/player/?url=`                |
 | 南湘解析       | `https://jx.nnxv.cn/tv.php?url=`                |
 
+<details>
+  <summary>NSFW(18🈲️)</summary>
 
 ### NSFW
 
@@ -93,3 +95,4 @@ draft: false
 | 13 | h82wz1 · lwcjcukk · xyz         |
 | 14 | yandex · com / search / touch / |
 
+</details>

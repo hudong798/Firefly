@@ -1,7 +1,7 @@
 ---
 title: 来都来了第一季
 published: 2025-06-26
-pinned: true
+pinned: false
 description: 活动由是童锦程，天九，志龙，英小杰参与
 image: "./fm/1.webp"
 tags: [活动, 视频]
