@@ -59,7 +59,7 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
     ],
   });
 
-  links.push(LinkPreset.Friends);
+  // links.push(LinkPreset.Friends);
 
   links.push({
     name: "关于",
