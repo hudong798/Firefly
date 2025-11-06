@@ -1,7 +1,7 @@
 ---
 title: 影视网站
 published: 2025-11-04
-pinned: true
+pinned: false
 image: "./fm/2.webp"
 tags: [资源]
 category: 文章
