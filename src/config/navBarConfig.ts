@@ -21,14 +21,20 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
     icon: "material-symbols:link",
     children: [
       {
-        name: "linuxdo",
+        name: "LinuxDo",
         url: "https://linux.do",
         external: true,
         icon: "fa6-solid:link",
       },
       {
-        name: "moontv影视",
+        name: "Moontv影视",
         url: "https://moon.52798.xyz",
+        external: true,
+        icon: "fa6-solid:video",
+      },
+        {
+        name: "努努影视",
+        url: "https://nnyy.la/",
         external: true,
         icon: "fa6-solid:video",
       },
@@ -37,12 +43,6 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
         url: "https://music.52798.xyz",
         external: true,
         icon: "fa6-solid:music",
-      },
-      {
-        name: "童锦程写真",
-        url: "https://www.depthink.xyz/article/xiezhen",
-        external: true,
-        icon: "fa6-solid:image",
       },
        {
         name: "短视频小姐姐",
