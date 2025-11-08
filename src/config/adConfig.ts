@@ -7,7 +7,7 @@ export const adConfig1: AdConfig = {
   image: {
     src: "/assets/images/ad1.webp",
     alt: "广告横幅",
-    link: "https://3.cn/-2uyjFP8?jkl=@GDCUq0iMEsx7@",
+    link: "https://www.apple.com.cn/iphone-17-pro/",
     external: true,
   },
   closable: true, // 是否可关闭
