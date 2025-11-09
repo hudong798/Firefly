@@ -26,6 +26,12 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
         external: true,
         icon: "fa6-solid:link",
       },
+        {
+        name: "DepThink",
+        url: "https://www.depthink.xyz",
+        external: true,
+        icon: "fa6-solid:link",
+      },
       {
         name: "Moontv影视",
         url: "https://moon.52798.xyz",

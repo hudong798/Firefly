@@ -1,11 +1,11 @@
 ---
-title: 留言区-欢迎发表想法意见
-published: 2025-11-07
+title: 留言区
+published: 2025-11-10
 pinned: true
 image: "./fm/liuyanban.webp"
 tags: [评论]
 category: 文章
 draft: false
 ---
-欢迎发表建议
+欢迎兄弟们留言哦😯
 ## 滑到最下面进行评论。

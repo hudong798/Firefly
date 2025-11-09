@@ -19,7 +19,7 @@ export const sidebarLayoutConfig: SidebarLayoutConfig = {
       // 是否启用该组件
       enable: true,
       // 组件显示顺序（数字越小越靠前）
-      order: 1,
+      order: 2,
       // 组件位置："top" 表示固定在顶部
       position: "top",
       // CSS 类名，用于应用样式和动画
@@ -33,7 +33,7 @@ export const sidebarLayoutConfig: SidebarLayoutConfig = {
       // 是否启用该组件（现在通过统一配置控制）
       enable: true,
       // 组件显示顺序
-      order: 2,
+      order: 1,
       // 组件位置："top" 表示固定在顶部
       position: "top",
       // CSS 类名
@@ -45,7 +45,7 @@ export const sidebarLayoutConfig: SidebarLayoutConfig = {
       // 组件类型：分类组件
       type: "categories",
       // 是否启用该组件
-      enable: true,
+      enable: false,
       // 组件显示顺序
       order: 3,
       // 组件位置："sticky" 表示粘性定位，可滚动
