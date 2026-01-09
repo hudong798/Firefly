@@ -8,7 +8,7 @@ export const profileConfig: ProfileConfig = {
 	name: "Firefly",
 
 	// 个人签名
-	bio: "Hello, I'm Firefly.",
+	bio: "Hello, I'm hdd.",
 
 	// 链接配置
 	// 已经预装的图标集：fa6-brands，fa6-regular，fa6-solid，material-symbols，simple-icons
