@@ -23,8 +23,8 @@
 
 如果你想和我分享有趣的想法，或者只是想打个招呼，欢迎通过以下方式联系我：
 
-### 微信：
-<img src="/assets/images/wx.webp" width="300" />
+### 微信：hd60819
+<!-- <img src="/assets/images/wx.webp" width="300" /> -->
 
 ### 邮箱：
 - ✉️ **Email**: holdon@linux.do

@@ -18,9 +18,9 @@ export const profileConfig: ProfileConfig = {
 	// showName: true 时显示图标和名称，false 时只显示图标
 	links: [
 		{
-			name: "Bilibli",
-			icon: "fa6-brands:bilibili",
-			url: "https://space.bilibili.com/38932988",
+			name: "抖音",
+			icon: "fa6-brands:tiktok",
+			url: "https://www.douyin.com/user/MS4wLjABAAAA4UZncV9bemBJ9WFytjwrFTl75yfRuOn_I-qKdcke1I0E-3NEET5WFSiDDSIGlRUU?from_tab_name=main",
 			showName: false,
 		},
 		{
