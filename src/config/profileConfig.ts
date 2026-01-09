@@ -23,12 +23,12 @@ export const profileConfig: ProfileConfig = {
 			url: "https://www.douyin.com/user/MS4wLjABAAAA4UZncV9bemBJ9WFytjwrFTl75yfRuOn_I-qKdcke1I0E-3NEET5WFSiDDSIGlRUU?from_tab_name=main",
 			showName: false,
 		},
-		{
-			name: "GitHub",
-			icon: "fa6-brands:github",
-			url: "https://github.com/CuteLeaf",
-			showName: false,
-		},
+		// {
+		// 	name: "GitHub",
+		// 	icon: "fa6-brands:github",
+		// 	url: "https://github.com/CuteLeaf",
+		// 	showName: false,
+		// },
 		{
 			name: "Email",
 			icon: "fa6-solid:envelope",

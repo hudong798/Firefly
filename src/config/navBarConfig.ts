@@ -27,16 +27,34 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 		// 子菜单
 		children: [
 			{
-				name: "douyin",
-				url: "https://www.douyin.com/user/MS4wLjABAAAA4UZncV9bemBJ9WFytjwrFTl75yfRuOn_I-qKdcke1I0E-3NEET5WFSiDDSIGlRUU?from_tab_name=main",
+				name: "Moontv影视",
+				url: "https://moon.52798.xyz",
 				external: true,
-				icon: "fa6-brands:tiktok",
+				icon: "fa6-solid:video",
 			},
 			{
-				name: "Bilibili",
-				url: "https://space.bilibili.com/38932988",
+				name: "微信读书",
+				url: "https://weread.qq.com",
 				external: true,
-				icon: "fa6-brands:bilibili",
+				icon: "fa6-solid:link",
+			},
+			{
+				name: "在线音乐",
+				url: "https://music.52798.xyz",
+				external: true,
+				icon: "fa6-solid:music",
+			},
+			{
+				name: "短视频小姐姐",
+				url: "https://mv.1008008.xyz/",
+				external: true,
+				icon: "fa6-solid:video",
+			},
+			{
+				name: "作者抖音",
+				url: "https://www.douyin.com/user/MS4wLjABAAAAIvbqK_ALcr_o26t6LNsSMV8S1RIpGHRyFON_VchPPxk?from_tab_name=main",
+				external: true,
+				icon: "fa6-brands:tiktok",
 			},
 		],
 	});
