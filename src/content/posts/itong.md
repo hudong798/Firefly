@@ -1,7 +1,7 @@
 ---
 title: 老六写真
 published: 2026-01-10
-pinned: true
+pinned: false
 image: "./fm/5.webp"
 tags: [写真]
 category: 图片
