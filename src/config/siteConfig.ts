@@ -7,7 +7,7 @@ const SITE_LANG = "zh_CN";
 
 export const siteConfig: SiteConfig = {
 	// 站点标题
-	title: "hudong",
+	title: "itong",
 
 	// 站点副标题
 	subtitle: "798",

@@ -5,7 +5,7 @@ export const profileConfig: ProfileConfig = {
 	avatar: "/assets/images/1111.webp",
 
 	// 名字
-	name: "798",
+	name: "Itong798",
 
 	// 个人签名
 	bio: "Hello, I'm hdd.",

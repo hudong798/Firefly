@@ -12,8 +12,8 @@ export const friendsPageConfig: FriendsPageConfig = {
 export const friendsConfig: FriendLink[] = [
 	{
 		title: "LinuxDo",
-		imgurl: "https://avatars.githubusercontent.com/u/44914786?v=4&s=640",
-		desc: "飞萤之火自无梦的长夜亮起，绽放在终竟的明天。",
+		imgurl: "https://linux.do/uploads/default/original/4X/d/1/4/d146c68151340881c884d95e0da4acdf369258c6.png",
+		desc: "Linux学习与交流社区",
 		siteurl: "https://linux.do",
 		tags: ["Blog"],
 		weight: 10, // 权重，数字越大排序越靠前
@@ -22,7 +22,7 @@ export const friendsConfig: FriendLink[] = [
 	{
 		title: "DepThink",
 		imgurl: "https://docs-firefly.cuteleaf.cn/logo.png",
-		desc: "Firefly主题模板文档",
+		desc: "一个专注于技术文档的站点",
 		siteurl: "https://www.depthink.xyz",
 		tags: ["Docs"],
 		weight: 9,
