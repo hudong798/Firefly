@@ -19,6 +19,15 @@ export const friendsConfig: FriendLink[] = [
 		weight: 10, // 权重，数字越大排序越靠前
 		enabled: true, // 是否启用
 	},
+		{
+		title: "7-Zip",
+		imgurl: "https://docs-firefly.cuteleaf.cn/logo.png",
+		desc: "解压软件7-Zip官方下载",
+		siteurl: "https://www.7-zip.org/a/7z2501-x64.exe",
+		tags: ["Docs"],
+		weight: 9,
+		enabled: true,
+	},
 	{
 		title: "文件传输",
 		imgurl: "https://docs-firefly.cuteleaf.cn/logo.png",
