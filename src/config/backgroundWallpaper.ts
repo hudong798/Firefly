@@ -29,7 +29,7 @@ export const backgroundWallpaper: BackgroundWallpaperConfig = {
 			titleSize: "3.8rem",
 			// 主页横幅副标题
 			subtitle: [
-				"Welcome to 798",
+				"Welcome to Itong's Blog",
 			],
 			// 主页横幅副标题字体大小
 			subtitleSize: "1rem",
