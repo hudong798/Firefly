@@ -1,19 +1,19 @@
 ---
 title: Firefly 简单使用指南
-published: 1970-01-02
-pinned: true
+published: 2025-10-11
+pinned: false
 description: "如何使用 Firefly 博客模板。"
 image: "./cover.webp"
 tags: ["Firefly", "博客", "Markdown", "使用指南"]
 category: 博客指南
 draft: true
+---
 
 
 
 这个博客模板是基于 [Astro](https://astro.build/) 构建的。对于本指南中未提及的内容，您可以在 [Astro 文档](https://docs.astro.build/) 中找到答案。
 
 ## 文章的 Front-matter
-
 
 ```yaml
 ---
@@ -25,6 +25,7 @@ tags: [前端, 开发]
 category: 前端开发
 draft: false
 ---
+```
 
 
 
@@ -33,19 +34,15 @@ draft: false
 |---------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `title`       | 文章标题。                                                                                                                                                                                          |
 | `published`   | 文章发布日期。                                                                                                                                                                                      |
-| `updated`     | 文章更新日期。如果未设置，将默认使用发布日期。                                                                                                                                                      |
 | `pinned`      | 是否将此文章置顶在文章列表顶部。                                                                                                                                                                    |
 | `description` | 文章的简短描述。显示在首页上。                                                                                                                                                                      |
 | `image`       | 文章封面图片路径。<br/>1. 以 `http://` 或 `https://` 开头：使用网络图片<br/>2. 以 `/` 开头：`public` 目录中的图片<br/>3. 不带任何前缀：相对于 markdown 文件的路径 |
 | `tags`        | 文章标签。                                                                                                                                                                                          |
 | `category`    | 文章分类。                                                                                                                                                                                          |
-| `lang`        | 文章语言代码（如 `zh-CN`）。仅当文章语言与站点默认语言不同时设置。                                                                                                                                    |
 | `licenseName` | 文章内容的许可证名称。                                                                                                                                                                              |
-| `licenseUrl`  | 文章内容的许可证链接。                                                                                                                                                                              |
 | `author`      | 文章作者。                                                                                                                                                                                          |
 | `sourceLink`  | 文章内容的来源链接或参考。                                                                                                                                                                          |
 | `draft`       | 如果这篇文章仍是草稿，则不会显示。                                                                                                                                                                  |
-| `comment`     | 是否启用此文章的评论功能。默认为 `true`。                                                                                                                                                           |
 | `slug`        | 自定义文章 URL 路径。如果不设置，将使用文件名作为 URL。                                                                                                                                              |
 
 ## 文章文件的放置位置
