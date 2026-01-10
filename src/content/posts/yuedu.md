@@ -1,6 +1,6 @@
 ---
 title: 梁启超讲读王阳明心学
-published: 2026-1-09
+published: 2026-01-09
 pinned: true 
 image: "./fm/7.webp"
 tags: [经典语录]
