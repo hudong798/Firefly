@@ -14,6 +14,7 @@ draft: true
 
 ## 文章的 Front-matter
 
+
 ```yaml
 ---
 title: 我的第一篇博客文章
@@ -24,7 +25,6 @@ tags: [前端, 开发]
 category: 前端开发
 draft: false
 ---
-```
 
 
 
