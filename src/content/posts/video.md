@@ -2,6 +2,7 @@
 title: 在文章中嵌入视频
 published: 2026-01-10
 description: 这篇文章演示如何在博客文章中嵌入视频。
+image: "./fm/8.webp"
 tags: [视频]
 category: 文章示例
 draft: false

@@ -27,7 +27,7 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 		// 子菜单
 		children: [
 			{
-				name: "Moontv影视",
+				name: "MoonTv影视",
 				url: "https://moon.52798.xyz",
 				external: true,
 				icon: "fa6-solid:video",
@@ -39,7 +39,7 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 				icon: "fa6-solid:link",
 			},
 			{
-				name: "在线音乐",
+				name: "Music",
 				url: "https://music.52798.xyz",
 				external: true,
 				icon: "fa6-solid:music",
@@ -49,6 +49,12 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 				url: "https://mv.1008008.xyz/",
 				external: true,
 				icon: "fa6-solid:video",
+			},
+						{
+				name: "B站",
+				url: "https://www.bilibili.com/",
+				external: true,
+				icon: "fa6-brands:bilibili",
 			},
 			{
 				name: "作者抖音",
