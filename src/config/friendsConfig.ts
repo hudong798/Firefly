@@ -20,13 +20,40 @@ export const friendsConfig: FriendLink[] = [
 		enabled: true, // 是否启用
 	},
 	{
-		title: "DepThink",
+		title: "文件传输",
 		imgurl: "https://docs-firefly.cuteleaf.cn/logo.png",
-		desc: "一个专注于技术文档的站点",
-		siteurl: "https://www.depthink.xyz",
+		desc: "一个简单好用的文件传输集合",
+		siteurl: "https://linux.do/t/topic/1373894",
 		tags: ["Docs"],
 		weight: 9,
 		enabled: true,
+	},
+		{
+		title: "节点软件",
+		imgurl: "https://linux.do/uploads/default/original/4X/d/1/4/d146c68151340881c884d95e0da4acdf369258c6.png",
+		desc: "1111",
+		siteurl: "https://linux.do/t/topic/375351",
+		tags: ["jiedian"],
+		weight: 10, // 权重，数字越大排序越靠前
+		enabled: true, // 是否启用
+	},
+		{
+		title: "chrome离线下载",
+		imgurl: "https://linux.do/uploads/default/original/4X/d/1/4/d146c68151340881c884d95e0da4acdf369258c6.png",
+		desc: "123",
+		siteurl: "https://chrome.noki.icu/",
+		tags: ["Docs"],
+		weight: 10, // 权重，数字越大排序越靠前
+		enabled: true, // 是否启用
+	},
+	{
+		title: "宝可梦",
+		imgurl: "https://linux.do/uploads/default/original/4X/d/1/4/d146c68151340881c884d95e0da4acdf369258c6.png",
+		desc: "宝可梦",
+		siteurl: "https://love.p6m6.com/",
+		tags: ["jiedian"],
+		weight: 10, // 权重，数字越大排序越靠前
+		enabled: true, // 是否启用
 	},
 
 		
