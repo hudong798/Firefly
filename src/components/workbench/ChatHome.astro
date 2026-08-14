@@ -127,9 +127,158 @@ const tagHue = (tag: string) => {
 	})
 }
 
-<!-- 假输入框：点击进入 AI 对话 -->
-<a href="/chat/" class="wb-composer" aria-label="和博客 AI 助手对话">
-	<Icon name="material-symbols:edit" class="wb-composer-ic" />
-	<span class="wb-composer-ph">和博客 AI 助手聊聊…</span>
-	<span class="wb-composer-btn"><Icon name="material-symbols:send" /></span>
-</a>
+<!-- 站内文章搜索框：输入关键词即时弹出匹配文章，点击进入 -->
+<div class="wb-search" id="wb-site-search">
+	<div class="wb-composer wb-composer--search">
+		<Icon name="material-symbols:search" class="wb-composer-ic" />
+		<input
+			id="wb-search-input"
+			class="wb-composer-input"
+			type="text"
+			placeholder="搜索文章，如：影视、DSH、写真…"
+			autocomplete="off"
+			maxlength="50"
+		/>
+		<span class="wb-composer-btn" aria-hidden="true"
+			><Icon name="material-symbols:search" /></span
+		>
+	</div>
+	<div class="wb-search-results" id="wb-search-results" hidden></div>
+</div>
+
+<script is:inline>
+	// 站内文章即时搜索（数据来自构建时生成的 /ai-posts.json）
+	(function () {
+		function initSearch() {
+			var root = document.getElementById("wb-site-search");
+			if (!root || root.dataset.wbSearchInit) return;
+			root.dataset.wbSearchInit = "1";
+
+			var input = document.getElementById("wb-search-input");
+			var resultsEl = document.getElementById("wb-search-results");
+			if (!input || !resultsEl) return;
+
+			var posts = null;
+
+			function loadPosts() {
+				if (posts) return Promise.resolve(posts);
+				return fetch("/ai-posts.json")
+					.then(function (r) {
+						if (!r.ok) throw new Error("索引加载失败");
+						return r.json();
+					})
+					.then(function (data) {
+						posts = data;
+						return posts;
+					})
+					.catch(function () {
+						posts = [];
+						return posts;
+					});
+			}
+
+			function matchPosts(query, list) {
+				var q = query.trim().toLowerCase();
+				if (!q) return [];
+				var scored = list.map(function (p) {
+					var title = (p.title || "").toLowerCase();
+					var desc = (p.description || "").toLowerCase();
+					var tags = (p.tags || []).join(" ").toLowerCase();
+					var text = (p.text || "").toLowerCase();
+					var score = 0;
+					if (title.includes(q)) score += 10;
+					if (tags.includes(q)) score += 4;
+					if (desc.includes(q)) score += 2;
+					if (text.includes(q)) score += 1;
+					return { p: p, score: score };
+				});
+				return scored
+					.filter(function (x) { return x.score > 0; })
+					.sort(function (a, b) { return b.score - a.score; })
+					.slice(0, 6)
+					.map(function (x) { return x.p; });
+			}
+
+			function renderResults(items) {
+				resultsEl.innerHTML = "";
+				if (items.length === 0) {
+					var empty = document.createElement("div");
+					empty.className = "wb-search-empty";
+					empty.textContent = "未找到相关文章，换个关键词试试";
+					resultsEl.appendChild(empty);
+				} else {
+					items.forEach(function (p) {
+						var a = document.createElement("a");
+						a.className = "wb-search-item";
+						a.href = "/posts/" + p.slug + "/";
+
+						var title = document.createElement("div");
+						title.className = "wb-search-item-title";
+						title.textContent = p.title;
+
+						var meta = document.createElement("div");
+						meta.className = "wb-search-item-meta";
+						var parts = [];
+						if (p.category) parts.push(p.category);
+						if (p.tags && p.tags.length) parts.push(p.tags.slice(0, 3).join(" / "));
+						if (p.published) parts.push(p.published);
+						meta.textContent = parts.join(" · ");
+
+						a.appendChild(title);
+						a.appendChild(meta);
+						resultsEl.appendChild(a);
+					});
+				}
+				resultsEl.hidden = false;
+			}
+
+			function hideResults() {
+				resultsEl.hidden = true;
+			}
+
+			var timer = null;
+			input.addEventListener("input", function () {
+				clearTimeout(timer);
+				var q = input.value.trim();
+				if (!q) {
+					hideResults();
+					return;
+				}
+				timer = setTimeout(function () {
+					loadPosts().then(function (list) {
+						renderResults(matchPosts(q, list));
+					});
+				}, 150);
+			});
+
+			input.addEventListener("focus", function () {
+				if (input.value.trim()) {
+					loadPosts().then(function (list) {
+						renderResults(matchPosts(input.value, list));
+					});
+				}
+			});
+
+			input.addEventListener("keydown", function (e) {
+				if (e.key === "Enter") {
+					var first = resultsEl.querySelector(".wb-search-item");
+					if (first) {
+						e.preventDefault();
+						window.location.href = first.getAttribute("href");
+					}
+				}
+				if (e.key === "Escape") hideResults();
+			});
+
+			document.addEventListener("click", function (e) {
+				if (!root.contains(e.target)) hideResults();
+			});
+		}
+
+		if (document.readyState === "loading") {
+			document.addEventListener("DOMContentLoaded", initSearch);
+		} else {
+			initSearch();
+		}
+	})();
+</script>

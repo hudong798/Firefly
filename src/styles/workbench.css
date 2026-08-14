@@ -521,6 +521,63 @@
   }
 }
 
+/* ---------- 站内文章搜索（首页底部） ---------- */
+.wb-search {
+  position: relative;
+  align-self: stretch;
+}
+.wb-composer--search {
+  cursor: text;
+}
+.wb-search-results {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: var(--wb-bubble);
+  border: 1px solid var(--wb-border-strong);
+  border-radius: 0.9rem;
+  box-shadow: var(--wb-shadow-md);
+  overflow: hidden;
+  max-height: 22rem;
+  overflow-y: auto;
+}
+.wb-search-item {
+  display: block;
+  padding: 0.7rem 1rem;
+  text-decoration: none;
+  color: inherit;
+  border-bottom: 1px solid var(--line-color);
+  transition: background 0.12s ease;
+}
+.wb-search-item:last-child {
+  border-bottom: none;
+}
+.wb-search-item:hover {
+  background: var(--wb-hover);
+}
+.wb-search-item-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--deep-text);
+  margin-bottom: 0.15rem;
+}
+.wb-search-item:hover .wb-search-item-title {
+  color: var(--primary);
+}
+.wb-search-item-meta {
+  font-size: 0.72rem;
+  font-family: var(--wb-mono);
+  color: var(--wb-muted);
+}
+.wb-search-empty {
+  padding: 1rem;
+  font-size: 0.82rem;
+  color: var(--wb-muted);
+  text-align: center;
+}
+
 /* ---------- AI 对话页 ---------- */
 .wb-typing--live {
   animation: none;
