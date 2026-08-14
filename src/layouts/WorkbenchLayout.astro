@@ -3,6 +3,7 @@ import FloatingControls from "@/components/common/controls/FloatingControls.astr
 import StatusBar from "@/components/workbench/StatusBar.astro";
 import SessionRail from "@/components/workbench/SessionRail.astro";
 import { profileConfig, siteConfig } from "@/config";
+import { Icon } from "astro-icon/components";
 import type { MarkdownHeading } from "astro";
 import Layout from "./Layout.astro";
 
@@ -28,9 +29,33 @@ const { title, description, lang, setOGTypeArticle, postSlug, headings = [] } =
 	setOGTypeArticle={setOGTypeArticle}
 	postSlug={postSlug}
 >
-	<div class="wb-shell">
+	<div class="wb-shell" id="wb-shell">
+		<script is:inline>
+			// 折叠状态在首屏渲染前恢复，避免闪烁
+			(function () {
+				try {
+					if (localStorage.getItem("wb-rail-collapsed") === "1") {
+						document.getElementById("wb-shell")?.classList.add(
+							"is-rail-collapsed",
+						);
+					}
+				} catch (e) {
+					/* ignore */
+				}
+			})();
+		</script>
 		{/* 标题栏 */}
 		<header class="wb-titlebar">
+			<button
+				type="button"
+				id="wb-rail-toggle"
+				class="wb-rail-toggle"
+				aria-label="折叠/展开会话栏"
+				title="折叠/展开会话栏"
+			>
+				<Icon name="material-symbols:left-panel-close" class="wb-toggle-close" />
+				<Icon name="material-symbols:left-panel-open" class="wb-toggle-open" />
+			</button>
 			<a href="/" class="wb-brand">
 				<img
 					src={profileConfig.avatar}
@@ -66,3 +91,22 @@ const { title, description, lang, setOGTypeArticle, postSlug, headings = [] } =
 
 	<FloatingControls headings={headings} />
 </Layout>
+
+<script>
+	// 会话栏折叠/展开（ChatGPT 式）
+	const shell = document.getElementById("wb-shell");
+	const toggleBtn = document.getElementById("wb-rail-toggle");
+	if (shell && toggleBtn) {
+		toggleBtn.addEventListener("click", () => {
+			const collapsed = shell.classList.toggle("is-rail-collapsed");
+			try {
+				localStorage.setItem(
+					"wb-rail-collapsed",
+					collapsed ? "1" : "0",
+				);
+			} catch (e) {
+				/* ignore */
+			}
+		});
+	}
+</script>

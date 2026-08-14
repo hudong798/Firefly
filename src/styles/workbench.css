@@ -86,6 +86,39 @@
   font-family: var(--wb-mono);
 }
 
+/* ---------- 会话栏折叠按钮 ---------- */
+.wb-rail-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  border: 1px solid var(--wb-border);
+  border-radius: 0.6rem;
+  background: var(--wb-hover);
+  color: var(--wb-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+.wb-rail-toggle:hover {
+  color: var(--primary);
+  border-color: color-mix(in oklch, var(--primary) 45%, var(--wb-border));
+  background: color-mix(in oklch, var(--primary) 10%, var(--wb-hover));
+}
+.wb-rail-toggle svg {
+  font-size: 1.25rem;
+}
+.wb-toggle-open {
+  display: none;
+}
+.wb-shell.is-rail-collapsed .wb-toggle-open {
+  display: inline-flex;
+}
+.wb-shell.is-rail-collapsed .wb-toggle-close {
+  display: none;
+}
+
 /* ---------- 状态点 ---------- */
 .wb-status-dot {
   width: 0.55rem;
@@ -120,6 +153,12 @@
   backdrop-filter: blur(8px);
   padding: 1rem 0.75rem;
   overflow-y: auto;
+  transition: margin-left 0.3s ease, opacity 0.25s ease;
+}
+.wb-shell.is-rail-collapsed .wb-rail {
+  margin-left: -260px;
+  opacity: 0;
+  pointer-events: none;
 }
 .wb-rail-section {
   font-size: 0.68rem;
@@ -529,6 +568,10 @@
     display: none;
   }
   .wb-statusbar-item.wb-statusbar-mono {
+    display: none;
+  }
+  /* 移动端折叠：整条导航条隐藏 */
+  .wb-shell.is-rail-collapsed .wb-rail {
     display: none;
   }
 }
