@@ -1,21 +1,11 @@
 ---
-import { profileConfig, siteConfig } from "@/config";
+import { profileConfig } from "@/config";
 const year = new Date().getFullYear();
 ---
 
 <footer class="wb-statusbar">
-	<span class="wb-statusbar-item">
-		<span class="wb-status-dot"></span>
-		online
-	</span>
-	<span class="wb-statusbar-item wb-statusbar-mono">dsh://{siteConfig.title}</span>
-	<span class="wb-statusbar-item wb-statusbar-mono hidden md:inline-flex"
-		>model: deepseek-v4-flash</span
-	>
-	<span class="wb-statusbar-item wb-statusbar-mono hidden sm:inline-flex" id="wb-clock"></span>
-	<span class="wb-statusbar-item wb-statusbar-right"
-		>© {year} {profileConfig.name}</span
-	>
+	<span class="wb-statusbar-item" id="wb-clock"></span>
+	<span class="wb-statusbar-item wb-statusbar-right">© {year} {profileConfig.name}</span>
 </footer>
 
 <script>
