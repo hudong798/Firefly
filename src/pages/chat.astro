@@ -61,96 +61,113 @@ const title = "AI 对话";
       <Icon name="material-symbols:send" />
     </button>
   </form>
-</WorkbenchLayout>
 
-<script define:vars={{ avatar: profileConfig.avatar, siteName: siteConfig.title }}>
-  const form = document.getElementById("wb-chat-form") as HTMLFormElement;
-  const input = document.getElementById("wb-chat-input") as HTMLInputElement;
-  const messagesEl = document.getElementById("wb-chat-messages") as HTMLElement;
-  const typingEl = document.getElementById("wb-chat-typing") as HTMLElement;
+  <!--
+    聊天逻辑：is:inline 且放在模板内（swup 容器内），
+    这样无论直接打开还是从会话栏 swup 跳转进来，脚本都会执行。
+    幂等保护：form.dataset.wbChatInit 防止重复绑定。
+  -->
+  <script is:inline define:vars={{ avatar: profileConfig.avatar, siteName: siteConfig.title }}>
+    (function () {
+      function initChat() {
+        var form = document.getElementById("wb-chat-form");
+        if (!form || form.dataset.wbChatInit) return;
+        form.dataset.wbChatInit = "1";
 
-  const history: { role: "user" | "assistant"; content: string }[] = [];
-  const MAX_HISTORY = 20;
+        var input = document.getElementById("wb-chat-input");
+        var messagesEl = document.getElementById("wb-chat-messages");
+        var typingEl = document.getElementById("wb-chat-typing");
+        if (!input || !messagesEl || !typingEl) return;
 
-  function scrollToBottom() {
-    window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
-  }
+        var history = [];
+        var MAX_HISTORY = 20;
 
-  function addMessage(role: "user" | "assistant", content: string) {
-    const el = document.createElement("div");
-    el.className = `wb-msg wb-msg--${role}`;
+        function scrollToBottom() {
+          window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+        }
 
-    if (role === "assistant") {
-      el.innerHTML = `
-        <img class="wb-avatar" src="${avatar}" alt="" />
-        <div class="wb-msg-main">
-          <div class="wb-msg-meta">
-            <span class="wb-msg-author">${siteName} · AI</span>
-            <span class="wb-msg-time">刚刚</span>
-          </div>
-          <div class="wb-bubble"></div>
-        </div>`;
-      const bubble = el.querySelector(".wb-bubble") as HTMLElement;
-      bubble.textContent = content;
-    } else {
-      el.innerHTML = `
-        <div class="wb-avatar wb-avatar--user">我</div>
-        <div class="wb-msg-main">
-          <div class="wb-msg-meta">
-            <span class="wb-msg-author">访客</span>
-            <span class="wb-msg-time">刚刚</span>
-          </div>
-          <div class="wb-bubble"></div>
-        </div>`;
-      const bubble = el.querySelector(".wb-bubble") as HTMLElement;
-      bubble.textContent = content;
-    }
+        function addMessage(role, content) {
+          var el = document.createElement("div");
+          el.className = "wb-msg wb-msg--" + role;
 
-    messagesEl.appendChild(el);
-    scrollToBottom();
-  }
+          if (role === "assistant") {
+            el.innerHTML =
+              '<img class="wb-avatar" src="' + avatar + '" alt="" />' +
+              '<div class="wb-msg-main">' +
+              '<div class="wb-msg-meta">' +
+              '<span class="wb-msg-author">' + siteName + ' · AI</span>' +
+              '<span class="wb-msg-time">刚刚</span>' +
+              "</div>" +
+              '<div class="wb-bubble"></div>' +
+              "</div>";
+          } else {
+            el.innerHTML =
+              '<div class="wb-avatar wb-avatar--user">我</div>' +
+              '<div class="wb-msg-main">' +
+              '<div class="wb-msg-meta">' +
+              '<span class="wb-msg-author">访客</span>' +
+              '<span class="wb-msg-time">刚刚</span>' +
+              "</div>" +
+              '<div class="wb-bubble"></div>' +
+              "</div>";
+          }
 
-  function setTyping(show: boolean) {
-    typingEl.hidden = !show;
-    if (show) scrollToBottom();
-  }
+          var bubble = el.querySelector(".wb-bubble");
+          bubble.textContent = content;
+          messagesEl.appendChild(el);
+          scrollToBottom();
+        }
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const text = input.value.trim();
-    if (!text) return;
+        function setTyping(show) {
+          typingEl.hidden = !show;
+          if (show) scrollToBottom();
+        }
 
-    input.value = "";
-    history.push({ role: "user", content: text });
-    addMessage("user", text);
-    setTyping(true);
+        form.addEventListener("submit", function (e) {
+          e.preventDefault();
+          var text = input.value.trim();
+          if (!text) return;
 
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: history.slice(-MAX_HISTORY) }),
-      });
-      const data = await res.json();
+          input.value = "";
+          history.push({ role: "user", content: text });
+          addMessage("user", text);
+          setTyping(true);
 
-      if (!res.ok) {
-        addMessage(
-          "assistant",
-          `⚠️ 出错了：${data?.error || `HTTP ${res.status}`}`,
-        );
-        // 出错时不保留这条用户消息在历史中，避免循环出错
-        history.pop();
-        return;
+          fetch("/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ messages: history.slice(-MAX_HISTORY) }),
+          })
+            .then(function (res) {
+              return res.json().then(function (data) {
+                return { ok: res.ok, data: data };
+              });
+            })
+            .then(function (r) {
+              if (!r.ok) {
+                addMessage("assistant", "⚠️ 出错了：" + (r.data.error || "HTTP " + r.status));
+                history.pop();
+                return;
+              }
+              var reply = r.data.reply || "（空回复）";
+              history.push({ role: "assistant", content: reply });
+              addMessage("assistant", reply);
+            })
+            .catch(function (err) {
+              addMessage("assistant", "⚠️ 网络错误：" + err.message);
+              history.pop();
+            })
+            .finally(function () {
+              setTyping(false);
+            });
+        });
       }
 
-      const reply: string = data?.reply || "（空回复）";
-      history.push({ role: "assistant", content: reply });
-      addMessage("assistant", reply);
-    } catch (err) {
-      addMessage("assistant", `⚠️ 网络错误：${(err as Error).message}`);
-      history.pop();
-    } finally {
-      setTyping(false);
-    }
-  });
-</script>
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initChat);
+      } else {
+        initChat();
+      }
+    })();
+  </script>
+</WorkbenchLayout>
