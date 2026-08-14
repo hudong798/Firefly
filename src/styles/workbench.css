@@ -780,40 +780,74 @@
   .wb-shell.is-rail-collapsed .wb-rail {
     display: none;
   }
-  /* 移动端顶栏搜索：收缩为纯放大镜按钮，点击展开 */
+  /* 移动端顶栏搜索：收缩为干净的圆形放大镜按钮，点击展开 */
   .wb-titlebar-search {
     flex: none;
-    max-width: 2.4rem;
+    width: 2.4rem;
+    max-width: none;
     margin: 0 0 0 auto;
+  }
+  .wb-titlebar-search .wb-composer--bar {
+    width: 2.4rem;
+    height: 2.4rem;
+    padding: 0;
+    justify-content: center;
+    background: var(--wb-hover);
+    border-color: var(--wb-border);
+    box-shadow: none;
   }
   .wb-titlebar-search .wb-composer--bar .wb-composer-input,
   .wb-titlebar-search .wb-composer--bar .wb-composer-ic {
     display: none;
   }
-  .wb-titlebar-search .wb-composer--bar {
-    padding: 0;
-    justify-content: center;
+  .wb-titlebar-search .wb-composer--bar .wb-composer-btn {
+    width: 2.4rem;
+    height: 2.4rem;
+    background: transparent;
+    color: var(--deep-text);
   }
+  .wb-titlebar-search .wb-composer--bar .wb-composer-btn svg {
+    font-size: 1.25rem;
+  }
+  /* 展开态：覆盖整个标题栏，水平线上精确居中，完整显示 */
   .wb-titlebar-search.is-expanded {
     position: absolute;
-    left: 0.6rem;
-    right: 0.6rem;
-    top: 50%;
-    transform: translateY(-50%);
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: auto;
     max-width: none;
     margin: 0;
+    padding: 0 0.75rem;
     z-index: 60;
+    display: flex;
+    align-items: center;
+    background: var(--wb-rail);
+  }
+  .wb-titlebar-search.is-expanded .wb-composer--bar {
+    flex: 1;
+    width: auto;
+    height: 2.3rem;
+    padding: 0 0.5rem 0 0.9rem;
+    justify-content: flex-start;
   }
   .wb-titlebar-search.is-expanded .wb-composer--bar .wb-composer-input,
   .wb-titlebar-search.is-expanded .wb-composer--bar .wb-composer-ic {
     display: flex;
   }
-  .wb-titlebar-search.is-expanded .wb-composer--bar {
-    padding: 0 0.5rem 0 0.9rem;
+  .wb-titlebar-search.is-expanded .wb-composer--bar .wb-composer-btn {
+    width: 1.7rem;
+    height: 1.7rem;
+    background: var(--primary);
+    color: #fff;
   }
   .wb-titlebar.is-search-expanded .wb-titlebar-left,
   .wb-titlebar.is-search-expanded .wb-titlebar-right {
     display: none;
+  }
+  .wb-titlebar-search.is-expanded .wb-search-results {
+    top: calc(100% + 0.5rem);
   }
 }
 
