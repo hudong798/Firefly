@@ -24,6 +24,25 @@ const tagHue = (tag: string) => {
 };
 ---
 
+<!-- 站内文章搜索框：固定在顶部，输入关键词即时弹出匹配文章，点击进入 -->
+<div class="wb-search" id="wb-site-search">
+	<div class="wb-composer wb-composer--search">
+		<Icon name="material-symbols:search" class="wb-composer-ic" />
+		<input
+			id="wb-search-input"
+			class="wb-composer-input"
+			type="text"
+			placeholder="搜索文章，如：影视、DSH、写真…"
+			autocomplete="off"
+			maxlength="50"
+		/>
+		<span class="wb-composer-btn" aria-hidden="true"
+			><Icon name="material-symbols:search" /></span
+		>
+	</div>
+	<div class="wb-search-results" id="wb-search-results" hidden></div>
+</div>
+
 <!-- 系统消息 -->
 <div class="wb-sys-msg">🔗 已连接 AI 工作台 · 会话自动恢复 · 共 {posts.length} 个会话</div>
 
@@ -128,24 +147,6 @@ const tagHue = (tag: string) => {
 }
 
 <!-- 站内文章搜索框：输入关键词即时弹出匹配文章，点击进入 -->
-<div class="wb-search" id="wb-site-search">
-	<div class="wb-composer wb-composer--search">
-		<Icon name="material-symbols:search" class="wb-composer-ic" />
-		<input
-			id="wb-search-input"
-			class="wb-composer-input"
-			type="text"
-			placeholder="搜索文章，如：影视、DSH、写真…"
-			autocomplete="off"
-			maxlength="50"
-		/>
-		<span class="wb-composer-btn" aria-hidden="true"
-			><Icon name="material-symbols:search" /></span
-		>
-	</div>
-	<div class="wb-search-results" id="wb-search-results" hidden></div>
-</div>
-
 <script is:inline>
 	// 站内文章即时搜索（数据来自构建时生成的 /ai-posts.json）
 	(function () {

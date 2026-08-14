@@ -521,10 +521,15 @@
   }
 }
 
-/* ---------- 站内文章搜索（首页底部） ---------- */
+/* ---------- 站内文章搜索（首页顶部吸顶） ---------- */
 .wb-search {
-  position: relative;
+  position: sticky;
+  top: 0.5rem;
+  z-index: 40;
   align-self: stretch;
+  background: var(--page-bg);
+  padding: 0.4rem 0;
+  border-radius: 1rem;
 }
 .wb-composer--search {
   cursor: text;
