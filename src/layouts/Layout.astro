@@ -6,7 +6,6 @@ import KatexManager from "@components/effects/KatexManager.astro";
 import SakuraEffect from "@components/effects/SakuraEffect.astro";
 import FontManager from "@components/interactive/FontManager.astro";
 import ConfigCarrier from "@components/layout/ConfigCarrier.astro";
-import MusicPlayer from "@components/widget/MusicPlayer.astro";
 
 import {
 	backgroundWallpaper,
@@ -431,9 +430,6 @@ const bannerOffset = `${BANNER_HEIGHT_EXTEND / 2}vh`;
     {shouldShowTopHighlight && <div class="top-gradient-highlight" />}
     <ConfigCarrier />
     <slot />
-
-    <!-- Music Player -->
-    <MusicPlayer />
 
     <!-- increase the page height during page transition to prevent the scrolling animation from jumping -->
     <div id="page-height-extend" class="hidden h-[300vh]"></div>
