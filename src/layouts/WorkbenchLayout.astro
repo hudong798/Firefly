@@ -241,6 +241,39 @@ const { title, description, lang, setOGTypeArticle, postSlug, headings = [] } =
 			resultsEl.hidden = true;
 		};
 
+		// 移动端：放大镜按钮点击展开/收起
+		const isMobile = () => window.innerWidth <= 860;
+		const header = document.querySelector(".wb-titlebar");
+		const collapseSearch = () => {
+			root.classList.remove("is-expanded");
+			header?.classList.remove("is-search-expanded");
+			hideResults();
+		};
+		const bar = root.querySelector(".wb-composer--bar");
+		bar?.addEventListener("click", (e) => {
+			if (!isMobile()) return;
+			// 点击结果链接或输入框本身时不切换展开状态
+			const target = e.target as Element;
+			if (target.closest(".wb-search-item") || target === input) return;
+			e.preventDefault();
+			const expanded = root.classList.toggle("is-expanded");
+			header?.classList.toggle("is-search-expanded", expanded);
+			if (expanded) {
+				setTimeout(() => input.focus(), 50);
+			} else {
+				hideResults();
+			}
+		});
+
+		const setupSwupCollapse = () => {
+			window.swup?.hooks.on("page:view", collapseSearch);
+		};
+		if (window.swup?.hooks) {
+			setupSwupCollapse();
+		} else {
+			document.addEventListener("swup:enable", setupSwupCollapse);
+		}
+
 		let timer: number;
 		input.addEventListener("input", () => {
 			clearTimeout(timer);
@@ -270,11 +303,19 @@ const { title, description, lang, setOGTypeArticle, postSlug, headings = [] } =
 					window.location.href = first.getAttribute("href") || "/";
 				}
 			}
-			if (e.key === "Escape") hideResults();
+			if (e.key === "Escape") {
+				hideResults();
+				if (isMobile()) collapseSearch();
+			}
 		});
 
 		document.addEventListener("click", (e) => {
-			if (!root.contains(e.target as Node)) hideResults();
+			if (!root.contains(e.target as Node)) {
+				hideResults();
+				if (isMobile() && root.classList.contains("is-expanded")) {
+					collapseSearch();
+				}
+			}
 		});
 	}
 	if (document.readyState === "loading") {

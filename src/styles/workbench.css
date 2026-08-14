@@ -780,8 +780,39 @@
   .wb-shell.is-rail-collapsed .wb-rail {
     display: none;
   }
-  /* 移动端顶栏搜索隐藏（可用欢迎语快捷指令或 /search/ 页） */
+  /* 移动端顶栏搜索：收缩为纯放大镜按钮，点击展开 */
   .wb-titlebar-search {
+    flex: none;
+    max-width: 2.4rem;
+    margin: 0 0 0 auto;
+  }
+  .wb-titlebar-search .wb-composer--bar .wb-composer-input,
+  .wb-titlebar-search .wb-composer--bar .wb-composer-ic {
+    display: none;
+  }
+  .wb-titlebar-search .wb-composer--bar {
+    padding: 0;
+    justify-content: center;
+  }
+  .wb-titlebar-search.is-expanded {
+    position: absolute;
+    left: 0.6rem;
+    right: 0.6rem;
+    top: 50%;
+    transform: translateY(-50%);
+    max-width: none;
+    margin: 0;
+    z-index: 60;
+  }
+  .wb-titlebar-search.is-expanded .wb-composer--bar .wb-composer-input,
+  .wb-titlebar-search.is-expanded .wb-composer--bar .wb-composer-ic {
+    display: flex;
+  }
+  .wb-titlebar-search.is-expanded .wb-composer--bar {
+    padding: 0 0.5rem 0 0.9rem;
+  }
+  .wb-titlebar.is-search-expanded .wb-titlebar-left,
+  .wb-titlebar.is-search-expanded .wb-titlebar-right {
     display: none;
   }
 }
