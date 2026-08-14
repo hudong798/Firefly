@@ -85,6 +85,12 @@
   color: var(--wb-muted);
   font-family: var(--wb-mono);
 }
+.wb-titlebar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 0;
+}
 
 /* ---------- 会话栏折叠按钮 ---------- */
 .wb-rail-toggle {

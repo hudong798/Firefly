@@ -46,26 +46,28 @@ const { title, description, lang, setOGTypeArticle, postSlug, headings = [] } =
 		</script>
 		{/* 标题栏 */}
 		<header class="wb-titlebar">
-			<button
-				type="button"
-				id="wb-rail-toggle"
-				class="wb-rail-toggle"
-				aria-label="折叠/展开会话栏"
-				title="折叠/展开会话栏"
-			>
-				<Icon name="material-symbols:left-panel-close" class="wb-toggle-close" />
-				<Icon name="material-symbols:left-panel-open" class="wb-toggle-open" />
-			</button>
-			<a href="/" class="wb-brand">
-				<img
-					src={profileConfig.avatar}
-					alt=""
-					class="wb-brand-avatar"
-					loading="lazy"
-				/>
-				<span class="wb-brand-name">{siteConfig.title}</span>
-				<span class="wb-brand-tag">AI 工作台</span>
-			</a>
+			<div class="wb-titlebar-left">
+				<a href="/" class="wb-brand">
+					<img
+						src={profileConfig.avatar}
+						alt=""
+						class="wb-brand-avatar"
+						loading="lazy"
+					/>
+					<span class="wb-brand-name">{siteConfig.title}</span>
+					<span class="wb-brand-tag">AI 工作台</span>
+				</a>
+				<button
+					type="button"
+					id="wb-rail-toggle"
+					class="wb-rail-toggle"
+					aria-label="折叠/展开会话栏"
+					title="折叠/展开会话栏"
+				>
+					<Icon name="material-symbols:left-panel-close" class="wb-toggle-close" />
+					<Icon name="material-symbols:left-panel-open" class="wb-toggle-open" />
+				</button>
+			</div>
 			<div class="wb-titlebar-right">
 				<span class="wb-status-dot"></span>
 				<span>online</span>
