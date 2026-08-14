@@ -24,6 +24,7 @@ const title = "AI 对话";
       <div class="wb-bubble">
         你好，我是这个博客的 AI 助手 🤖
         可以问我关于站点、文章的任何问题，也可以聊点别的。
+        <br />💡 试试问：「影视网站文章里有哪些网站？」「DSH 是什么？」「博客有什么内容？」
       </div>
     </div>
   </div>
@@ -86,6 +87,24 @@ const title = "AI 对话";
           window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
         }
 
+        function renderLinks(text) {
+          // 先转义 HTML，再转 markdown 链接为 <a>
+          var s = text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+          s = s.replace(
+            /\[([^\]]+)\]\((https?:\/\/[^)\s]+|\/[^)\s]*)\)/g,
+            '<a href="$2" target="_blank" rel="noopener">$1</a>'
+          );
+          s = s.replace(
+            /(^|\s)(https?:\/\/[^\s<]+)/g,
+            '$1<a href="$2" target="_blank" rel="noopener">$2</a>'
+          );
+          s = s.replace(/\n/g, "<br>");
+          return s;
+        }
+
         function addMessage(role, content) {
           var el = document.createElement("div");
           el.className = "wb-msg wb-msg--" + role;
@@ -113,7 +132,11 @@ const title = "AI 对话";
           }
 
           var bubble = el.querySelector(".wb-bubble");
-          bubble.textContent = content;
+          if (role === "assistant") {
+            bubble.innerHTML = renderLinks(content);
+          } else {
+            bubble.textContent = content;
+          }
           messagesEl.appendChild(el);
           scrollToBottom();
         }
