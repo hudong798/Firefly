@@ -51,54 +51,35 @@ const getPageUrl = (p: number) => {
 };
 ---
 
-<div class:list={[className, "flex flex-col gap-4 items-center"]} style={style}>
-  <!-- 分页信息 - 已禁用 -->
-  <!--
-  {
-    page.lastPage > 1 && (
-      <div class="text-sm text-[var(--text-secondary)] text-center">
-        第 {page.currentPage} 页，共 {page.lastPage} 页
-      </div>
-    )
-  }
-  -->
+<div class:list={[className, "wb-pagination"]} style={style}>
+  <!-- 分页信息 -->
+  <div class="wb-pagination-info">
+    page {page.currentPage} / {page.lastPage}
+  </div>
 
   <!-- 分页控件 -->
-  <div class="flex flex-row gap-3 justify-center">
+  <div class="wb-pagination-bar">
     <a
-      href={page.url.prev || ""}
-      aria-label={page.url.prev ? "Previous Page" : null}
-      class:list={[
-        "btn-card overflow-hidden rounded-lg text-[var(--primary)] w-11 h-11",
-        { disabled: page.url.prev == undefined },
-      ]}
+      href={page.url.prev || undefined}
+      aria-label={page.url.prev ? "Previous Page" : undefined}
+      class:list={["wb-page-btn", { "is-disabled": page.url.prev == undefined }]}
     >
-      <Icon
-        name="material-symbols:chevron-left-rounded"
-        class="text-[1.75rem]"
-      />
+      <Icon name="material-symbols:chevron-left-rounded" />
+      <span class="wb-page-btn-text">上一页</span>
     </a>
-    <div
-      class="bg-[var(--card-bg)] flex flex-row rounded-lg items-center text-neutral-700 dark:text-neutral-300 font-bold"
-    >
+
+    <div class="wb-page-nums">
       {
         pages.map((p) => {
           if (p == HIDDEN)
-            return <Icon name="material-symbols:more-horiz" class="mx-1" />;
+            return <span class="wb-page-ellipsis">…</span>;
           if (p == page.currentPage)
-            return (
-              <div
-                class="h-11 w-11 rounded-lg bg-[var(--primary)] flex items-center justify-center
-                        font-bold text-white dark:text-black/70"
-              >
-                {p}
-              </div>
-            );
+            return <span class="wb-page-num is-current">{p}</span>;
           return (
             <a
               href={url(getPageUrl(p))}
               aria-label={`Page ${p}`}
-              class="btn-card w-11 h-11 rounded-lg overflow-hidden active:scale-[0.85]"
+              class="wb-page-num"
             >
               {p}
             </a>
@@ -106,18 +87,14 @@ const getPageUrl = (p: number) => {
         })
       }
     </div>
+
     <a
-      href={page.url.next || ""}
-      aria-label={page.url.next ? "Next Page" : null}
-      class:list={[
-        "btn-card overflow-hidden rounded-lg text-[var(--primary)] w-11 h-11",
-        { disabled: page.url.next == undefined },
-      ]}
+      href={page.url.next || undefined}
+      aria-label={page.url.next ? "Next Page" : undefined}
+      class:list={["wb-page-btn", { "is-disabled": page.url.next == undefined }]}
     >
-      <Icon
-        name="material-symbols:chevron-right-rounded"
-        class="text-[1.75rem]"
-      />
+      <span class="wb-page-btn-text">下一页</span>
+      <Icon name="material-symbols:chevron-right-rounded" />
     </a>
   </div>
 </div>

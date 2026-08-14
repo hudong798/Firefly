@@ -1,6 +1,5 @@
 ---
 import { Icon } from "astro-icon/components";
-import { profileConfig } from "@/config";
 
 const pathname = Astro.url.pathname;
 
@@ -18,13 +17,6 @@ const isActive = (u: string) =>
 ---
 
 <aside class="wb-rail">
-	<div class="wb-rail-header">
-		<img src={profileConfig.avatar} alt="" class="wb-rail-avatar" />
-		<div>
-			<div class="wb-rail-name">{profileConfig.name}</div>
-			<div class="wb-rail-sub">{profileConfig.bio}</div>
-		</div>
-	</div>
 	<nav class="wb-rail-nav">
 		<div class="wb-rail-section">会话</div>
 		{

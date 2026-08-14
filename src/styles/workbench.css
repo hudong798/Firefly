@@ -121,32 +121,6 @@
   padding: 1rem 0.75rem;
   overflow-y: auto;
 }
-.wb-rail-header {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  padding: 0.25rem 0.5rem 1rem;
-  border-bottom: 1px solid var(--line-color);
-  margin-bottom: 0.75rem;
-}
-.wb-rail-avatar {
-  width: 2.6rem;
-  height: 2.6rem;
-  border-radius: 0.8rem;
-  object-fit: cover;
-}
-.wb-rail-name {
-  font-weight: 700;
-  font-size: 0.92rem;
-}
-.wb-rail-sub {
-  font-size: 0.72rem;
-  color: var(--wb-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 160px;
-}
 .wb-rail-section {
   font-size: 0.68rem;
   font-weight: 600;
@@ -539,9 +513,6 @@
     overflow-x: auto;
     overflow-y: hidden;
   }
-  .wb-rail-header {
-    display: none;
-  }
   .wb-rail-section {
     display: none;
   }
@@ -568,6 +539,103 @@
   border-radius: 0.9rem;
   box-shadow: var(--wb-shadow-sm);
   background: var(--wb-bubble);
+}
+
+/* ---------- 分页（聊天工作台风格） ---------- */
+.wb-pagination {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7rem;
+  margin: 0.5rem 0 1rem;
+}
+.wb-pagination-info {
+  font-family: var(--wb-mono);
+  font-size: 0.72rem;
+  color: var(--wb-muted);
+  letter-spacing: 0.12em;
+  background: var(--wb-hover);
+  border: 1px solid var(--wb-border);
+  padding: 0.2rem 0.8rem;
+  border-radius: 999px;
+}
+.wb-pagination-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.wb-page-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  height: 2.35rem;
+  padding: 0 1rem;
+  border: 1px solid var(--wb-border);
+  border-radius: 999px;
+  background: var(--wb-bubble);
+  color: inherit;
+  font-size: 0.82rem;
+  text-decoration: none;
+  transition: all 0.15s ease;
+  box-shadow: var(--wb-shadow-sm);
+}
+.wb-page-btn:hover {
+  border-color: color-mix(in oklch, var(--primary) 45%, var(--wb-border));
+  color: var(--primary);
+  transform: translateY(-1px);
+}
+.wb-page-btn.is-disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+.wb-page-btn svg {
+  font-size: 1.15rem;
+}
+.wb-page-nums {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.wb-page-num {
+  min-width: 2.35rem;
+  height: 2.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.65rem;
+  border: 1px solid var(--wb-border);
+  background: var(--wb-bubble);
+  font-family: var(--wb-mono);
+  font-size: 0.82rem;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.15s ease;
+  box-shadow: var(--wb-shadow-sm);
+}
+.wb-page-num:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateY(-1px);
+}
+.wb-page-num.is-current {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+  font-weight: 700;
+  cursor: default;
+}
+.wb-page-ellipsis {
+  color: var(--wb-muted);
+  font-family: var(--wb-mono);
+  padding: 0 0.15rem;
+}
+@media (max-width: 480px) {
+  .wb-page-btn-text {
+    display: none;
+  }
+  .wb-page-btn {
+    padding: 0 0.7rem;
+  }
 }
 .wb-chat .markdown-content h1,
 .wb-chat .markdown-content h2 {
