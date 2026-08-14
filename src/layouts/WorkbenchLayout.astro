@@ -1,0 +1,68 @@
+---
+import FloatingControls from "@/components/common/controls/FloatingControls.astro";
+import StatusBar from "@/components/workbench/StatusBar.astro";
+import SessionRail from "@/components/workbench/SessionRail.astro";
+import { profileConfig, siteConfig } from "@/config";
+import type { MarkdownHeading } from "astro";
+import Layout from "./Layout.astro";
+
+import "@/styles/workbench.css";
+
+interface Props {
+	title?: string;
+	description?: string;
+	lang?: string;
+	setOGTypeArticle?: boolean;
+	postSlug?: string;
+	headings?: MarkdownHeading[];
+}
+
+const { title, description, lang, setOGTypeArticle, postSlug, headings = [] } =
+	Astro.props;
+---
+
+<Layout
+	title={title}
+	description={description}
+	lang={lang}
+	setOGTypeArticle={setOGTypeArticle}
+	postSlug={postSlug}
+>
+	<div class="wb-shell">
+		{/* 标题栏 */}
+		<header class="wb-titlebar">
+			<a href="/" class="wb-brand">
+				<img
+					src={profileConfig.avatar}
+					alt=""
+					class="wb-brand-avatar"
+					loading="lazy"
+				/>
+				<span class="wb-brand-name">{siteConfig.title}</span>
+				<span class="wb-brand-tag">AI 工作台</span>
+			</a>
+			<div class="wb-titlebar-right">
+				<span class="wb-status-dot"></span>
+				<span>online</span>
+			</div>
+		</header>
+
+		{/* 主体：会话栏 + 聊天区 */}
+		<div class="wb-body">
+			<SessionRail />
+			<main id="swup-container" class="wb-main transition-main">
+				{/* swup 需要的容器 */}
+				<div id="right-sidebar-dynamic"></div>
+				<div id="floating-toc-wrapper"></div>
+				<div id="content-wrapper" class="wb-chat onload-animation transition-leaving">
+					<slot slot="head" name="head"></slot>
+					<slot />
+				</div>
+			</main>
+		</div>
+
+		<StatusBar />
+	</div>
+
+	<FloatingControls headings={headings} />
+</Layout>

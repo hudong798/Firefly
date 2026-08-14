@@ -1,0 +1,60 @@
+---
+import { Icon } from "astro-icon/components";
+import { profileConfig } from "@/config";
+
+const pathname = Astro.url.pathname;
+
+const nav = [
+	{ name: "首页", url: "/", icon: "material-symbols:home" },
+	{ name: "文章归档", url: "/archive/", icon: "material-symbols:archive" },
+	{ name: "搜索", url: "/search/", icon: "material-symbols:search" },
+	{ name: "关于", url: "/about/", icon: "material-symbols:info" },
+	{ name: "友链", url: "/friends/", icon: "material-symbols:link" },
+	{ name: "留言板", url: "/guestbook/", icon: "material-symbols:forum" },
+];
+
+const isActive = (u: string) =>
+	pathname === u || (u !== "/" && pathname.startsWith(u));
+---
+
+<aside class="wb-rail">
+	<div class="wb-rail-header">
+		<img src={profileConfig.avatar} alt="" class="wb-rail-avatar" />
+		<div>
+			<div class="wb-rail-name">{profileConfig.name}</div>
+			<div class="wb-rail-sub">{profileConfig.bio}</div>
+		</div>
+	</div>
+	<nav class="wb-rail-nav">
+		<div class="wb-rail-section">会话</div>
+		{
+			nav.map((n) => (
+				<a
+					href={n.url}
+					class:list={["wb-session", { "is-active": isActive(n.url) }]}
+				>
+					<Icon name={n.icon} class="wb-session-icon" />
+					<span>{n.name}</span>
+				</a>
+			))
+		}
+		<div class="wb-rail-section">工具</div>
+		<a href="/rss.xml" class="wb-session" target="_blank" rel="noopener">
+			<Icon name="material-symbols:rss-feed" class="wb-session-icon" />
+			<span>RSS 订阅</span>
+		</a>
+		<a
+			href="https://github.com/hudong798/Firefly"
+			class="wb-session"
+			target="_blank"
+			rel="noopener"
+		>
+			<Icon name="fa6-brands:github" class="wb-session-icon" />
+			<span>GitHub</span>
+		</a>
+	</nav>
+	<div class="wb-rail-footer">
+		<span class="wb-status-dot"></span>
+		engine ready · firefly
+	</div>
+</aside>

@@ -1,0 +1,563 @@
+/* =========================================================
+   AI 工作台设计系统（聊天式）
+   跟随系统深浅色：复用主题 .dark 类 与 --page-bg/--card-bg/--primary/--deep-text
+   ========================================================= */
+
+/* ---------- 工作台专用变量 ---------- */
+:root {
+  --wb-muted: oklch(0.52 0.02 var(--hue));
+  --wb-border: oklch(0.87 0.02 var(--hue));
+  --wb-border-strong: oklch(0.76 0.03 var(--hue));
+  --wb-hover: oklch(0.93 0.012 var(--hue));
+  --wb-bubble: var(--card-bg);
+  --wb-bubble-user: oklch(0.87 0.05 var(--hue));
+  --wb-rail: color-mix(in oklch, var(--card-bg) 82%, var(--page-bg));
+  --wb-code: oklch(0.9 0.02 var(--hue));
+  --wb-shadow-sm: 0 1px 2px oklch(0.35 0.03 var(--hue) / 0.08);
+  --wb-shadow-md: 0 6px 24px oklch(0.35 0.03 var(--hue) / 0.12);
+  --wb-mono: "JetBrains Mono Variable", ui-monospace, "Cascadia Code", Consolas, monospace;
+}
+.dark {
+  --wb-muted: oklch(0.66 0.02 var(--hue));
+  --wb-border: oklch(0.32 0.018 var(--hue));
+  --wb-border-strong: oklch(0.42 0.02 var(--hue));
+  --wb-hover: oklch(0.29 0.02 var(--hue));
+  --wb-bubble-user: oklch(0.3 0.045 var(--hue));
+  --wb-rail: color-mix(in oklch, var(--card-bg) 88%, #000);
+  --wb-code: oklch(0.27 0.02 var(--hue));
+  --wb-shadow-sm: 0 1px 2px oklch(0 0 0 / 0.3);
+  --wb-shadow-md: 0 8px 30px oklch(0 0 0 / 0.45);
+}
+
+/* ---------- 外壳：标题栏 + 主体 + 状态栏 ---------- */
+.wb-shell {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--page-bg);
+  color: var(--deep-text);
+}
+
+.wb-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--line-color);
+  background: var(--wb-rail);
+  backdrop-filter: blur(8px);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+.wb-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-decoration: none;
+  color: inherit;
+}
+.wb-brand-avatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.6rem;
+  object-fit: cover;
+}
+.wb-brand-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+}
+.wb-brand-tag {
+  font-family: var(--wb-mono);
+  font-size: 0.7rem;
+  color: var(--wb-muted);
+  border: 1px solid var(--wb-border);
+  border-radius: 999px;
+  padding: 0.1rem 0.5rem;
+}
+.wb-titlebar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  color: var(--wb-muted);
+  font-family: var(--wb-mono);
+}
+
+/* ---------- 状态点 ---------- */
+.wb-status-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: oklch(0.65 0.18 145);
+  box-shadow: 0 0 0 0 oklch(0.65 0.18 145 / 0.5);
+  animation: wb-pulse 2s infinite;
+  display: inline-block;
+}
+@keyframes wb-pulse {
+  0% { box-shadow: 0 0 0 0 oklch(0.65 0.18 145 / 0.45); }
+  70% { box-shadow: 0 0 0 6px oklch(0.65 0.18 145 / 0); }
+  100% { box-shadow: 0 0 0 0 oklch(0.65 0.18 145 / 0); }
+}
+
+/* ---------- 主体布局 ---------- */
+.wb-body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+/* ---------- 左侧会话栏 ---------- */
+.wb-rail {
+  width: 260px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--line-color);
+  background: var(--wb-rail);
+  backdrop-filter: blur(8px);
+  padding: 1rem 0.75rem;
+  overflow-y: auto;
+}
+.wb-rail-header {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.25rem 0.5rem 1rem;
+  border-bottom: 1px solid var(--line-color);
+  margin-bottom: 0.75rem;
+}
+.wb-rail-avatar {
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 0.8rem;
+  object-fit: cover;
+}
+.wb-rail-name {
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+.wb-rail-sub {
+  font-size: 0.72rem;
+  color: var(--wb-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+}
+.wb-rail-section {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--wb-muted);
+  padding: 0.75rem 0.5rem 0.35rem;
+}
+.wb-session {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: 0.6rem;
+  color: inherit;
+  text-decoration: none;
+  font-size: 0.86rem;
+  border: 1px solid transparent;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.wb-session:hover {
+  background: var(--wb-hover);
+  border-color: var(--wb-border);
+}
+.wb-session.is-active {
+  background: color-mix(in oklch, var(--primary) 14%, transparent);
+  border-color: color-mix(in oklch, var(--primary) 35%, transparent);
+  color: var(--primary);
+  font-weight: 600;
+}
+.wb-session-icon {
+  font-size: 1.05rem;
+  flex-shrink: 0;
+}
+.wb-rail-footer {
+  margin-top: auto;
+  padding: 0.75rem 0.5rem 0.25rem;
+  font-size: 0.7rem;
+  color: var(--wb-muted);
+  font-family: var(--wb-mono);
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  border-top: 1px solid var(--line-color);
+}
+
+/* ---------- 主聊天区 ---------- */
+.wb-main {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+}
+.wb-chat {
+  max-width: 52rem;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+/* 系统消息 */
+.wb-sys-msg {
+  align-self: center;
+  font-size: 0.72rem;
+  color: var(--wb-muted);
+  font-family: var(--wb-mono);
+  background: var(--wb-hover);
+  border: 1px solid var(--wb-border);
+  padding: 0.3rem 0.9rem;
+  border-radius: 999px;
+}
+
+/* 消息行 */
+.wb-msg {
+  display: flex;
+  gap: 0.7rem;
+  align-items: flex-start;
+  animation: wb-msg-in 0.35s ease both;
+}
+@keyframes wb-msg-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.wb-msg--user {
+  flex-direction: row-reverse;
+}
+.wb-avatar {
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 0.7rem;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid var(--wb-border);
+}
+.wb-msg-main {
+  min-width: 0;
+  max-width: min(78%, 38rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.wb-msg--user .wb-msg-main {
+  align-items: flex-end;
+}
+.wb-msg-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  padding: 0 0.15rem;
+}
+.wb-msg-author {
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.wb-msg-time {
+  font-size: 0.68rem;
+  color: var(--wb-muted);
+  font-family: var(--wb-mono);
+}
+.wb-bubble {
+  background: var(--wb-bubble);
+  border: 1px solid var(--wb-border);
+  border-radius: 0.9rem;
+  border-top-left-radius: 0.3rem;
+  padding: 0.85rem 1rem;
+  box-shadow: var(--wb-shadow-sm);
+  font-size: 0.92rem;
+  line-height: 1.7;
+}
+.wb-msg--user .wb-bubble {
+  background: var(--wb-bubble-user);
+  border-top-left-radius: 0.9rem;
+  border-top-right-radius: 0.3rem;
+}
+.wb-bubble p {
+  margin: 0 0 0.5rem;
+}
+.wb-bubble p:last-child {
+  margin-bottom: 0;
+}
+
+/* 打字指示器 */
+.wb-typing {
+  display: flex;
+  gap: 0.3rem;
+  align-items: center;
+  padding: 0.2rem 0;
+  animation: wb-typing-hide 2.6s ease forwards;
+  transform-origin: left center;
+}
+@keyframes wb-typing-hide {
+  0%, 70% { opacity: 1; transform: scaleY(1); max-height: 2rem; }
+  100% { opacity: 0; transform: scaleY(0); max-height: 0; padding: 0; margin: 0; }
+}
+.wb-typing span {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: var(--wb-muted);
+  animation: wb-bounce 1.2s infinite;
+}
+.wb-typing span:nth-child(2) { animation-delay: 0.15s; }
+.wb-typing span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes wb-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+
+/* 快捷指令 chips */
+.wb-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+.wb-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid var(--wb-border-strong);
+  background: var(--wb-hover);
+  color: inherit;
+  font-size: 0.8rem;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+.wb-chip:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+/* 分隔线 */
+.wb-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--wb-muted);
+  font-size: 0.72rem;
+  margin: 0.5rem 0;
+}
+.wb-divider::before,
+.wb-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line-color);
+}
+.wb-divider span {
+  font-family: var(--wb-mono);
+  letter-spacing: 0.08em;
+}
+
+/* 文章 = 助手消息 */
+.wb-msg--post {
+  text-decoration: none;
+  color: inherit;
+}
+.wb-msg--post .wb-bubble {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.wb-msg--post:hover .wb-bubble {
+  border-color: color-mix(in oklch, var(--primary) 45%, var(--wb-border));
+  box-shadow: var(--wb-shadow-md);
+}
+.wb-post-title {
+  font-weight: 700;
+  font-size: 0.98rem;
+  margin-bottom: 0.35rem;
+}
+.wb-post-desc {
+  color: var(--wb-muted);
+  font-size: 0.84rem;
+  margin-bottom: 0.6rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.wb-post-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.wb-tag {
+  font-size: 0.7rem;
+  font-family: var(--wb-mono);
+  color: var(--wb-muted);
+  border: 1px solid var(--wb-border);
+  border-radius: 999px;
+  padding: 0.08rem 0.5rem;
+}
+.wb-post-read {
+  margin-left: auto;
+  font-size: 0.78rem;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* ---------- 底部状态栏（终端风格） ---------- */
+.wb-statusbar {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  padding: 0.45rem 1rem;
+  border-top: 1px solid var(--line-color);
+  background: var(--wb-rail);
+  font-family: var(--wb-mono);
+  font-size: 0.72rem;
+  color: var(--wb-muted);
+  position: sticky;
+  bottom: 0;
+  z-index: 40;
+}
+.wb-statusbar-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+.wb-statusbar-right {
+  margin-left: auto;
+}
+
+/* ---------- 文章页（聊天气泡式正文） ---------- */
+.wb-article .wb-bubble {
+  border-top-left-radius: 0.3rem;
+  font-size: 0.95rem;
+}
+.wb-article-header {
+  margin-bottom: 0.4rem;
+}
+.wb-article-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 1.4;
+  margin: 0 0 0.5rem;
+}
+.wb-article-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.76rem;
+  color: var(--wb-muted);
+  font-family: var(--wb-mono);
+}
+.wb-article-body {
+  margin-top: 0.5rem;
+}
+.wb-article-body > :first-child {
+  margin-top: 0;
+}
+.wb-article-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.9rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--line-color);
+}
+.wb-article-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
+  font-size: 0.82rem;
+}
+.wb-article-nav a {
+  color: var(--primary);
+  text-decoration: none;
+}
+.wb-article-nav a:hover {
+  text-decoration: underline;
+}
+
+/* 正文内的代码/引用/表格微调 */
+.wb-article-body pre {
+  background: var(--wb-code);
+  border: 1px solid var(--wb-border);
+  border-radius: 0.6rem;
+  padding: 0.9rem 1rem;
+  overflow-x: auto;
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+.wb-article-body code {
+  font-family: var(--wb-mono);
+}
+.wb-article-body blockquote {
+  border-left: 3px solid var(--primary);
+  margin: 0.8rem 0;
+  padding: 0.2rem 0 0.2rem 1rem;
+  color: var(--wb-muted);
+}
+.wb-article-body table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+  margin: 0.8rem 0;
+}
+.wb-article-body th,
+.wb-article-body td {
+  border: 1px solid var(--wb-border);
+  padding: 0.45rem 0.7rem;
+  text-align: left;
+}
+.wb-article-body th {
+  background: var(--wb-hover);
+  font-weight: 700;
+}
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 860px) {
+  .wb-body {
+    flex-direction: column;
+  }
+  .wb-rail {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--line-color);
+    padding: 0.6rem 0.75rem;
+    flex-direction: row;
+    align-items: center;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  .wb-rail-header {
+    display: none;
+  }
+  .wb-rail-section {
+    display: none;
+  }
+  .wb-rail-nav {
+    display: flex;
+    gap: 0.35rem;
+    flex: 1;
+  }
+  .wb-session {
+    padding: 0.45rem 0.7rem;
+    white-space: nowrap;
+  }
+  .wb-rail-footer {
+    display: none;
+  }
+  .wb-statusbar-item.wb-statusbar-mono {
+    display: none;
+  }
+}

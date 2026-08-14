@@ -1,9 +1,9 @@
 ---
 import type { GetStaticPaths } from "astro";
 import Pagination from "@/components/common/controls/Pagination.astro";
-import PostPage from "@/components/layout/PostPage.astro";
+import ChatHome from "@/components/workbench/ChatHome.astro";
 import { siteConfig } from "@/config";
-import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import WorkbenchLayout from "@/layouts/WorkbenchLayout.astro";
 import { getSortedPosts } from "@/utils/content-utils";
 export const getStaticPaths = (async ({ paginate }) => {
 	const allBlogPosts = await getSortedPosts();
@@ -18,8 +18,8 @@ const { page } = Astro.props;
 const len = page.data.length;
 ---
 
-<MainGridLayout>
-  <PostPage page={page} />
+<WorkbenchLayout>
+  <ChatHome posts={page.data} />
   {
     page.total > page.size && (
       <Pagination
@@ -29,7 +29,7 @@ const len = page.data.length;
       />
     )
   }
-</MainGridLayout>
+</WorkbenchLayout>
 
 <script>
   // 响应式分页处理脚本
