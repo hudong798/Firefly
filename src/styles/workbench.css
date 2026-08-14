@@ -521,15 +521,30 @@
   }
 }
 
-/* ---------- 站内文章搜索（首页顶部吸顶） ---------- */
-.wb-search {
-  position: sticky;
-  top: 0.5rem;
-  z-index: 40;
-  align-self: stretch;
-  background: var(--page-bg);
-  padding: 0.4rem 0;
-  border-radius: 1rem;
+/* ---------- 顶栏站内文章搜索 ---------- */
+.wb-titlebar-search {
+  flex: 1;
+  max-width: 28rem;
+  margin: 0 1rem;
+  position: relative;
+  display: flex;
+}
+.wb-composer--bar {
+  flex: 1;
+  min-width: 0;
+  height: 2.3rem;
+  padding: 0 0.5rem 0 0.9rem;
+  margin-top: 0;
+  background: var(--wb-hover);
+  border-radius: 999px;
+  align-items: center;
+}
+.wb-composer--bar .wb-composer-btn {
+  width: 1.7rem;
+  height: 1.7rem;
+}
+.wb-composer--bar .wb-composer-btn svg {
+  font-size: 0.95rem;
 }
 .wb-composer--search {
   cursor: text;
@@ -763,6 +778,10 @@
   }
   /* 移动端折叠：整条导航条隐藏 */
   .wb-shell.is-rail-collapsed .wb-rail {
+    display: none;
+  }
+  /* 移动端顶栏搜索隐藏（可用欢迎语快捷指令或 /search/ 页） */
+  .wb-titlebar-search {
     display: none;
   }
 }
