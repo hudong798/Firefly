@@ -561,3 +561,28 @@
     display: none;
   }
 }
+
+/* ---------- 通用页面内容融入聊天风格 ---------- */
+.wb-chat .card-base {
+  border: 1px solid var(--wb-border);
+  border-radius: 0.9rem;
+  box-shadow: var(--wb-shadow-sm);
+  background: var(--wb-bubble);
+}
+.wb-chat .markdown-content h1,
+.wb-chat .markdown-content h2 {
+  border-bottom: 1px solid var(--line-color);
+  padding-bottom: 0.4rem;
+}
+.wb-chat .btn-card {
+  border: 1px solid var(--wb-border);
+  border-radius: 0.9rem;
+  background: var(--wb-bubble);
+  box-shadow: var(--wb-shadow-sm);
+}
+.wb-chat a {
+  color: var(--primary);
+}
+.wb-chat img {
+  border-radius: 0.5rem;
+}
