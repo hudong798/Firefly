@@ -1,11 +1,13 @@
 ---
 import { Icon } from "astro-icon/components";
+import RandomCoverImage from "@/components/misc/RandomCoverImage.astro";
 import { profileConfig } from "@/config";
-import type { PostForList } from "@/utils/content-utils";
-import { getPostUrlBySlug } from "@/utils/url-utils";
+import { processCoverImageSync } from "@/utils/image-utils";
+import type { CollectionEntry } from "astro:content";
+import { getFileDirFromPath, getPostUrlBySlug } from "@/utils/url-utils";
 
 interface Props {
-	posts: PostForList[];
+	posts: CollectionEntry<"posts">[];
 }
 
 const { posts } = Astro.props;
@@ -13,6 +15,13 @@ const fmtDate = (d: Date) =>
 	`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
 		d.getDate(),
 	).padStart(2, "0")}`;
+
+// 根据标签名生成稳定的色相偏移，让标签有区分度
+const tagHue = (tag: string) => {
+	let h = 0;
+	for (let i = 0; i < tag.length; i++) h = (h * 31 + tag.charCodeAt(i)) % 360;
+	return h;
+};
 ---
 
 <!-- 系统消息 -->
@@ -42,8 +51,8 @@ const fmtDate = (d: Date) =>
 				<a class="wb-chip" href="/about/"
 					><Icon name="material-symbols:info" /> 关于我</a
 				>
-				<a class="wb-chip" href="/rss.xml"
-					><Icon name="material-symbols:rss-feed" /> RSS</a
+				<a class="wb-chip" href="/friends/"
+					><Icon name="material-symbols:link" /> 友链</a
 				>
 			</div>
 		</div>
@@ -55,30 +64,72 @@ const fmtDate = (d: Date) =>
 
 <!-- 文章列表：每条 = 一条助手回复 -->
 {
-	posts.map((post) => (
-		<a
-			class="wb-msg wb-msg--assistant wb-msg--post"
-			href={getPostUrlBySlug(post.id)}
-		>
-			<img class="wb-avatar" src={profileConfig.avatar} alt="" />
-			<div class="wb-msg-main">
-				<div class="wb-msg-meta">
-					<span class="wb-msg-author">assistant</span>
-					<span class="wb-msg-time">{fmtDate(post.data.published)}</span>
-				</div>
-				<div class="wb-bubble">
-					<div class="wb-post-title">{post.data.title}</div>
-					{post.data.description && (
-						<div class="wb-post-desc">{post.data.description}</div>
-					)}
-					<div class="wb-post-footer">
-						{post.data.tags?.slice(0, 3).map((t) => (
-							<span class="wb-tag">#{t}</span>
-						))}
-						<span class="wb-post-read">阅读 →</span>
+	posts.map((post) => {
+		const processedImage = processCoverImageSync(post.data.image, post.id);
+		const hasCover =
+			processedImage !== undefined &&
+			processedImage !== null &&
+			processedImage !== "";
+		return (
+			<a
+				class="wb-msg wb-msg--assistant wb-msg--post"
+				href={getPostUrlBySlug(post.id)}
+			>
+				<img class="wb-avatar" src={profileConfig.avatar} alt="" />
+				<div class="wb-msg-main">
+					<div class="wb-msg-meta">
+						<span class="wb-msg-author">assistant</span>
+						<span class="wb-msg-time">{fmtDate(post.data.published)}</span>
+					</div>
+					<div class="wb-bubble">
+						<div class="wb-post-body">
+							{
+								hasCover && (
+									<RandomCoverImage
+										src={processedImage}
+										basePath={getFileDirFromPath(post.filePath || "")}
+										alt="文章封面"
+										class="wb-post-cover"
+										seed={post.id}
+										preview={true}
+									/>
+								)
+							}
+							<div class="wb-post-main">
+								<div class="wb-post-title">
+									{post.data.pinned && (
+										<span class="wb-post-pinned">📌 置顶</span>
+									)}
+									{post.data.title}
+								</div>
+								{post.data.description && (
+									<div class="wb-post-desc">{post.data.description}</div>
+								)}
+								<div class="wb-post-footer">
+									{post.data.tags?.slice(0, 3).map((t) => (
+										<span
+											class="wb-tag"
+											style={{
+												"--tag-c": `oklch(0.55 0.13 ${tagHue(t.trim())})`,
+											}}
+										>
+											#{t.trim()}
+										</span>
+									))}
+									<span class="wb-post-read">阅读 →</span>
+								</div>
+							</div>
+						</div>
 					</div>
 				</div>
-			</div>
-		</a>
-	))
+			</a>
+		);
+	})
 }
+
+<!-- 假输入框：点击进入搜索 -->
+<a href="/search/" class="wb-composer" aria-label="搜索站点内容">
+	<Icon name="material-symbols:edit" class="wb-composer-ic" />
+	<span class="wb-composer-ph">输入消息，搜索站点内容…</span>
+	<span class="wb-composer-btn"><Icon name="material-symbols:send" /></span>
+</a>
