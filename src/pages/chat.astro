@@ -1,0 +1,156 @@
+---
+import { Icon } from "astro-icon/components";
+import WorkbenchLayout from "@/layouts/WorkbenchLayout.astro";
+import { profileConfig, siteConfig } from "@/config";
+
+const title = "AI 对话";
+---
+
+<WorkbenchLayout
+  title={title}
+  description={`和 ${profileConfig.name} 的博客 AI 助手对话`}
+>
+  <!-- 系统消息 -->
+  <div class="wb-sys-msg">🤖 已连接博客 AI 助手 · 基于 DeepSeek</div>
+
+  <!-- 欢迎消息 -->
+  <div class="wb-msg wb-msg--assistant">
+    <img class="wb-avatar" src={profileConfig.avatar} alt="" />
+    <div class="wb-msg-main">
+      <div class="wb-msg-meta">
+        <span class="wb-msg-author">{profileConfig.name} · AI</span>
+        <span class="wb-msg-time">online</span>
+      </div>
+      <div class="wb-bubble">
+        你好，我是这个博客的 AI 助手 🤖
+        可以问我关于站点、文章的任何问题，也可以聊点别的。
+      </div>
+    </div>
+  </div>
+
+  <!-- 动态消息区 -->
+  <div id="wb-chat-messages"></div>
+
+  <!-- 等待回复的打字指示 -->
+  <div class="wb-msg wb-msg--assistant" id="wb-chat-typing" hidden>
+    <img class="wb-avatar" src={profileConfig.avatar} alt="" />
+    <div class="wb-msg-main">
+      <div class="wb-msg-meta">
+        <span class="wb-msg-author">{profileConfig.name} · AI</span>
+      </div>
+      <div class="wb-bubble">
+        <div class="wb-typing wb-typing--live">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 输入区 -->
+  <form id="wb-chat-form" class="wb-composer wb-composer--real">
+    <Icon name="material-symbols:edit" class="wb-composer-ic" />
+    <input
+      id="wb-chat-input"
+      class="wb-composer-input"
+      type="text"
+      placeholder="输入消息，和博客 AI 对话…"
+      autocomplete="off"
+      maxlength="2000"
+    />
+    <button type="submit" class="wb-composer-btn" aria-label="发送">
+      <Icon name="material-symbols:send" />
+    </button>
+  </form>
+</WorkbenchLayout>
+
+<script define:vars={{ avatar: profileConfig.avatar, siteName: siteConfig.title }}>
+  const form = document.getElementById("wb-chat-form") as HTMLFormElement;
+  const input = document.getElementById("wb-chat-input") as HTMLInputElement;
+  const messagesEl = document.getElementById("wb-chat-messages") as HTMLElement;
+  const typingEl = document.getElementById("wb-chat-typing") as HTMLElement;
+
+  const history: { role: "user" | "assistant"; content: string }[] = [];
+  const MAX_HISTORY = 20;
+
+  function scrollToBottom() {
+    window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+  }
+
+  function addMessage(role: "user" | "assistant", content: string) {
+    const el = document.createElement("div");
+    el.className = `wb-msg wb-msg--${role}`;
+
+    if (role === "assistant") {
+      el.innerHTML = `
+        <img class="wb-avatar" src="${avatar}" alt="" />
+        <div class="wb-msg-main">
+          <div class="wb-msg-meta">
+            <span class="wb-msg-author">${siteName} · AI</span>
+            <span class="wb-msg-time">刚刚</span>
+          </div>
+          <div class="wb-bubble"></div>
+        </div>`;
+      const bubble = el.querySelector(".wb-bubble") as HTMLElement;
+      bubble.textContent = content;
+    } else {
+      el.innerHTML = `
+        <div class="wb-avatar wb-avatar--user">我</div>
+        <div class="wb-msg-main">
+          <div class="wb-msg-meta">
+            <span class="wb-msg-author">访客</span>
+            <span class="wb-msg-time">刚刚</span>
+          </div>
+          <div class="wb-bubble"></div>
+        </div>`;
+      const bubble = el.querySelector(".wb-bubble") as HTMLElement;
+      bubble.textContent = content;
+    }
+
+    messagesEl.appendChild(el);
+    scrollToBottom();
+  }
+
+  function setTyping(show: boolean) {
+    typingEl.hidden = !show;
+    if (show) scrollToBottom();
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const text = input.value.trim();
+    if (!text) return;
+
+    input.value = "";
+    history.push({ role: "user", content: text });
+    addMessage("user", text);
+    setTyping(true);
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: history.slice(-MAX_HISTORY) }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        addMessage(
+          "assistant",
+          `⚠️ 出错了：${data?.error || `HTTP ${res.status}`}`,
+        );
+        // 出错时不保留这条用户消息在历史中，避免循环出错
+        history.pop();
+        return;
+      }
+
+      const reply: string = data?.reply || "（空回复）";
+      history.push({ role: "assistant", content: reply });
+      addMessage("assistant", reply);
+    } catch (err) {
+      addMessage("assistant", `⚠️ 网络错误：${(err as Error).message}`);
+      history.pop();
+    } finally {
+      setTyping(false);
+    }
+  });
+</script>

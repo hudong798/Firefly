@@ -519,6 +519,38 @@
   }
 }
 
+/* ---------- AI 对话页 ---------- */
+.wb-typing--live {
+  animation: none;
+}
+.wb-avatar--user {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border: none;
+}
+.wb-composer--real {
+  border-radius: 1.3rem;
+  padding: 0.5rem 0.6rem 0.5rem 1rem;
+}
+.wb-composer-input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--deep-text);
+  font-size: 0.88rem;
+  font-family: inherit;
+}
+.wb-composer-input::placeholder {
+  color: var(--wb-muted);
+}
+
 /* ---------- 底部状态栏（终端风格） ---------- */
 .wb-statusbar {
   display: flex;
