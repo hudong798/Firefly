@@ -111,4 +111,25 @@ const { title, description, lang, setOGTypeArticle, postSlug, headings = [] } =
 			}
 		});
 	}
+
+	// 工作台布局：主内容在 .wb-main 内部滚动，
+	// swup 切换页面后把滚动容器拉回顶部（window.scrollTo 已失效）
+	function setupWorkbenchScroll() {
+		const main = document.querySelector(".wb-main");
+		const scrollTop = () => {
+			if (main) main.scrollTo({ top: 0, behavior: "smooth" });
+		};
+		if (window.swup?.hooks) {
+			window.swup.hooks.on("page:view", scrollTop);
+		} else {
+			document.addEventListener("swup:enable", () => {
+				window.swup?.hooks.on("page:view", scrollTop);
+			});
+		}
+	}
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", setupWorkbenchScroll);
+	} else {
+		setupWorkbenchScroll();
+	}
 </script>

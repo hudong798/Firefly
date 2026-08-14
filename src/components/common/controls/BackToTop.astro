@@ -12,9 +12,19 @@ import FloatingButton from "@/components/common/base/FloatingButton.astro";
 />
 
 <script is:raw is:inline>
+  // 工作台布局下主内容在 .wb-main 内部滚动，优先滚动该容器
+  function getScrollContainer() {
+    return document.querySelector(".wb-main") || document.scrollingElement;
+  }
+
   function backToTop() {
     // 直接使用原生滚动，避免OverlayScrollbars冲突
-    window.scroll({ top: 0, behavior: "smooth" });
+    const container = getScrollContainer();
+    if (container && container !== document.scrollingElement) {
+      container.scroll({ top: 0, behavior: "smooth" });
+    } else {
+      window.scroll({ top: 0, behavior: "smooth" });
+    }
   }
 
   // 响应式返回顶部按钮管理器
@@ -32,9 +42,12 @@ import FloatingButton from "@/components/common/base/FloatingButton.astro";
       }
 
       setupScrollListener() {
+        const container = getScrollContainer();
         const updateVisibility = () => {
           const scrollTop =
-            window.pageYOffset || document.documentElement.scrollTop;
+            (container && container !== document.scrollingElement
+              ? container.scrollTop
+              : window.pageYOffset || document.documentElement.scrollTop) || 0;
 
           // 当滚动超过200px时显示按钮
           if (scrollTop > 200) {
@@ -45,6 +58,11 @@ import FloatingButton from "@/components/common/base/FloatingButton.astro";
         };
 
         window.addEventListener("scroll", updateVisibility, { passive: true });
+        if (container && container !== document.scrollingElement) {
+          container.addEventListener("scroll", updateVisibility, {
+            passive: true,
+          });
+        }
       }
     };
   }

@@ -31,7 +31,9 @@
 
 /* ---------- 外壳：标题栏 + 主体 + 状态栏 ---------- */
 .wb-shell {
-  min-height: 100dvh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   background: var(--page-bg);
