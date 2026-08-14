@@ -580,7 +580,7 @@
   background: var(--wb-bubble);
   box-shadow: var(--wb-shadow-sm);
 }
-.wb-chat a {
+.wb-chat a:not(.wb-msg--post) {
   color: var(--primary);
 }
 .wb-chat img {
