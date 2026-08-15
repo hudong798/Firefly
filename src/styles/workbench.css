@@ -598,7 +598,83 @@
   text-align: center;
 }
 
-/* ---------- AI 对话页 ---------- */
+/* ---------- 管理后台 ---------- */
+.wb-admin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.wb-admin-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--wb-muted);
+  margin-top: 0.3rem;
+}
+.wb-admin-input,
+.wb-admin-textarea {
+  width: 100%;
+  background: var(--wb-hover);
+  border: 1px solid var(--wb-border);
+  border-radius: 0.6rem;
+  padding: 0.55rem 0.8rem;
+  font-size: 0.88rem;
+  color: var(--deep-text);
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s ease;
+  box-sizing: border-box;
+}
+.wb-admin-input:focus,
+.wb-admin-textarea:focus {
+  border-color: var(--primary);
+}
+.wb-admin-textarea {
+  min-height: 12rem;
+  resize: vertical;
+  font-family: var(--wb-mono);
+  line-height: 1.6;
+}
+.wb-admin-btn {
+  margin-top: 0.4rem;
+  padding: 0.55rem 1.2rem;
+  border: 1px solid var(--wb-border-strong);
+  border-radius: 999px;
+  background: var(--wb-hover);
+  color: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  align-self: flex-start;
+}
+.wb-admin-btn--primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+.wb-admin-btn--primary:hover {
+  filter: brightness(1.08);
+}
+.wb-admin-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.wb-admin-error {
+  font-size: 0.8rem;
+  color: oklch(0.6 0.18 25);
+  padding: 0.3rem 0;
+}
+.wb-admin-ok {
+  font-size: 0.85rem;
+  color: oklch(0.6 0.16 145);
+  padding: 0.3rem 0;
+}
+.wb-admin-ok a {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+/* ---------- 对话页样式（AI 对话已移除，保留供扩展） ---------- */
 .wb-typing--live {
   animation: none;
 }
