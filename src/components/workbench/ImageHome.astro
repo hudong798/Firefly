@@ -1,33 +1,46 @@
 ---
-import { profileConfig } from "@/config";
-
 const imgSrc = "/assets/images/123.png";
 ---
 
-<!-- 系统消息 -->
-<div class="wb-sys-msg">🖼️ 首页展示</div>
-
-<!-- 图片卡片 -->
-<div class="wb-msg wb-msg--assistant">
-	<img class="wb-avatar" src={profileConfig.avatar} alt="" />
-	<div class="wb-msg-main">
-		<div class="wb-msg-meta">
-			<span class="wb-msg-author">{profileConfig.name} · 首页</span>
-			<span class="wb-msg-time">page</span>
-		</div>
-		<div class="wb-bubble wb-page-bubble">
-			<img src={imgSrc} alt="首页展示图" class="wb-home-image" loading="lazy" />
-		</div>
-	</div>
+<!-- 全屏首页图片：占据侧边栏与顶栏之外的整个屏幕 -->
+<div class="wb-home-stage">
+	<img src={imgSrc} alt="首页展示图" class="wb-home-image" />
 </div>
 
 <style>
+	/* 首页：聊天容器全宽无内边距，避免 max-width/transform 包含块限制图片 */
+	:global(.wb-chat:has(.wb-home-stage)) {
+		max-width: none;
+		margin: 0;
+		padding: 0;
+		height: 100%;
+	}
+
+	/* 首页图片舞台：铺满 .wb-main 全部可视区域（顶栏和侧边栏之外） */
+	:global(.wb-main:has(.wb-home-stage)) {
+		position: relative;
+		overflow: hidden;
+	}
+
+	/* 首页隐藏底部状态栏，让图片真正占满整屏 */
+	:global(.wb-shell:has(.wb-home-stage) .wb-statusbar) {
+		display: none;
+	}
+
+	/* 舞台填满整个主区域 */
+	.wb-home-stage {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		background: var(--page-bg);
+	}
+
 	.wb-home-image {
 		display: block;
 		width: 100%;
-		height: auto;
-		border-radius: 12px;
-		object-fit: contain;
-		box-shadow: 0 4px 24px rgb(0 0 0 / 0.12);
+		height: 100%;
+		object-fit: cover;
+		object-position: center;
 	}
 </style>
