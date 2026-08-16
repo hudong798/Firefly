@@ -1,0 +1,33 @@
+---
+import { profileConfig } from "@/config";
+
+const imgSrc = "/assets/images/123.png";
+---
+
+<!-- 系统消息 -->
+<div class="wb-sys-msg">🖼️ 首页展示</div>
+
+<!-- 图片卡片 -->
+<div class="wb-msg wb-msg--assistant">
+	<img class="wb-avatar" src={profileConfig.avatar} alt="" />
+	<div class="wb-msg-main">
+		<div class="wb-msg-meta">
+			<span class="wb-msg-author">{profileConfig.name} · 首页</span>
+			<span class="wb-msg-time">page</span>
+		</div>
+		<div class="wb-bubble wb-page-bubble">
+			<img src={imgSrc} alt="首页展示图" class="wb-home-image" loading="lazy" />
+		</div>
+	</div>
+</div>
+
+<style>
+	.wb-home-image {
+		display: block;
+		width: 100%;
+		height: auto;
+		border-radius: 12px;
+		object-fit: contain;
+		box-shadow: 0 4px 24px rgb(0 0 0 / 0.12);
+	}
+</style>

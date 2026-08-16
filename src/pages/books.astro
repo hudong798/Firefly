@@ -1,0 +1,37 @@
+---
+import { getEntry, render } from "astro:content";
+import Markdown from "@components/misc/Markdown.astro";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import { profileConfig } from "@/config";
+
+const title = "书籍";
+const description = "读书笔记与书单推荐";
+
+const post = await getEntry("spec", "books");
+
+if (!post) {
+	throw new Error("books page content not found");
+}
+
+const { Content } = await render(post);
+---
+
+<MainGridLayout title={title} description={description}>
+	<!-- 页面内容 = 助手消息气泡 -->
+	<div class="wb-msg wb-msg--assistant">
+		<img class="wb-avatar" src={profileConfig.avatar} alt="" />
+		<div class="wb-msg-main">
+			<div class="wb-msg-meta">
+				<span class="wb-msg-author">{title}</span>
+				<span class="wb-msg-time">page</span>
+			</div>
+			<div class="wb-bubble wb-page-bubble">
+				<div class="wb-article-body markdown-content">
+					<Markdown class="mt-2">
+						<Content />
+					</Markdown>
+				</div>
+			</div>
+		</div>
+	</div>
+</MainGridLayout>
