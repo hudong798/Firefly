@@ -1,10 +1,61 @@
 ---
-const imgSrc = "/assets/images/2.gif";
+// 首页壁纸轮播：桌面端读取 public/assets/images/shouye/，移动端（≤860px）读取 yidong/
+// 往对应文件夹里放入图片即可自动加入轮播（支持 webp/png/jpg/gif）
+import { readdirSync } from "node:fs";
+
+const IMG_RE = /\.(webp|png|jpe?g|gif)$/i;
+
+const listImages = (dirName: string): string[] => {
+	try {
+		const dir = new URL(`../../../public/assets/images/${dirName}/`, import.meta.url);
+		return readdirSync(dir)
+			.filter((f) => IMG_RE.test(f))
+			.sort()
+			.map((f) => `/assets/images/${dirName}/${f}`);
+	} catch {
+		return [];
+	}
+};
+
+const desktopWallpapers = listImages("shouye");
+const mobileWallpapers = listImages("yidong");
+const desktopList = desktopWallpapers.length ? desktopWallpapers : [""];
+const mobileList = mobileWallpapers.length ? mobileWallpapers : [""];
 ---
 
-<!-- 全屏首页图片：占据侧边栏与顶栏之外的整个屏幕 -->
+<!-- 全屏首页壁纸轮播：占据侧边栏与顶栏之外的整个屏幕 -->
 <div class="wb-home-stage">
-	<img src={imgSrc} alt="首页展示图" class="wb-home-image" />
+	<!-- 桌面端轮播 -->
+	<div class="wb-carousel wb-carousel--desktop" data-carousel="desktop">
+		{desktopList.map((src, i) => (
+			<div class="wb-slide" data-index={i}>
+				{src ? <img data-src={src} alt="" class="wb-home-image" /> : null}
+			</div>
+		))}
+		{desktopList.length > 1 && (
+			<div class="wb-dots">
+				{desktopList.map((_, i) => (
+					<button type="button" class="wb-dot" data-dot={i} aria-label={`第${i + 1}张`}></button>
+				))}
+			</div>
+		)}
+	</div>
+
+	<!-- 移动端轮播 -->
+	<div class="wb-carousel wb-carousel--mobile" data-carousel="mobile">
+		{mobileList.map((src, i) => (
+			<div class="wb-slide" data-index={i}>
+				{src ? <img data-src={src} alt="" class="wb-home-image" /> : null}
+			</div>
+		))}
+		{mobileList.length > 1 && (
+			<div class="wb-dots">
+				{mobileList.map((_, i) => (
+					<button type="button" class="wb-dot" data-dot={i} aria-label={`第${i + 1}张`}></button>
+				))}
+			</div>
+		)}
+	</div>
 </div>
 
 <style>
@@ -27,6 +78,12 @@ const imgSrc = "/assets/images/2.gif";
 		display: none;
 	}
 
+	/* 首页禁止页面级滚动，避免滚动条挤压右侧产生间隙 */
+	:global(html:has(.wb-home-stage)),
+	:global(body:has(.wb-home-stage)) {
+		overflow: hidden;
+	}
+
 	/* 舞台填满整个主区域 */
 	.wb-home-stage {
 		position: absolute;
@@ -36,6 +93,27 @@ const imgSrc = "/assets/images/2.gif";
 		background: var(--page-bg);
 	}
 
+	/* 轮播容器与幻灯片铺满 */
+	.wb-carousel {
+		display: none;
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+	}
+	.wb-carousel.is-active-carousel {
+		display: block;
+	}
+	.wb-slide {
+		position: absolute;
+		inset: 0;
+		opacity: 0;
+		transition: opacity 1s ease;
+	}
+	.wb-slide.is-active {
+		opacity: 1;
+	}
+
 	.wb-home-image {
 		display: block;
 		width: 100%;
@@ -43,4 +121,91 @@ const imgSrc = "/assets/images/2.gif";
 		object-fit: cover;
 		object-position: center;
 	}
+
+	/* 轮播指示点 */
+	.wb-dots {
+		position: absolute;
+		bottom: 1.4rem;
+		left: 50%;
+		transform: translateX(-50%);
+		display: flex;
+		gap: 0.5rem;
+		z-index: 6;
+	}
+	.wb-dot {
+		width: 0.65rem;
+		height: 0.65rem;
+		border-radius: 50%;
+		border: 1px solid rgb(255 255 255 / 0.75);
+		background: rgb(0 0 0 / 0.35);
+		cursor: pointer;
+		padding: 0;
+		transition: background 0.2s ease;
+	}
+	.wb-dot.is-active {
+		background: #fff;
+	}
 </style>
+
+<script>
+	// 轮播：仅在匹配视口的一端初始化（另一端不加载图片，节省流量）
+	function initCarousel(root: HTMLElement | null) {
+		if (!root || root.dataset.init) return;
+		root.dataset.init = "1";
+
+		const slides = Array.from(root.querySelectorAll<HTMLElement>(".wb-slide"));
+		const dots = Array.from(root.querySelectorAll<HTMLButtonElement>(".wb-dot"));
+		if (!slides.length) return;
+
+		let current = 0;
+		const loadImg = (img: HTMLImageElement | null) => {
+			if (img && img.dataset.src) {
+				img.src = img.dataset.src;
+				img.removeAttribute("data-src");
+			}
+		};
+		const show = (i: number) => {
+			slides.forEach((s, idx) => s.classList.toggle("is-active", idx === i));
+			dots.forEach((d, idx) => d.classList.toggle("is-active", idx === i));
+		};
+
+		loadImg(slides[0].querySelector("img"));
+		show(0);
+
+		if (slides.length > 1) {
+			const step = () => {
+				current = (current + 1) % slides.length;
+				loadImg(slides[current].querySelector("img"));
+				show(current);
+			};
+			const timer = window.setInterval(step, 5000);
+			dots.forEach((d, i) =>
+				d.addEventListener("click", () => {
+					current = i;
+					loadImg(slides[i].querySelector("img"));
+					show(i);
+				}),
+			);
+			root.dataset.timer = String(timer);
+		}
+	}
+
+	const mq = window.matchMedia("(max-width: 860px)");
+	const desktopCar = document.querySelector<HTMLElement>('[data-carousel="desktop"]');
+	const mobileCar = document.querySelector<HTMLElement>('[data-carousel="mobile"]');
+
+	const apply = () => {
+		const useMobile = mq.matches;
+		desktopCar?.classList.toggle("is-active-carousel", !useMobile);
+		mobileCar?.classList.toggle("is-active-carousel", useMobile);
+		if (useMobile) initCarousel(mobileCar);
+		else initCarousel(desktopCar);
+	};
+
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", apply);
+	} else {
+		apply();
+	}
+	mq.addEventListener("change", apply);
+</script>
