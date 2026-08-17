@@ -17,10 +17,8 @@ const listImages = (dirName: string): string[] => {
 	}
 };
 
-const desktopWallpapers = listImages("shouye");
-const mobileWallpapers = listImages("yidong");
-const desktopList = desktopWallpapers.length ? desktopWallpapers : [""];
-const mobileList = mobileWallpapers.length ? mobileWallpapers : [""];
+const desktopList = listImages("shouye");
+const mobileList = listImages("yidong");
 ---
 
 <!-- 全屏首页壁纸轮播：占据侧边栏与顶栏之外的整个屏幕 -->
@@ -29,7 +27,7 @@ const mobileList = mobileWallpapers.length ? mobileWallpapers : [""];
 	<div class="wb-carousel wb-carousel--desktop" data-carousel="desktop">
 		{desktopList.map((src, i) => (
 			<div class="wb-slide" data-index={i}>
-				{src ? <img data-src={src} alt="" class="wb-home-image" /> : null}
+				<img src={src} alt="" class="wb-home-image" loading="lazy" />
 			</div>
 		))}
 		{desktopList.length > 1 && (
@@ -45,7 +43,7 @@ const mobileList = mobileWallpapers.length ? mobileWallpapers : [""];
 	<div class="wb-carousel wb-carousel--mobile" data-carousel="mobile">
 		{mobileList.map((src, i) => (
 			<div class="wb-slide" data-index={i}>
-				{src ? <img data-src={src} alt="" class="wb-home-image" /> : null}
+				<img src={src} alt="" class="wb-home-image" loading="lazy" />
 			</div>
 		))}
 		{mobileList.length > 1 && (
@@ -93,16 +91,28 @@ const mobileList = mobileWallpapers.length ? mobileWallpapers : [""];
 		background: var(--page-bg);
 	}
 
+	/* 轮播可见性完全由媒体查询决定，不依赖 JS（即使脚本失败也必定显示图片） */
+	.wb-carousel--desktop {
+		display: block;
+	}
+	.wb-carousel--mobile {
+		display: none;
+	}
+	@media (max-width: 860px) {
+		.wb-carousel--desktop {
+			display: none;
+		}
+		.wb-carousel--mobile {
+			display: block;
+		}
+	}
+
 	/* 轮播容器与幻灯片铺满 */
 	.wb-carousel {
-		display: none;
 		position: absolute;
 		inset: 0;
 		width: 100%;
 		height: 100%;
-	}
-	.wb-carousel.is-active-carousel {
-		display: block;
 	}
 	.wb-slide {
 		position: absolute;
@@ -111,6 +121,10 @@ const mobileList = mobileWallpapers.length ? mobileWallpapers : [""];
 		transition: opacity 1s ease;
 	}
 	.wb-slide.is-active {
+		opacity: 1;
+	}
+	/* JS 初始化前默认显示第一张，保证无 JS / 未初始化时也有图 */
+	.wb-carousel:not(.wb-init) .wb-slide:first-child {
 		opacity: 1;
 	}
 
@@ -148,41 +162,32 @@ const mobileList = mobileWallpapers.length ? mobileWallpapers : [""];
 </style>
 
 <script>
-	// 轮播：仅在匹配视口的一端初始化（另一端不加载图片，节省流量）
+	// 轮播旋转：只负责切换，可见性由 CSS 媒体查询决定
 	function initCarousel(root: HTMLElement | null) {
-		if (!root || root.dataset.init) return;
-		root.dataset.init = "1";
+		if (!root || root.dataset.wbInit) return;
+		root.dataset.wbInit = "1";
+		root.classList.add("wb-init");
 
 		const slides = Array.from(root.querySelectorAll<HTMLElement>(".wb-slide"));
 		const dots = Array.from(root.querySelectorAll<HTMLButtonElement>(".wb-dot"));
 		if (!slides.length) return;
 
 		let current = 0;
-		const loadImg = (img: HTMLImageElement | null) => {
-			if (img && img.dataset.src) {
-				img.src = img.dataset.src;
-				img.removeAttribute("data-src");
-			}
-		};
 		const show = (i: number) => {
 			slides.forEach((s, idx) => s.classList.toggle("is-active", idx === i));
 			dots.forEach((d, idx) => d.classList.toggle("is-active", idx === i));
 		};
 
-		loadImg(slides[0].querySelector("img"));
 		show(0);
 
 		if (slides.length > 1) {
-			const step = () => {
+			const timer = window.setInterval(() => {
 				current = (current + 1) % slides.length;
-				loadImg(slides[current].querySelector("img"));
 				show(current);
-			};
-			const timer = window.setInterval(step, 5000);
+			}, 5000);
 			dots.forEach((d, i) =>
 				d.addEventListener("click", () => {
 					current = i;
-					loadImg(slides[i].querySelector("img"));
 					show(i);
 				}),
 			);
@@ -190,22 +195,23 @@ const mobileList = mobileWallpapers.length ? mobileWallpapers : [""];
 		}
 	}
 
-	const mq = window.matchMedia("(max-width: 860px)");
-	const desktopCar = document.querySelector<HTMLElement>('[data-carousel="desktop"]');
-	const mobileCar = document.querySelector<HTMLElement>('[data-carousel="mobile"]');
-
-	const apply = () => {
-		const useMobile = mq.matches;
-		desktopCar?.classList.toggle("is-active-carousel", !useMobile);
-		mobileCar?.classList.toggle("is-active-carousel", useMobile);
-		if (useMobile) initCarousel(mobileCar);
-		else initCarousel(desktopCar);
-	};
-
-	if (document.readyState === "loading") {
-		document.addEventListener("DOMContentLoaded", apply);
-	} else {
-		apply();
+	// swup 页面切换后重新初始化（新 DOM 中的轮播）
+	function initAll() {
+		initCarousel(document.querySelector<HTMLElement>('[data-carousel="desktop"]'));
+		initCarousel(document.querySelector<HTMLElement>('[data-carousel="mobile"]'));
 	}
-	mq.addEventListener("change", apply);
+
+	function onSwupContentReplace() {
+		initAll();
+	}
+
+	if (window.swup?.hooks) {
+		window.swup.hooks.on("content:replace", onSwupContentReplace);
+	} else {
+		document.addEventListener("swup:enable", () => {
+			window.swup?.hooks?.on("content:replace", onSwupContentReplace);
+		});
+	}
+
+	initAll();
 </script>
