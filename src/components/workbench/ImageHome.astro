@@ -1,20 +1,20 @@
 ---
 // 首页壁纸轮播：桌面端读取 public/assets/images/shouye/，移动端（≤860px）读取 yidong/
 // 往对应文件夹里放入图片即可自动加入轮播（支持 webp/png/jpg/gif）
-import { readdirSync } from "node:fs";
+// 注意：路径用 process.cwd() 解析（开发与静态构建的工作目录都是项目根目录），
+// 不能用 import.meta.url —— 构建打包后它指向 dist 内的位置，会读不到文件夹导致轮播为空
+import { readdirSync, existsSync } from "node:fs";
+import { join } from "node:path";
 
 const IMG_RE = /\.(webp|png|jpe?g|gif)$/i;
 
 const listImages = (dirName: string): string[] => {
-	try {
-		const dir = new URL(`../../../public/assets/images/${dirName}/`, import.meta.url);
-		return readdirSync(dir)
-			.filter((f) => IMG_RE.test(f))
-			.sort()
-			.map((f) => `/assets/images/${dirName}/${f}`);
-	} catch {
-		return [];
-	}
+	const dir = join(process.cwd(), "public", "assets", "images", dirName);
+	if (!existsSync(dir)) return [];
+	return readdirSync(dir)
+		.filter((f) => IMG_RE.test(f))
+		.sort()
+		.map((f) => `/assets/images/${dirName}/${f}`);
 };
 
 const desktopList = listImages("shouye");
