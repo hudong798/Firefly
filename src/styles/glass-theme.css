@@ -1,0 +1,142 @@
+/* =========================================================
+   液态玻璃主题（Liquid Glass）
+   半透明磨砂面板 + 背景模糊 + 环境光渐变，呈现液态玻璃质感
+   ========================================================= */
+
+/* ---- 环境光渐变背景（为玻璃提供可模糊的光影） ---- */
+:root {
+  --glass-bg: radial-gradient(
+      90% 65% at 12% 8%,
+      color-mix(in oklch, var(--primary) 28%, var(--page-bg)) 0%,
+      transparent 62%
+    ),
+    radial-gradient(
+      75% 60% at 88% 12%,
+      color-mix(in oklch, var(--primary) 20%, var(--page-bg)) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      80% 70% at 50% 105%,
+      color-mix(in oklch, var(--primary) 14%, var(--page-bg)) 0%,
+      transparent 65%
+    ),
+    var(--page-bg);
+}
+
+/* ---- 玻璃表面变量：亮色 ---- */
+:root {
+  --glass-surface: rgba(255, 255, 255, 0.4);
+  --glass-surface-strong: rgba(255, 255, 255, 0.55);
+  --glass-surface-soft: rgba(255, 255, 255, 0.28);
+  --glass-border: rgba(255, 255, 255, 0.55);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+  --glass-blur: blur(24px) saturate(170%);
+
+  /* 覆盖工作台变量 */
+  --wb-rail: rgba(255, 255, 255, 0.38);
+  --wb-bubble: rgba(255, 255, 255, 0.55);
+  --wb-hover: rgba(255, 255, 255, 0.32);
+  --wb-border: rgba(255, 255, 255, 0.5);
+  --wb-border-strong: rgba(255, 255, 255, 0.7);
+}
+
+/* ---- 玻璃表面变量：暗色 ---- */
+:root.dark {
+  --glass-surface: rgba(26, 28, 36, 0.45);
+  --glass-surface-strong: rgba(30, 33, 42, 0.58);
+  --glass-surface-soft: rgba(24, 26, 33, 0.3);
+  --glass-border: rgba(255, 255, 255, 0.14);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --glass-blur: blur(24px) saturate(150%);
+
+  --wb-rail: rgba(26, 28, 36, 0.42);
+  --wb-bubble: rgba(30, 33, 42, 0.58);
+  --wb-hover: rgba(255, 255, 255, 0.07);
+  --wb-border: rgba(255, 255, 255, 0.14);
+  --wb-border-strong: rgba(255, 255, 255, 0.24);
+}
+
+/* ---- 首页：壁纸铺满全界面时，面板更透明，让壁纸从玻璃下透出 ---- */
+:root:has(.wb-home-stage) {
+  --glass-surface: rgba(255, 255, 255, 0.2);
+  --glass-surface-strong: rgba(255, 255, 255, 0.4);
+  --glass-surface-soft: rgba(255, 255, 255, 0.14);
+  --glass-border: rgba(255, 255, 255, 0.38);
+  --wb-border: rgba(255, 255, 255, 0.38);
+  --wb-hover: rgba(255, 255, 255, 0.22);
+}
+:root.dark:has(.wb-home-stage) {
+  --glass-surface: rgba(18, 20, 26, 0.34);
+  --glass-surface-strong: rgba(22, 24, 32, 0.5);
+  --glass-surface-soft: rgba(18, 20, 26, 0.2);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --wb-border: rgba(255, 255, 255, 0.12);
+  --wb-hover: rgba(255, 255, 255, 0.06);
+}
+
+/* ---- 应用液态玻璃 ---- */
+
+/* 外壳背景换成环境光渐变 */
+.wb-shell {
+  background: var(--glass-bg);
+}
+
+/* 顶栏 / 侧边栏 / 状态栏：磨砂玻璃，且层级在壁纸之上 */
+.wb-titlebar,
+.wb-rail,
+.wb-statusbar {
+  position: relative;
+  z-index: 2;
+  background: var(--glass-surface);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-highlight);
+}
+
+/* 消息气泡：液态玻璃 */
+.wb-bubble,
+.wb-chat .card-base,
+.wb-chat .btn-card {
+  background: var(--glass-surface-strong);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-highlight), var(--wb-shadow-sm);
+}
+
+/* 侧边栏条目：悬停/激活时的高光玻璃 */
+.wb-session:hover {
+  background: var(--glass-surface-soft);
+  border-color: var(--glass-border);
+}
+.wb-session.is-active {
+  background: color-mix(in oklch, var(--primary) 30%, transparent);
+  border-color: color-mix(in oklch, var(--primary) 55%, transparent);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+}
+
+/* 顶栏搜索面板 */
+.wb-search-results {
+  background: var(--glass-surface-strong);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border-color: var(--glass-border);
+}
+
+/* 快捷指令 chip */
+.wb-chip {
+  background: var(--glass-surface-soft);
+  border-color: var(--glass-border);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+/* 通用浮动面板 */
+:root {
+  --float-panel-bg: rgba(255, 255, 255, 0.6);
+}
+:root.dark {
+  --float-panel-bg: rgba(30, 33, 42, 0.7);
+}

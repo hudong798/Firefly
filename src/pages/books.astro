@@ -35,3 +35,38 @@ const { Content } = await render(post);
 		</div>
 	</div>
 </MainGridLayout>
+
+<style>
+	/* 内容页面表格美化：圆角卡片式 + 斑马纹 + 悬停高亮 */
+	:global(.markdown-content table) {
+		width: 100%;
+		border-collapse: separate;
+		border-spacing: 0;
+		border-radius: 0.75rem;
+		overflow: hidden;
+		border: 1px solid var(--line-color);
+		box-shadow: 0 1px 8px oklch(0.35 0.03 var(--hue) / 0.1);
+	}
+	:global(.markdown-content thead th) {
+		background: color-mix(in oklch, var(--primary) 16%, transparent);
+		font-weight: 700;
+		text-align: left;
+		padding: 0.6rem 0.9rem;
+		border: none;
+	}
+	:global(.markdown-content tbody td) {
+		padding: 0.55rem 0.9rem;
+		border: none;
+		border-top: 1px solid var(--line-color);
+	}
+	:global(.markdown-content tbody tr:nth-child(even)) {
+		background: color-mix(in oklch, var(--primary) 4%, transparent);
+	}
+	:global(.markdown-content tbody tr:hover) {
+		background: color-mix(in oklch, var(--primary) 10%, transparent);
+	}
+	:global(.markdown-content tbody td:first-child) {
+		font-weight: 600;
+		white-space: nowrap;
+	}
+</style>
