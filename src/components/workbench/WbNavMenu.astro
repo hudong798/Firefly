@@ -2,7 +2,6 @@
 // 右上角下拉菜单：液态玻璃风格
 // 菜单项：首页 / 想法 / AI / 旅游 / 影视 / 游戏 / 工具 / 讨论
 import { Icon } from "astro-icon/components";
-import { profileConfig } from "@/config";
 
 const pathname = Astro.url.pathname;
 
@@ -21,7 +20,7 @@ const isActive = (u: string) =>
 	pathname === u || (u !== "/" && pathname.startsWith(u));
 ---
 
-<!-- 顶部栏右上角：头像 + 液态玻璃下拉菜单 -->
+<!-- 顶部栏右上角：下拉菜单按钮（左上角已有头像+名字，此处不再重复头像） -->
 <div class="wb-navmenu" id="wb-navmenu">
 	<button
 		type="button"
@@ -31,32 +30,13 @@ const isActive = (u: string) =>
 		aria-haspopup="true"
 		aria-expanded="false"
 	>
-		<img
-			src={profileConfig.avatar}
-			alt="menu"
-			class="wb-navmenu-avatar"
-			loading="lazy"
-		/>
 		<Icon
-			name="material-symbols:keyboard-arrow-down-rounded"
-			class="wb-navmenu-chevron"
+			name="material-symbols:menu-rounded"
+			class="wb-navmenu-ic"
 		/>
 	</button>
 
 	<div class="wb-navmenu-panel" id="wb-navmenu-panel" role="menu" hidden>
-		<div class="wb-navmenu-head">
-			<img
-				src={profileConfig.avatar}
-				alt=""
-				class="wb-navmenu-head-avatar"
-				loading="lazy"
-			/>
-			<div class="wb-navmenu-head-text">
-				<span class="wb-navmenu-head-name">{profileConfig.name}</span>
-				<span class="wb-navmenu-head-bio">{profileConfig.bio}</span>
-			</div>
-		</div>
-		<div class="wb-navmenu-divider"></div>
 		<nav class="wb-navmenu-list">
 			{nav.map((n) => (
 				<a
@@ -89,10 +69,11 @@ const isActive = (u: string) =>
 	.wb-navmenu-trigger {
 		display: inline-flex;
 		align-items: center;
-		gap: 0.15rem;
-		padding: 0.15rem 0.35rem 0.15rem 0.2rem;
+		justify-content: center;
+		width: 2.4rem;
+		height: 2.4rem;
 		border: 1px solid var(--glass-border, var(--wb-border));
-		border-radius: 999px;
+		border-radius: 0.7rem;
 		background: var(--glass-surface, var(--wb-hover));
 		-webkit-backdrop-filter: var(--glass-blur, blur(16px) saturate(160%));
 		backdrop-filter: var(--glass-blur, blur(16px) saturate(160%));
@@ -104,20 +85,13 @@ const isActive = (u: string) =>
 		border-color: color-mix(in oklch, var(--primary) 45%, var(--wb-border));
 		transform: translateY(-1px);
 	}
-	.wb-navmenu-avatar {
-		width: 2rem;
-		height: 2rem;
-		border-radius: 50%;
-		object-fit: cover;
-		border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.5));
-	}
-	.wb-navmenu-chevron {
-		font-size: 1.1rem;
-		color: var(--wb-muted);
+	.wb-navmenu-ic {
+		font-size: 1.35rem;
+		color: var(--deep-text);
 		transition: transform 0.2s ease;
 	}
-	.wb-navmenu-trigger[aria-expanded="true"] .wb-navmenu-chevron {
-		transform: rotate(180deg);
+	.wb-navmenu-trigger[aria-expanded="true"] .wb-navmenu-ic {
+		transform: rotate(90deg);
 	}
 
 	/* ---------- 下拉面板：液态玻璃 ---------- */
@@ -149,42 +123,6 @@ const isActive = (u: string) =>
 			opacity: 1;
 			transform: translateY(0) scale(1);
 		}
-	}
-
-	/* 头部：头像 + 名字 */
-	.wb-navmenu-head {
-		display: flex;
-		align-items: center;
-		gap: 0.6rem;
-		padding: 0.45rem 0.55rem 0.6rem;
-	}
-	.wb-navmenu-head-avatar {
-		width: 2.6rem;
-		height: 2.6rem;
-		border-radius: 50%;
-		object-fit: cover;
-	}
-	.wb-navmenu-head-text {
-		display: flex;
-		flex-direction: column;
-		min-width: 0;
-	}
-	.wb-navmenu-head-name {
-		font-weight: 700;
-		font-size: 0.92rem;
-	}
-	.wb-navmenu-head-bio {
-		font-size: 0.72rem;
-		color: var(--wb-muted);
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-	.wb-navmenu-divider {
-		height: 1px;
-		background: var(--glass-border, var(--wb-border));
-		margin: 0 0.2rem 0.4rem;
-		opacity: 0.6;
 	}
 
 	/* 菜单列表 */
