@@ -189,6 +189,25 @@ const isActive = (u: string) =>
 			toggle();
 		});
 
+		// 点击菜单项：立即收起面板再导航，避免面板残留导致“卡住/反应慢”
+		root
+			.querySelectorAll<HTMLAnchorElement>(".wb-navmenu-item")
+			.forEach((item) => {
+				item.addEventListener("click", () => {
+					close();
+				});
+			});
+
+		// swup 开始导航（link:click）时也立即收起菜单
+		const closeOnNav = () => close();
+		if (window.swup?.hooks) {
+			window.swup.hooks.on("link:click", closeOnNav);
+		} else {
+			document.addEventListener("swup:enable", () => {
+				window.swup?.hooks?.on("link:click", closeOnNav);
+			});
+		}
+
 		document.addEventListener("click", (e) => {
 			if (!root.contains(e.target as Node)) close();
 		});
