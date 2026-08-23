@@ -1,0 +1,327 @@
+---
+import FloatingControls from "@/components/common/controls/FloatingControls.astro";
+import StatusBar from "@/components/workbench/StatusBar.astro";
+import SessionRail from "@/components/workbench/SessionRail.astro";
+import { profileConfig, siteConfig } from "@/config";
+import { Icon } from "astro-icon/components";
+import type { MarkdownHeading } from "astro";
+import Layout from "./Layout.astro";
+
+import "@/styles/workbench.css";
+import "@/styles/glass-theme.css";
+
+interface Props {
+	title?: string;
+	description?: string;
+	lang?: string;
+	setOGTypeArticle?: boolean;
+	postSlug?: string;
+	headings?: MarkdownHeading[];
+}
+
+const { title, description, lang, setOGTypeArticle, postSlug, headings = [] } =
+	Astro.props;
+---
+
+<Layout
+	title={title}
+	description={description}
+	lang={lang}
+	setOGTypeArticle={setOGTypeArticle}
+	postSlug={postSlug}
+>
+	<div class="wb-shell" id="wb-shell">
+		<script is:inline>
+			// 折叠状态在首屏渲染前恢复，避免闪烁
+			(function () {
+				try {
+					if (localStorage.getItem("wb-rail-collapsed") === "1") {
+						document.getElementById("wb-shell")?.classList.add(
+							"is-rail-collapsed",
+						);
+					}
+				} catch (e) {
+					/* ignore */
+				}
+			})();
+		</script>
+		{/* 标题栏 */}
+		<header class="wb-titlebar">
+			<div class="wb-titlebar-left">
+				<a href="/" class="wb-brand">
+					<img
+						src={profileConfig.avatar}
+						alt=""
+						class="wb-brand-avatar"
+						loading="lazy"
+					/>
+					<span class="wb-brand-name">{siteConfig.title}</span>
+					<span class="wb-brand-tag">AI 工作台</span>
+				</a>
+				<button
+					type="button"
+					id="wb-rail-toggle"
+					class="wb-rail-toggle"
+					aria-label="折叠/展开会话栏"
+					title="折叠/展开会话栏"
+				>
+					<Icon name="material-symbols:left-panel-close" class="wb-toggle-close" />
+					<Icon name="material-symbols:left-panel-open" class="wb-toggle-open" />
+				</button>
+			</div>
+			{/* 站内文章搜索（顶栏，与品牌同一水平线） */}
+			<div class="wb-titlebar-search" id="wb-site-search">
+				<div class="wb-composer wb-composer--search wb-composer--bar">
+					<Icon name="material-symbols:search" class="wb-composer-ic" />
+					<input
+						id="wb-search-input"
+						class="wb-composer-input"
+						type="text"
+						placeholder="搜索文章…"
+						autocomplete="off"
+						maxlength="50"
+					/>
+					<span class="wb-composer-btn" aria-hidden="true"
+						><Icon name="material-symbols:search" /></span
+					>
+				</div>
+				<div class="wb-search-results" id="wb-search-results" hidden></div>
+			</div>
+			<div class="wb-titlebar-right">
+				<span class="wb-status-dot"></span>
+				<span>online</span>
+			</div>
+		</header>
+
+		{/* 主体：会话栏 + 聊天区 */}
+		<div class="wb-body">
+			<SessionRail />
+			<main id="swup-container" class="wb-main transition-main">
+				{/* swup 需要的容器 */}
+				<div id="right-sidebar-dynamic"></div>
+				<div id="floating-toc-wrapper"></div>
+				<div id="content-wrapper" class="wb-chat onload-animation transition-leaving">
+					<slot slot="head" name="head"></slot>
+					<slot />
+				</div>
+			</main>
+		</div>
+
+		<StatusBar />
+	</div>
+
+	<FloatingControls headings={headings} />
+</Layout>
+
+<script>
+	// 会话栏折叠/展开（ChatGPT 式）
+	const shell = document.getElementById("wb-shell");
+	const toggleBtn = document.getElementById("wb-rail-toggle");
+	if (shell && toggleBtn) {
+		toggleBtn.addEventListener("click", () => {
+			const collapsed = shell.classList.toggle("is-rail-collapsed");
+			try {
+				localStorage.setItem(
+					"wb-rail-collapsed",
+					collapsed ? "1" : "0",
+				);
+			} catch (e) {
+				/* ignore */
+			}
+		});
+	}
+
+	// 工作台布局：主内容在 .wb-main 内部滚动，
+	// swup 切换页面后把滚动容器拉回顶部（window.scrollTo 已失效）
+	function setupWorkbenchScroll() {
+		const main = document.querySelector(".wb-main");
+		const scrollTop = () => {
+			if (main) main.scrollTo({ top: 0, behavior: "smooth" });
+		};
+		if (window.swup?.hooks) {
+			window.swup.hooks.on("page:view", scrollTop);
+		} else {
+			document.addEventListener("swup:enable", () => {
+				window.swup?.hooks.on("page:view", scrollTop);
+			});
+		}
+	}
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", setupWorkbenchScroll);
+	} else {
+		setupWorkbenchScroll();
+	}
+
+	// 顶栏站内文章搜索（数据来自构建时生成的 /ai-posts.json）
+	// 顶栏在 swup 容器外、跨页面持久存在，因此只需初始化一次
+	function setupTitlebarSearch() {
+		const root = document.getElementById("wb-site-search");
+		if (!root || root.dataset.wbSearchInit) return;
+		root.dataset.wbSearchInit = "1";
+
+		const input = document.getElementById("wb-search-input");
+		const resultsEl = document.getElementById("wb-search-results");
+		if (!input || !resultsEl) return;
+
+		let posts: any[] | null = null;
+
+		const loadPosts = () => {
+			if (posts) return Promise.resolve(posts);
+			return fetch("/ai-posts.json")
+				.then((r) => {
+					if (!r.ok) throw new Error("索引加载失败");
+					return r.json();
+				})
+				.then((data: any[]) => {
+					posts = data;
+					return posts;
+				})
+				.catch(() => {
+					posts = [];
+					return posts;
+				});
+		};
+
+		const matchPosts = (query: string, list: any[]) => {
+			const q = query.trim().toLowerCase();
+			if (!q) return [];
+			const scored = list.map((p) => {
+				const title = (p.title || "").toLowerCase();
+				const desc = (p.description || "").toLowerCase();
+				const tags = (p.tags || []).join(" ").toLowerCase();
+				const text = (p.text || "").toLowerCase();
+				let score = 0;
+				if (title.includes(q)) score += 10;
+				if (tags.includes(q)) score += 4;
+				if (desc.includes(q)) score += 2;
+				if (text.includes(q)) score += 1;
+				return { p, score };
+			});
+			return scored
+				.filter((x) => x.score > 0)
+				.sort((a, b) => b.score - a.score)
+				.slice(0, 6)
+				.map((x) => x.p);
+		};
+
+		const renderResults = (items: any[]) => {
+			resultsEl.innerHTML = "";
+			if (items.length === 0) {
+				const empty = document.createElement("div");
+				empty.className = "wb-search-empty";
+				empty.textContent = "未找到相关文章，换个关键词试试";
+				resultsEl.appendChild(empty);
+			} else {
+				items.forEach((p) => {
+					const a = document.createElement("a");
+					a.className = "wb-search-item";
+					a.href = "/posts/" + p.slug + "/";
+
+					const title = document.createElement("div");
+					title.className = "wb-search-item-title";
+					title.textContent = p.title;
+
+					const meta = document.createElement("div");
+					meta.className = "wb-search-item-meta";
+					const parts: string[] = [];
+					if (p.category) parts.push(p.category);
+					if (p.tags && p.tags.length)
+						parts.push(p.tags.slice(0, 3).join(" / "));
+					if (p.published) parts.push(p.published);
+					meta.textContent = parts.join(" · ");
+
+					a.appendChild(title);
+					a.appendChild(meta);
+					resultsEl.appendChild(a);
+				});
+			}
+			resultsEl.hidden = false;
+		};
+
+		const hideResults = () => {
+			resultsEl.hidden = true;
+		};
+
+		// 移动端：放大镜按钮点击展开/收起
+		const isMobile = () => window.innerWidth <= 860;
+		const header = document.querySelector(".wb-titlebar");
+		const collapseSearch = () => {
+			root.classList.remove("is-expanded");
+			header?.classList.remove("is-search-expanded");
+			hideResults();
+		};
+		const bar = root.querySelector(".wb-composer--bar");
+		bar?.addEventListener("click", (e) => {
+			if (!isMobile()) return;
+			// 点击结果链接或输入框本身时不切换展开状态
+			const target = e.target as Element;
+			if (target.closest(".wb-search-item") || target === input) return;
+			e.preventDefault();
+			const expanded = root.classList.toggle("is-expanded");
+			header?.classList.toggle("is-search-expanded", expanded);
+			if (expanded) {
+				setTimeout(() => input.focus(), 50);
+			} else {
+				hideResults();
+			}
+		});
+
+		const setupSwupCollapse = () => {
+			window.swup?.hooks.on("page:view", collapseSearch);
+		};
+		if (window.swup?.hooks) {
+			setupSwupCollapse();
+		} else {
+			document.addEventListener("swup:enable", setupSwupCollapse);
+		}
+
+		let timer: number;
+		input.addEventListener("input", () => {
+			clearTimeout(timer);
+			const q = input.value.trim();
+			if (!q) {
+				hideResults();
+				return;
+			}
+			timer = window.setTimeout(() => {
+				loadPosts().then((list) => renderResults(matchPosts(q, list)));
+			}, 150);
+		});
+
+		input.addEventListener("focus", () => {
+			if (input.value.trim()) {
+				loadPosts().then((list) =>
+					renderResults(matchPosts(input.value, list)),
+				);
+			}
+		});
+
+		input.addEventListener("keydown", (e) => {
+			if (e.key === "Enter") {
+				const first = resultsEl.querySelector(".wb-search-item");
+				if (first) {
+					e.preventDefault();
+					window.location.href = first.getAttribute("href") || "/";
+				}
+			}
+			if (e.key === "Escape") {
+				hideResults();
+				if (isMobile()) collapseSearch();
+			}
+		});
+
+		document.addEventListener("click", (e) => {
+			if (!root.contains(e.target as Node)) {
+				hideResults();
+				if (isMobile() && root.classList.contains("is-expanded")) {
+					collapseSearch();
+				}
+			}
+		});
+	}
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", setupTitlebarSearch);
+	} else {
+		setupTitlebarSearch();
+	}
+</script>

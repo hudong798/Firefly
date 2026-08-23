@@ -1,0 +1,24 @@
+---
+import { profileConfig } from "@/config";
+const year = new Date().getFullYear();
+---
+
+<footer class="wb-statusbar">
+	<span class="wb-statusbar-item" id="wb-clock"></span>
+	<span class="wb-statusbar-item wb-statusbar-right">© {year} {profileConfig.name}</span>
+</footer>
+
+<script>
+	const clock = document.getElementById("wb-clock");
+	if (clock) {
+		const tick = () => {
+			const d = new Date();
+			const p = (n: number) => String(n).padStart(2, "0");
+			clock.textContent = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(
+				d.getDate(),
+			)} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+		};
+		tick();
+		setInterval(tick, 1000);
+	}
+</script>

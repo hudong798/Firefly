@@ -1,0 +1,68 @@
+---
+import { Icon } from "astro-icon/components";
+
+const pathname = Astro.url.pathname;
+
+const nav = [
+	{ name: "首页", url: "/", icon: "material-symbols:home" },
+	{ name: "作品", url: "/works/", icon: "material-symbols:palette" },
+	{ name: "AI", url: "/ai/", icon: "material-symbols:smart-toy" },
+	{ name: "影视", url: "/tv/", icon: "material-symbols:movie" },
+	{ name: "书籍", url: "/books/", icon: "material-symbols:auto-stories" },
+	{ name: "游戏", url: "/games/", icon: "material-symbols:sports-esports" },
+	{ name: "留言板", url: "/guestbook/", icon: "material-symbols:forum" },
+];
+
+const isActive = (u: string) =>
+	pathname === u || (u !== "/" && pathname.startsWith(u));
+---
+
+<aside class="wb-rail">
+	<nav class="wb-rail-nav">
+		<div class="wb-rail-section">会话</div>
+		{
+			nav.map((n) => (
+				<a
+					href={n.url}
+					class:list={["wb-session", { "is-active": isActive(n.url) }]}
+				>
+					<Icon name={n.icon} class="wb-session-icon" />
+					<span>{n.name}</span>
+				</a>
+			))
+		}
+	</nav>
+	<div class="wb-rail-footer">
+		<span class="wb-status-dot"></span>
+		engine ready · firefly
+	</div>
+</aside>
+
+<script>
+	// 侧边栏在 swup 容器外，切换页面不会自动重新渲染，
+	// 需在 swup 导航后按当前路径重新计算高亮（否则高亮会停留在首次加载的页面）
+	function syncActive() {
+		const path = window.location.pathname;
+		const norm = (s: string) => s.replace(/\/+$/, "") || "/";
+		const p = norm(path);
+		document.querySelectorAll<HTMLAnchorElement>(".wb-session").forEach((a) => {
+			const u = norm((a.getAttribute("href") || "").split("?")[0].split("#")[0]);
+			const active = p === u || (u !== "/" && p.startsWith(u));
+			a.classList.toggle("is-active", active);
+		});
+	}
+
+	function hookSwup() {
+		if (window.swup?.hooks) {
+			window.swup.hooks.on("page:view", syncActive);
+			window.swup.hooks.on("content:replace", syncActive);
+		}
+	}
+
+	if (window.swup?.hooks) {
+		hookSwup();
+	} else {
+		document.addEventListener("swup:enable", hookSwup);
+	}
+	syncActive();
+</script>

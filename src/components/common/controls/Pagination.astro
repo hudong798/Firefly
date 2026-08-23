@@ -1,0 +1,100 @@
+---
+import type { Page } from "astro";
+import { Icon } from "astro-icon/components";
+import { url } from "@/utils/url-utils";
+
+interface Props {
+	page: Page;
+	class?: string;
+	style?: string;
+}
+
+const { page, style } = Astro.props;
+
+const HIDDEN = -1;
+
+const className = Astro.props.class;
+
+const ADJ_DIST = 2;
+const VISIBLE = ADJ_DIST * 2 + 1;
+
+// for test
+let count = 1;
+let l = page.currentPage;
+let r = page.currentPage;
+while (0 < l - 1 && r + 1 <= page.lastPage && count + 2 <= VISIBLE) {
+	count += 2;
+	l--;
+	r++;
+}
+while (0 < l - 1 && count < VISIBLE) {
+	count++;
+	l--;
+}
+while (r + 1 <= page.lastPage && count < VISIBLE) {
+	count++;
+	r++;
+}
+
+let pages: number[] = [];
+if (l > 1) pages.push(1);
+if (l === 3) pages.push(2);
+if (l > 3) pages.push(HIDDEN);
+for (let i = l; i <= r; i++) pages.push(i);
+if (r < page.lastPage - 2) pages.push(HIDDEN);
+if (r === page.lastPage - 2) pages.push(page.lastPage - 1);
+if (r < page.lastPage) pages.push(page.lastPage);
+
+const getPageUrl = (p: number) => {
+	if (p === 1) return "/";
+	return `/${p}/`;
+};
+---
+
+<div class:list={[className, "wb-pagination"]} style={style}>
+  <!-- 分页信息 -->
+  <div class="wb-pagination-info">
+    page {page.currentPage} / {page.lastPage}
+  </div>
+
+  <!-- 分页控件 -->
+  <div class="wb-pagination-bar">
+    <a
+      href={page.url.prev || undefined}
+      aria-label={page.url.prev ? "Previous Page" : undefined}
+      class:list={["wb-page-btn", { "is-disabled": page.url.prev == undefined }]}
+    >
+      <Icon name="material-symbols:chevron-left-rounded" />
+      <span class="wb-page-btn-text">上一页</span>
+    </a>
+
+    <div class="wb-page-nums">
+      {
+        pages.map((p) => {
+          if (p == HIDDEN)
+            return <span class="wb-page-ellipsis">…</span>;
+          if (p == page.currentPage)
+            return <span class="wb-page-num is-current">{p}</span>;
+          return (
+            <a
+              href={url(getPageUrl(p))}
+              aria-label={`Page ${p}`}
+              class="wb-page-num"
+            >
+              {p}
+            </a>
+          );
+        })
+      }
+    </div>
+
+    <a
+      href={page.url.next || undefined}
+      aria-label={page.url.next ? "Next Page" : undefined}
+      class:list={["wb-page-btn", { "is-disabled": page.url.next == undefined }]}
+    >
+      <span class="wb-page-btn-text">下一页</span>
+      <Icon name="material-symbols:chevron-right-rounded" />
+    </a>
+  </div>
+</div>

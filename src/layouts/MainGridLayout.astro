@@ -1,0 +1,32 @@
+---
+import type { MarkdownHeading } from "astro";
+import WorkbenchLayout from "./WorkbenchLayout.astro";
+
+interface Props {
+	title?: string;
+	banner?: string;
+	description?: string;
+	lang?: string;
+	setOGTypeArticle?: boolean;
+	postSlug?: string;
+	headings?: MarkdownHeading[];
+}
+
+const { title, description, lang, setOGTypeArticle, postSlug, headings = [] } =
+	Astro.props;
+
+// AI 工作台改造：MainGridLayout 变为 WorkbenchLayout 的薄适配层，
+// 所有原本基于三栏网格的页面自动获得聊天式工作台外壳。
+---
+
+<WorkbenchLayout
+	title={title}
+	description={description}
+	lang={lang}
+	setOGTypeArticle={setOGTypeArticle}
+	postSlug={postSlug}
+	headings={headings}
+>
+	<slot name="head" />
+	<slot />
+</WorkbenchLayout>

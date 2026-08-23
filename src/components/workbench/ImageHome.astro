@@ -1,0 +1,232 @@
+---
+// 首页壁纸轮播：桌面端读取 public/assets/images/shouye/，移动端（≤860px）读取 yidong/
+// 往对应文件夹里放入图片即可自动加入轮播（支持 webp/png/jpg/gif）
+// 注意：路径用 process.cwd() 解析（开发与静态构建的工作目录都是项目根目录），
+// 不能用 import.meta.url —— 构建打包后它指向 dist 内的位置，会读不到文件夹导致轮播为空
+import { readdirSync, existsSync } from "node:fs";
+import { join } from "node:path";
+
+const IMG_RE = /\.(webp|png|jpe?g|gif)$/i;
+
+const listImages = (dirName: string): string[] => {
+	const dir = join(process.cwd(), "public", "assets", "images", dirName);
+	if (!existsSync(dir)) return [];
+	return readdirSync(dir)
+		.filter((f) => IMG_RE.test(f))
+		.sort()
+		.map((f) => `/assets/images/${dirName}/${f}`);
+};
+
+const desktopList = listImages("shouye");
+const mobileList = listImages("yidong");
+---
+
+<!-- 全屏首页壁纸轮播：占据侧边栏与顶栏之外的整个屏幕 -->
+<div class="wb-home-stage">
+	<!-- 桌面端轮播 -->
+	<div class="wb-carousel wb-carousel--desktop" data-carousel="desktop">
+		{desktopList.map((src, i) => (
+			<div class="wb-slide" data-index={i}>
+				<img src={src} alt="" class="wb-home-image" loading="lazy" />
+			</div>
+		))}
+		{desktopList.length > 1 && (
+			<div class="wb-dots">
+				{desktopList.map((_, i) => (
+					<button type="button" class="wb-dot" data-dot={i} aria-label={`第${i + 1}张`}></button>
+				))}
+			</div>
+		)}
+	</div>
+
+	<!-- 移动端轮播 -->
+	<div class="wb-carousel wb-carousel--mobile" data-carousel="mobile">
+		{mobileList.map((src, i) => (
+			<div class="wb-slide" data-index={i}>
+				<img src={src} alt="" class="wb-home-image" loading="lazy" />
+			</div>
+		))}
+		{mobileList.length > 1 && (
+			<div class="wb-dots">
+				{mobileList.map((_, i) => (
+					<button type="button" class="wb-dot" data-dot={i} aria-label={`第${i + 1}张`}></button>
+				))}
+			</div>
+		)}
+	</div>
+</div>
+
+<style>
+	/* 首页：聊天容器全宽无内边距，并消除移动端硬件加速 transform/动画，
+	   避免包含块把壁纸限制在聊天容器内（否则壁纸无法铺满整个界面）。
+	   注意：onload-animation 的基础样式是 opacity:0（靠动画淡入），
+	   禁用动画后必须显式 opacity:1，否则壁纸不可见 */
+	:global(.wb-chat:has(.wb-home-stage)) {
+		max-width: none;
+		margin: 0;
+		padding: 0;
+		height: 100%;
+		opacity: 1 !important;
+		transform: none !important;
+		will-change: auto !important;
+		animation: none !important;
+	}
+
+	/* 外壳作为壁纸的定位基准（铺满整个界面，含侧边栏与顶栏区域） */
+	:global(.wb-shell:has(.wb-home-stage)) {
+		position: relative;
+	}
+
+	/* 主区域也要中和移动端硬件加速 transform（transition-main 类），
+	   否则 .wb-main 自身成为包含块，壁纸无法铺满整个界面 */
+	:global(.wb-main:has(.wb-home-stage)) {
+		overflow: hidden;
+		transform: none !important;
+		will-change: auto !important;
+	}
+
+	/* 首页隐藏底部状态栏，让图片真正占满整屏 */
+	:global(.wb-shell:has(.wb-home-stage) .wb-statusbar) {
+		display: none;
+	}
+
+	/* 首页禁止页面级滚动，避免滚动条挤压右侧产生间隙 */
+	:global(html:has(.wb-home-stage)),
+	:global(body:has(.wb-home-stage)) {
+		overflow: hidden;
+	}
+
+	/* 壁纸舞台：铺满整个工作台外壳（顶栏+侧边栏+主区），位于最底层 */
+	.wb-home-stage {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		z-index: 0;
+		background: var(--page-bg);
+	}
+
+	/* 轮播可见性完全由媒体查询决定，不依赖 JS（即使脚本失败也必定显示图片） */
+	.wb-carousel--desktop {
+		display: block;
+	}
+	.wb-carousel--mobile {
+		display: none;
+	}
+	@media (max-width: 860px) {
+		.wb-carousel--desktop {
+			display: none;
+		}
+		.wb-carousel--mobile {
+			display: block;
+		}
+	}
+
+	/* 轮播容器与幻灯片铺满 */
+	.wb-carousel {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+	}
+	.wb-slide {
+		position: absolute;
+		inset: 0;
+		opacity: 0;
+		transition: opacity 1s ease;
+	}
+	.wb-slide.is-active {
+		opacity: 1;
+	}
+	/* JS 初始化前默认显示第一张，保证无 JS / 未初始化时也有图 */
+	.wb-carousel:not(.wb-init) .wb-slide:first-child {
+		opacity: 1;
+	}
+
+	.wb-home-image {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		object-position: center;
+	}
+
+	/* 轮播指示点 */
+	.wb-dots {
+		position: absolute;
+		bottom: 1.4rem;
+		left: 50%;
+		transform: translateX(-50%);
+		display: flex;
+		gap: 0.5rem;
+		z-index: 6;
+	}
+	.wb-dot {
+		width: 0.65rem;
+		height: 0.65rem;
+		border-radius: 50%;
+		border: 1px solid rgb(255 255 255 / 0.75);
+		background: rgb(0 0 0 / 0.35);
+		cursor: pointer;
+		padding: 0;
+		transition: background 0.2s ease;
+	}
+	.wb-dot.is-active {
+		background: #fff;
+	}
+</style>
+
+<script>
+	// 轮播旋转：只负责切换，可见性由 CSS 媒体查询决定
+	function initCarousel(root: HTMLElement | null) {
+		if (!root || root.dataset.wbInit) return;
+		root.dataset.wbInit = "1";
+		root.classList.add("wb-init");
+
+		const slides = Array.from(root.querySelectorAll<HTMLElement>(".wb-slide"));
+		const dots = Array.from(root.querySelectorAll<HTMLButtonElement>(".wb-dot"));
+		if (!slides.length) return;
+
+		let current = 0;
+		const show = (i: number) => {
+			slides.forEach((s, idx) => s.classList.toggle("is-active", idx === i));
+			dots.forEach((d, idx) => d.classList.toggle("is-active", idx === i));
+		};
+
+		show(0);
+
+		if (slides.length > 1) {
+			const timer = window.setInterval(() => {
+				current = (current + 1) % slides.length;
+				show(current);
+			}, 5000);
+			dots.forEach((d, i) =>
+				d.addEventListener("click", () => {
+					current = i;
+					show(i);
+				}),
+			);
+			root.dataset.timer = String(timer);
+		}
+	}
+
+	// swup 页面切换后重新初始化（新 DOM 中的轮播）
+	function initAll() {
+		initCarousel(document.querySelector<HTMLElement>('[data-carousel="desktop"]'));
+		initCarousel(document.querySelector<HTMLElement>('[data-carousel="mobile"]'));
+	}
+
+	function onSwupContentReplace() {
+		initAll();
+	}
+
+	if (window.swup?.hooks) {
+		window.swup.hooks.on("content:replace", onSwupContentReplace);
+	} else {
+		document.addEventListener("swup:enable", () => {
+			window.swup?.hooks?.on("content:replace", onSwupContentReplace);
+		});
+	}
+
+	initAll();
+</script>

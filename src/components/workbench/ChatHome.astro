@@ -1,0 +1,129 @@
+---
+import { Icon } from "astro-icon/components";
+import RandomCoverImage from "@/components/misc/RandomCoverImage.astro";
+import { profileConfig } from "@/config";
+import { processCoverImageSync } from "@/utils/image-utils";
+import type { CollectionEntry } from "astro:content";
+import { getFileDirFromPath, getPostUrlBySlug } from "@/utils/url-utils";
+
+interface Props {
+	posts: CollectionEntry<"posts">[];
+}
+
+const { posts } = Astro.props;
+const fmtDate = (d: Date) =>
+	`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+		d.getDate(),
+	).padStart(2, "0")}`;
+
+// 根据标签名生成稳定的色相偏移，让标签有区分度
+const tagHue = (tag: string) => {
+	let h = 0;
+	for (let i = 0; i < tag.length; i++) h = (h * 31 + tag.charCodeAt(i)) % 360;
+	return h;
+};
+---
+
+<!-- 系统消息 -->
+<div class="wb-sys-msg">🔗 已连接 AI 工作台 · 会话自动恢复 · 共 {posts.length} 个会话</div>
+
+<!-- 助手欢迎消息 -->
+<div class="wb-msg wb-msg--assistant">
+	<img class="wb-avatar" src={profileConfig.avatar} alt="" />
+	<div class="wb-msg-main">
+		<div class="wb-msg-meta">
+			<span class="wb-msg-author">{profileConfig.name} · 工作台</span>
+			<span class="wb-msg-time">刚刚</span>
+		</div>
+		<div class="wb-bubble">
+			<p>你好，我是 <strong>{profileConfig.name}</strong> 的 AI 工作台 🤖</p>
+			<p>
+				文章以「会话」的形式呈现。点击下面的快捷指令，或直接浏览最近的文章。
+			</p>
+			<div class="wb-typing"><span></span><span></span><span></span></div>
+			<div class="wb-chips">
+				<a class="wb-chip" href="/archive/"
+					><Icon name="material-symbols:archive" /> 全部文章</a
+				>
+				<a class="wb-chip" href="/search/"
+					><Icon name="material-symbols:search" /> 搜索</a
+				>
+				<a class="wb-chip" href="/about/"
+					><Icon name="material-symbols:info" /> 关于我</a
+				>
+				<a class="wb-chip" href="/friends/"
+					><Icon name="material-symbols:link" /> 友链</a
+				>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- 分隔线 -->
+<div class="wb-divider"><span>最近会话</span></div>
+
+<!-- 文章列表：每条 = 一条助手回复 -->
+{
+	posts.map((post) => {
+		const processedImage = processCoverImageSync(post.data.image, post.id);
+		const hasCover =
+			processedImage !== undefined &&
+			processedImage !== null &&
+			processedImage !== "";
+		return (
+			<a
+				class="wb-msg wb-msg--assistant wb-msg--post"
+				href={getPostUrlBySlug(post.id)}
+			>
+				<img class="wb-avatar" src={profileConfig.avatar} alt="" />
+				<div class="wb-msg-main">
+					<div class="wb-msg-meta">
+						<span class="wb-msg-author">assistant</span>
+						<span class="wb-msg-time">{fmtDate(post.data.published)}</span>
+					</div>
+					<div class="wb-bubble">
+						<div class="wb-post-body">
+							{
+								hasCover && (
+									<RandomCoverImage
+										src={processedImage}
+										basePath={getFileDirFromPath(post.filePath || "")}
+										alt="文章封面"
+										class="wb-post-cover"
+										seed={post.id}
+										preview={true}
+									/>
+								)
+							}
+							<div class="wb-post-main">
+								<div class="wb-post-title">
+									{post.data.pinned && (
+										<span class="wb-post-pinned">📌 置顶</span>
+									)}
+									{post.data.title}
+								</div>
+								{post.data.description && (
+									<div class="wb-post-desc">{post.data.description}</div>
+								)}
+								<div class="wb-post-footer">
+									{post.data.tags?.slice(0, 3).map((t) => (
+										<span
+											class="wb-tag"
+											style={{
+												"--tag-c": `oklch(0.55 0.13 ${tagHue(t.trim())})`,
+											}}
+										>
+											#{t.trim()}
+										</span>
+									))}
+									<span class="wb-post-read">阅读 →</span>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</a>
+		);
+	})
+}
+

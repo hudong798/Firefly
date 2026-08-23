@@ -1,0 +1,14 @@
+---
+import ChatHome from "@/components/workbench/ChatHome.astro";
+import { getSortedPosts } from "@/utils/content-utils";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+
+const title = "作品";
+const description = "文章列表";
+
+const posts = await getSortedPosts();
+---
+
+<MainGridLayout title={title} description={description}>
+  <ChatHome posts={posts} />
+</MainGridLayout>

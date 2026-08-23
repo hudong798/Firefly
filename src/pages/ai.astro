@@ -1,0 +1,123 @@
+---
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import { profileConfig } from "@/config";
+
+const title = "AI";
+const description = "AI 工具导航";
+
+const tools = [
+	{ name: "DeepSeek", icon: "🐋", cat: "对话", desc: "中文写作 / 编程 / 深度推理", url: "https://chat.deepseek.com" },
+	{ name: "ChatGPT", icon: "💬", cat: "对话", desc: "通用问答 / 创意生成", url: "https://chatgpt.com" },
+	{ name: "Claude", icon: "🍀", cat: "对话", desc: "长文写作 / 代码工程", url: "https://claude.ai" },
+	{ name: "Kimi", icon: "🌙", cat: "效率", desc: "长文档阅读 / 总结", url: "https://kimi.moonshot.cn" },
+	{ name: "豆包", icon: "🥤", cat: "效率", desc: "语音助手 / 办公写作", url: "https://www.doubao.com" },
+	{ name: "通义千问", icon: "🌀", cat: "对话", desc: "阿里大模型助手", url: "https://tongyi.aliyun.com" },
+	{ name: "文心一言", icon: "📘", cat: "对话", desc: "百度大模型助手", url: "https://yiyan.baidu.com" },
+	{ name: "Midjourney", icon: "🎨", cat: "绘图", desc: "高质量 AI 绘画", url: "https://www.midjourney.com" },
+	{ name: "即梦 AI", icon: "🖼️", cat: "绘图", desc: "中文文生图 / 图生视频", url: "https://jimeng.jianying.com" },
+	{ name: "剪映", icon: "🎬", cat: "视频", desc: "AI 剪辑 / 数字人播报", url: "https://www.capcut.cn" },
+	{ name: "Cursor", icon: "⌨️", cat: "编程", desc: "AI 编程 IDE", url: "https://www.cursor.com" },
+	{ name: "GitHub Copilot", icon: "🐙", cat: "编程", desc: "代码补全助手", url: "https://github.com/features/copilot" },
+];
+---
+
+<MainGridLayout title={title} description={description}>
+	<!-- 页面内容 = 助手消息气泡 -->
+	<div class="wb-msg wb-msg--assistant">
+		<img class="wb-avatar" src={profileConfig.avatar} alt="" />
+		<div class="wb-msg-main">
+			<div class="wb-msg-meta">
+				<span class="wb-msg-author">{title}</span>
+				<span class="wb-msg-time">page</span>
+			</div>
+			<div class="wb-bubble wb-page-bubble">
+				<div class="wb-article-body">
+					<h2>🤖 常用 AI 工具</h2>
+					<p class="wb-ai-hint">点击卡片直达官网，收藏你常用的 AI 助手吧。</p>
+					<div class="wb-ai-grid">
+						{tools.map((t) => (
+							<a
+								class="wb-ai-card"
+								href={t.url}
+								target="_blank"
+								rel="noopener noreferrer"
+							>
+								<span class="wb-ai-icon">{t.icon}</span>
+								<span class="wb-ai-name">{t.name}</span>
+								<span class="wb-ai-cat">{t.cat}</span>
+								<span class="wb-ai-desc">{t.desc}</span>
+								<span class="wb-ai-go">访问官网 →</span>
+							</a>
+						))}
+					</div>
+					<blockquote class="wb-ai-tip">
+						<p>💡 想推荐其他好用的 AI 工具？欢迎去留言板留言！</p>
+					</blockquote>
+				</div>
+			</div>
+		</div>
+	</div>
+</MainGridLayout>
+
+<style>
+	.wb-ai-hint {
+		color: var(--content-meta);
+		margin: 0.25rem 0 1rem;
+	}
+	.wb-ai-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+		gap: 0.8rem;
+	}
+	.wb-ai-card {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.3rem;
+		padding: 1rem 0.75rem;
+		border-radius: 0.9rem;
+		border: 1px solid var(--wb-border);
+		background: var(--glass-surface-strong, var(--wb-bubble));
+		-webkit-backdrop-filter: var(--glass-blur, none);
+		backdrop-filter: var(--glass-blur, none);
+		text-decoration: none;
+		color: inherit;
+		box-shadow: var(--glass-highlight, none), var(--wb-shadow-sm);
+		transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+	}
+	.wb-ai-card:hover {
+		transform: translateY(-4px);
+		border-color: color-mix(in oklch, var(--primary) 60%, var(--wb-border));
+		box-shadow: 0 8px 24px oklch(0.35 0.03 var(--hue) / 0.18);
+	}
+	.wb-ai-icon {
+		font-size: 1.8rem;
+		line-height: 1;
+	}
+	.wb-ai-name {
+		font-weight: 700;
+		font-size: 0.95rem;
+	}
+	.wb-ai-cat {
+		font-size: 0.7rem;
+		padding: 0.1rem 0.5rem;
+		border-radius: 999px;
+		color: var(--primary);
+		background: color-mix(in oklch, var(--primary) 14%, transparent);
+	}
+	.wb-ai-desc {
+		font-size: 0.75rem;
+		color: var(--content-meta);
+		text-align: center;
+		line-height: 1.4;
+	}
+	.wb-ai-go {
+		margin-top: auto;
+		font-size: 0.72rem;
+		color: var(--primary);
+		opacity: 0.85;
+	}
+	.wb-ai-tip {
+		margin-top: 1.2rem;
+	}
+</style>

@@ -1,0 +1,258 @@
+---
+import { Icon } from "astro-icon/components";
+import WorkbenchLayout from "@/layouts/WorkbenchLayout.astro";
+import { profileConfig, siteConfig } from "@/config";
+
+const title = "管理后台";
+---
+
+<WorkbenchLayout
+  title={title}
+  description={`${profileConfig.name} 的管理后台：登录后发布文章`}
+>
+  <!-- 系统消息 -->
+  <div class="wb-sys-msg">🔐 管理后台 · 访客模式 / 管理员模式</div>
+
+  <!-- 说明消息 -->
+  <div class="wb-msg wb-msg--assistant">
+    <img class="wb-avatar" src={profileConfig.avatar} alt="" />
+    <div class="wb-msg-main">
+      <div class="wb-msg-meta">
+        <span class="wb-msg-author">{profileConfig.name} · 系统</span>
+        <span class="wb-msg-time">online</span>
+      </div>
+      <div class="wb-bubble">
+        访客模式可直接浏览网站。管理员登录后可以发布新文章，
+        文章会自动提交到 GitHub 并部署上线（约 1-2 分钟）。
+      </div>
+    </div>
+  </div>
+
+  <!-- 动态区域：登录表单 或 编辑器 -->
+  <div id="wb-admin-root"></div>
+
+  <!--
+    后台逻辑：is:inline 且放在模板内（swup 容器内），
+    无论直接打开还是从会话栏跳转进来，脚本都会执行。
+  -->
+  <script
+    is:inline
+    define:vars={{ avatar: profileConfig.avatar, siteName: siteConfig.title }}
+  >
+    (function () {
+      function initAdmin() {
+        var root = document.getElementById("wb-admin-root");
+        if (!root || root.dataset.wbAdminInit) return;
+        root.dataset.wbAdminInit = "1";
+        loadState();
+      }
+
+      function loadState() {
+        fetch("/api/auth-check")
+          .then(function (r) {
+            return r.json();
+          })
+          .then(function (data) {
+            if (data.ok) renderEditor();
+            else renderLogin();
+          })
+          .catch(function () {
+            renderLogin();
+          });
+      }
+
+      function messageRow(role, avatarHtml, author, time, bubbleText) {
+        var el = document.createElement("div");
+        el.className = "wb-msg wb-msg--" + role;
+        el.innerHTML =
+          avatarHtml +
+          '<div class="wb-msg-main">' +
+          '<div class="wb-msg-meta">' +
+          '<span class="wb-msg-author">' +
+          author +
+          "</span>" +
+          '<span class="wb-msg-time">' +
+          time +
+          "</span>" +
+          "</div>" +
+          '<div class="wb-bubble"></div>' +
+          "</div>";
+        el.querySelector(".wb-bubble").textContent = bubbleText;
+        return el;
+      }
+
+      function renderLogin() {
+        var root = document.getElementById("wb-admin-root");
+        root.innerHTML = "";
+
+        root.appendChild(
+          messageRow(
+            "user",
+            '<div class="wb-avatar wb-avatar--user">访</div>',
+            "访客",
+            "未登录",
+            "请输入管理员密码登录，登录后才能发布文章。",
+          ),
+        );
+
+        var wrap = document.createElement("div");
+        wrap.className = "wb-msg wb-msg--assistant";
+        wrap.innerHTML =
+          '<img class="wb-avatar" src="' +
+          avatar +
+          '" alt="" />' +
+          '<div class="wb-msg-main">' +
+          '<div class="wb-msg-meta">' +
+          '<span class="wb-msg-author">系统 · 登录</span>' +
+          '<span class="wb-msg-time">认证</span>' +
+          "</div>" +
+          '<div class="wb-bubble"></div>' +
+          "</div>";
+        root.appendChild(wrap);
+
+        var bubble = wrap.querySelector(".wb-bubble");
+        var form = document.createElement("form");
+        form.className = "wb-admin-form";
+        form.innerHTML =
+          '<input id="wb-admin-password" class="wb-admin-input" type="password" placeholder="管理员密码" autocomplete="current-password" />' +
+          '<button type="submit" class="wb-admin-btn wb-admin-btn--primary">登 录</button>' +
+          '<div class="wb-admin-error" id="wb-admin-error" hidden></div>';
+        bubble.appendChild(form);
+
+        var pass = form.querySelector("#wb-admin-password");
+        var err = form.querySelector("#wb-admin-error");
+        form.addEventListener("submit", function (e) {
+          e.preventDefault();
+          err.hidden = true;
+          fetch("/api/auth", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ password: pass.value }),
+          })
+            .then(function (r) {
+              return r.json().then(function (d) {
+                return { ok: r.ok, d: d };
+              });
+            })
+            .then(function (res) {
+              if (res.ok) {
+                loadState();
+              } else {
+                err.textContent = res.d.error || "登录失败";
+                err.hidden = false;
+              }
+            })
+            .catch(function (ex) {
+              err.textContent = "网络错误：" + ex.message;
+              err.hidden = false;
+            });
+        });
+        pass.focus();
+      }
+
+      function renderEditor() {
+        var root = document.getElementById("wb-admin-root");
+        root.innerHTML = "";
+
+        root.appendChild(
+          messageRow(
+            "user",
+            '<div class="wb-avatar wb-avatar--user">管</div>',
+            "管理员",
+            "已登录",
+            "欢迎回来！填写下方表单发布新文章。",
+          ),
+        );
+
+        var wrap = document.createElement("div");
+        wrap.className = "wb-msg wb-msg--assistant";
+        wrap.innerHTML =
+          '<img class="wb-avatar" src="' +
+          avatar +
+          '" alt="" />' +
+          '<div class="wb-msg-main">' +
+          '<div class="wb-msg-meta">' +
+          '<span class="wb-msg-author">系统 · 写文章</span>' +
+          '<span class="wb-msg-time">发布</span>' +
+          "</div>" +
+          '<div class="wb-bubble"></div>' +
+          "</div>";
+        root.appendChild(wrap);
+
+        var bubble = wrap.querySelector(".wb-bubble");
+        var form = document.createElement("form");
+        form.className = "wb-admin-form";
+        form.innerHTML =
+          '<label class="wb-admin-label">标题 *</label>' +
+          '<input id="f-title" class="wb-admin-input" type="text" placeholder="文章标题" required />' +
+          '<label class="wb-admin-label">分类</label>' +
+          '<input id="f-category" class="wb-admin-input" type="text" placeholder="如：技术 / 生活" />' +
+          '<label class="wb-admin-label">标签（逗号分隔）</label>' +
+          '<input id="f-tags" class="wb-admin-input" type="text" placeholder="如：AI, 工具" />' +
+          '<label class="wb-admin-label">描述</label>' +
+          '<input id="f-desc" class="wb-admin-input" type="text" placeholder="文章摘要（选填）" />' +
+          '<label class="wb-admin-label">正文（Markdown）*</label>' +
+          '<textarea id="f-content" class="wb-admin-textarea" placeholder="支持 Markdown…" required></textarea>' +
+          '<button type="submit" id="f-submit" class="wb-admin-btn wb-admin-btn--primary">发布文章</button>' +
+          '<div class="wb-admin-error" id="f-err" hidden></div>' +
+          '<div class="wb-admin-ok" id="f-ok" hidden></div>';
+        bubble.appendChild(form);
+
+        form.addEventListener("submit", function (e) {
+          e.preventDefault();
+          var err = document.getElementById("f-err");
+          var okEl = document.getElementById("f-ok");
+          var btn = document.getElementById("f-submit");
+          err.hidden = true;
+          okEl.hidden = true;
+          btn.disabled = true;
+          btn.textContent = "发布中…";
+          var payload = {
+            title: document.getElementById("f-title").value,
+            category: document.getElementById("f-category").value,
+            tags: document.getElementById("f-tags").value,
+            description: document.getElementById("f-desc").value,
+            content: document.getElementById("f-content").value,
+          };
+          fetch("/api/publish", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          })
+            .then(function (r) {
+              return r.json().then(function (d) {
+                return { ok: r.ok, d: d };
+              });
+            })
+            .then(function (res) {
+              if (res.ok) {
+                okEl.innerHTML =
+                  "✅ 发布成功！<a href=\"" +
+                  res.d.url +
+                  '" target="_blank">点击查看文章（部署需 1-2 分钟）</a>';
+                okEl.hidden = false;
+                document.getElementById("f-content").value = "";
+              } else {
+                err.textContent = res.d.error || "发布失败";
+                err.hidden = false;
+              }
+            })
+            .catch(function (ex) {
+              err.textContent = "网络错误：" + ex.message;
+              err.hidden = false;
+            })
+            .finally(function () {
+              btn.disabled = false;
+              btn.textContent = "发布文章";
+            });
+        });
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initAdmin);
+      } else {
+        initAdmin();
+      }
+    })();
+  </script>
+</WorkbenchLayout>
