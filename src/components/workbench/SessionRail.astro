@@ -5,12 +5,13 @@ const pathname = Astro.url.pathname;
 
 const nav = [
 	{ name: "首页", url: "/", icon: "material-symbols:home" },
-	{ name: "作品", url: "/works/", icon: "material-symbols:palette" },
+	{ name: "想法", url: "/thoughts/", icon: "material-symbols:lightbulb" },
 	{ name: "AI", url: "/ai/", icon: "material-symbols:smart-toy" },
+	{ name: "旅游", url: "/travel/", icon: "material-symbols:flight" },
 	{ name: "影视", url: "/tv/", icon: "material-symbols:movie" },
-	{ name: "书籍", url: "/books/", icon: "material-symbols:auto-stories" },
 	{ name: "游戏", url: "/games/", icon: "material-symbols:sports-esports" },
-	{ name: "留言板", url: "/guestbook/", icon: "material-symbols:forum" },
+	{ name: "工具", url: "/tools/", icon: "material-symbols:handyman" },
+	{ name: "讨论", url: "/guestbook/", icon: "material-symbols:forum" },
 ];
 
 const isActive = (u: string) =>

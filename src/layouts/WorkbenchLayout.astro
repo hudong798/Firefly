@@ -2,6 +2,7 @@
 import FloatingControls from "@/components/common/controls/FloatingControls.astro";
 import StatusBar from "@/components/workbench/StatusBar.astro";
 import SessionRail from "@/components/workbench/SessionRail.astro";
+import WbNavMenu from "@/components/workbench/WbNavMenu.astro";
 import { profileConfig, siteConfig } from "@/config";
 import { Icon } from "astro-icon/components";
 import type { MarkdownHeading } from "astro";
@@ -88,8 +89,7 @@ const { title, description, lang, setOGTypeArticle, postSlug, headings = [] } =
 				<div class="wb-search-results" id="wb-search-results" hidden></div>
 			</div>
 			<div class="wb-titlebar-right">
-				<span class="wb-status-dot"></span>
-				<span>online</span>
+				<WbNavMenu />
 			</div>
 		</header>
 

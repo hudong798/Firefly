@@ -74,11 +74,99 @@
   --wb-hover: rgba(255, 255, 255, 0.06);
 }
 
-/* ---- 应用液态玻璃 ---- */
-
-/* 外壳背景换成环境光渐变 */
+/* ---- 外壳背景换成环境光渐变 ---- */
 .wb-shell {
+  position: relative;
   background: var(--glass-bg);
+}
+
+/* ---- 液态玻璃动态光斑（缓慢流动的环境光，营造液体流动感） ---- */
+.wb-shell::before {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      38% 32% at 22% 28%,
+      color-mix(in oklch, var(--primary) 22%, transparent) 0%,
+      transparent 68%
+    ),
+    radial-gradient(
+      30% 26% at 76% 20%,
+      color-mix(in oklch, var(--primary) 16%, transparent) 0%,
+      transparent 66%
+    ),
+    radial-gradient(
+      42% 38% at 68% 78%,
+      color-mix(in oklch, var(--primary) 18%, transparent) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      26% 30% at 18% 82%,
+      color-mix(in oklch, var(--primary) 14%, transparent) 0%,
+      transparent 64%
+    );
+  filter: blur(10px) saturate(140%);
+  animation: wb-glass-drift 26s ease-in-out infinite alternate;
+  opacity: 0.9;
+}
+.wb-shell::after {
+  /* 顶部一层淡淡的玻璃高光，让整体更有“液体”光泽 */
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    160deg,
+    rgba(255, 255, 255, 0.14) 0%,
+    rgba(255, 255, 255, 0.04) 22%,
+    transparent 46%,
+    transparent 78%,
+    rgba(255, 255, 255, 0.06) 100%
+  );
+}
+:root.dark .wb-shell::after {
+  background: linear-gradient(
+    160deg,
+    rgba(255, 255, 255, 0.07) 0%,
+    transparent 40%,
+    transparent 75%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+}
+
+@keyframes wb-glass-drift {
+  0% {
+    transform: translate3d(-1.5%, -1%, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(1.2%, 0.8%, 0) scale(1.06);
+  }
+  100% {
+    transform: translate3d(-0.8%, 1.4%, 0) scale(1.02);
+  }
+}
+
+/* 工作台内容层位于动态光斑之上 */
+.wb-shell > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* 动态光斑位于背景之上、内容之下 */
+.wb-shell::before {
+  z-index: 0;
+}
+.wb-shell::after {
+  z-index: 0;
+}
+
+/* 首页壁纸舞台：光斑在壁纸之下，壁纸保持主角 */
+.wb-shell:has(.wb-home-stage)::before {
+  opacity: 0.5;
 }
 
 /* 顶栏 / 侧边栏 / 状态栏：磨砂玻璃，且层级在壁纸之上 */
@@ -139,4 +227,115 @@
 }
 :root.dark {
   --float-panel-bg: rgba(30, 33, 42, 0.7);
+}
+
+/* =========================================================
+   液态玻璃全面应用：让整个工作台都呈现玻璃质感
+   ========================================================= */
+
+/* 会话栏整体：玻璃面板 */
+.wb-rail {
+  background: var(--glass-surface);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-highlight);
+}
+
+/* 会话条目：默认更透，悬停微亮 */
+.wb-session {
+  background: transparent;
+  border-color: transparent;
+  transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+}
+
+/* 聊天气泡：玻璃 */
+.wb-bubble {
+  background: var(--glass-surface-strong) !important;
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-highlight), var(--wb-shadow-sm);
+}
+
+/* 用户气泡（如果有）：更深的玻璃 */
+.wb-bubble-user {
+  background: color-mix(in oklch, var(--glass-surface-strong) 88%, var(--primary) 12%);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border-color: var(--glass-border);
+}
+
+/* 状态栏：玻璃 */
+.wb-statusbar {
+  background: var(--glass-surface);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-highlight);
+}
+
+/* 页面内容气泡（wb-page-bubble）：更明显的玻璃 */
+.wb-page-bubble {
+  background: var(--glass-surface-strong);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-highlight), var(--wb-shadow-md);
+}
+
+/* 通用卡片：玻璃化 */
+.wb-chat .card-base,
+.wb-chat .btn-card,
+.card-base {
+  background: var(--glass-surface-strong);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-highlight), var(--wb-shadow-sm);
+}
+
+/* 顶栏：更通透的玻璃 */
+.wb-titlebar {
+  background: color-mix(in oklch, var(--glass-surface) 92%, transparent);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-highlight);
+}
+
+/* AI 工具卡片 / 游戏卡片等页面卡片：玻璃 */
+.wb-ai-card,
+.wb-game-card,
+.wb-tool-card {
+  background: var(--glass-surface-strong);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-highlight), var(--wb-shadow-sm);
+}
+
+/* 移动端：会话栏横向玻璃条 */
+@media (max-width: 860px) {
+  .wb-rail {
+    background: var(--glass-surface);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+  }
+  .wb-session {
+    background: var(--glass-surface-soft);
+    border-color: transparent;
+    border-radius: 0.7rem;
+  }
+  .wb-session.is-active {
+    background: color-mix(in oklch, var(--primary) 32%, transparent);
+    border-color: color-mix(in oklch, var(--primary) 55%, transparent);
+  }
+}
+
+/* 尊重系统降低动态效果偏好：关闭光斑流动动画 */
+@media (prefers-reduced-motion: reduce) {
+  .wb-shell::before {
+    animation: none;
+  }
 }

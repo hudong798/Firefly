@@ -1,0 +1,68 @@
+---
+import { getEntry, render } from "astro:content";
+import Markdown from "@components/misc/Markdown.astro";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import { profileConfig } from "@/config";
+
+const title = "旅游";
+const description = "旅行足迹与出行指南";
+
+const post = await getEntry("spec", "travel");
+
+if (!post) {
+	throw new Error("travel page content not found");
+}
+
+const { Content } = await render(post);
+---
+
+<MainGridLayout title={title} description={description}>
+	<!-- 页面内容 = 助手消息气泡 -->
+	<div class="wb-msg wb-msg--assistant">
+		<img class="wb-avatar" src={profileConfig.avatar} alt="" />
+		<div class="wb-msg-main">
+			<div class="wb-msg-meta">
+				<span class="wb-msg-author">{title}</span>
+				<span class="wb-msg-time">page</span>
+			</div>
+			<div class="wb-bubble wb-page-bubble">
+				<div class="wb-article-body markdown-content">
+					<Markdown class="mt-2">
+						<Content />
+					</Markdown>
+				</div>
+			</div>
+		</div>
+	</div>
+</MainGridLayout>
+
+<style>
+	/* 内容页面表格美化：圆角卡片式 + 斑马纹 + 悬停高亮 */
+	:global(.markdown-content table) {
+		width: 100%;
+		border-collapse: separate;
+		border-spacing: 0;
+		border-radius: 0.75rem;
+		overflow: hidden;
+		border: 1px solid var(--line-color);
+		box-shadow: 0 1px 8px oklch(0.35 0.03 var(--hue) / 0.1);
+	}
+	:global(.markdown-content thead th) {
+		background: color-mix(in oklch, var(--primary) 16%, transparent);
+		font-weight: 700;
+		text-align: left;
+		padding: 0.6rem 0.9rem;
+		border: none;
+	}
+	:global(.markdown-content tbody td) {
+		padding: 0.55rem 0.9rem;
+		border: none;
+		border-top: 1px solid var(--line-color);
+	}
+	:global(.markdown-content tbody tr:last-child td) {
+		border-bottom: none;
+	}
+	:global(.markdown-content tbody tr:hover) {
+		background: color-mix(in oklch, var(--primary) 6%, transparent);
+	}
+</style>

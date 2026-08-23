@@ -1,0 +1,295 @@
+---
+// 右上角下拉菜单：液态玻璃风格
+// 菜单项：首页 / 想法 / AI / 旅游 / 影视 / 游戏 / 工具 / 讨论
+import { Icon } from "astro-icon/components";
+import { profileConfig } from "@/config";
+
+const pathname = Astro.url.pathname;
+
+const nav = [
+	{ name: "首页", url: "/", icon: "material-symbols:home" },
+	{ name: "想法", url: "/thoughts/", icon: "material-symbols:lightbulb" },
+	{ name: "AI", url: "/ai/", icon: "material-symbols:smart-toy" },
+	{ name: "旅游", url: "/travel/", icon: "material-symbols:flight" },
+	{ name: "影视", url: "/tv/", icon: "material-symbols:movie" },
+	{ name: "游戏", url: "/games/", icon: "material-symbols:sports-esports" },
+	{ name: "工具", url: "/tools/", icon: "material-symbols:handyman" },
+	{ name: "讨论", url: "/guestbook/", icon: "material-symbols:forum" },
+];
+
+const isActive = (u: string) =>
+	pathname === u || (u !== "/" && pathname.startsWith(u));
+---
+
+<!-- 顶部栏右上角：头像 + 液态玻璃下拉菜单 -->
+<div class="wb-navmenu" id="wb-navmenu">
+	<button
+		type="button"
+		class="wb-navmenu-trigger"
+		id="wb-navmenu-trigger"
+		aria-label="打开菜单"
+		aria-haspopup="true"
+		aria-expanded="false"
+	>
+		<img
+			src={profileConfig.avatar}
+			alt="menu"
+			class="wb-navmenu-avatar"
+			loading="lazy"
+		/>
+		<Icon
+			name="material-symbols:keyboard-arrow-down-rounded"
+			class="wb-navmenu-chevron"
+		/>
+	</button>
+
+	<div class="wb-navmenu-panel" id="wb-navmenu-panel" role="menu" hidden>
+		<div class="wb-navmenu-head">
+			<img
+				src={profileConfig.avatar}
+				alt=""
+				class="wb-navmenu-head-avatar"
+				loading="lazy"
+			/>
+			<div class="wb-navmenu-head-text">
+				<span class="wb-navmenu-head-name">{profileConfig.name}</span>
+				<span class="wb-navmenu-head-bio">{profileConfig.bio}</span>
+			</div>
+		</div>
+		<div class="wb-navmenu-divider"></div>
+		<nav class="wb-navmenu-list">
+			{nav.map((n) => (
+				<a
+					href={n.url}
+					class:list={["wb-navmenu-item", { "is-active": isActive(n.url) }]}
+					role="menuitem"
+				>
+					<Icon name={n.icon} class="wb-navmenu-item-icon" />
+					<span>{n.name}</span>
+					{isActive(n.url) && (
+						<Icon
+							name="material-symbols:check"
+							class="wb-navmenu-item-check"
+						/>
+					)}
+				</a>
+			))}
+		</nav>
+	</div>
+</div>
+
+<style>
+	/* ---------- 触发按钮 ---------- */
+	.wb-navmenu {
+		position: relative;
+		display: inline-flex;
+		align-items: center;
+		flex-shrink: 0;
+	}
+	.wb-navmenu-trigger {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.15rem;
+		padding: 0.15rem 0.35rem 0.15rem 0.2rem;
+		border: 1px solid var(--glass-border, var(--wb-border));
+		border-radius: 999px;
+		background: var(--glass-surface, var(--wb-hover));
+		-webkit-backdrop-filter: var(--glass-blur, blur(16px) saturate(160%));
+		backdrop-filter: var(--glass-blur, blur(16px) saturate(160%));
+		box-shadow: var(--glass-highlight, none), var(--wb-shadow-sm);
+		cursor: pointer;
+		transition: all 0.18s ease;
+	}
+	.wb-navmenu-trigger:hover {
+		border-color: color-mix(in oklch, var(--primary) 45%, var(--wb-border));
+		transform: translateY(-1px);
+	}
+	.wb-navmenu-avatar {
+		width: 2rem;
+		height: 2rem;
+		border-radius: 50%;
+		object-fit: cover;
+		border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.5));
+	}
+	.wb-navmenu-chevron {
+		font-size: 1.1rem;
+		color: var(--wb-muted);
+		transition: transform 0.2s ease;
+	}
+	.wb-navmenu-trigger[aria-expanded="true"] .wb-navmenu-chevron {
+		transform: rotate(180deg);
+	}
+
+	/* ---------- 下拉面板：液态玻璃 ---------- */
+	.wb-navmenu-panel {
+		position: absolute;
+		top: calc(100% + 0.6rem);
+		right: 0;
+		width: min(16rem, calc(100vw - 2rem));
+		border-radius: 1rem;
+		border: 1px solid var(--glass-border, var(--wb-border));
+		background: var(--glass-surface-strong, var(--wb-rail));
+		-webkit-backdrop-filter: var(--glass-blur, blur(24px) saturate(170%));
+		backdrop-filter: var(--glass-blur, blur(24px) saturate(170%));
+		box-shadow: var(--glass-highlight, none), var(--wb-shadow-md);
+		padding: 0.55rem;
+		z-index: 90;
+		transform-origin: top right;
+		animation: wb-navmenu-pop 0.16s ease-out;
+	}
+	.wb-navmenu-panel[hidden] {
+		display: none;
+	}
+	@keyframes wb-navmenu-pop {
+		from {
+			opacity: 0;
+			transform: translateY(-0.4rem) scale(0.96);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0) scale(1);
+		}
+	}
+
+	/* 头部：头像 + 名字 */
+	.wb-navmenu-head {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		padding: 0.45rem 0.55rem 0.6rem;
+	}
+	.wb-navmenu-head-avatar {
+		width: 2.6rem;
+		height: 2.6rem;
+		border-radius: 50%;
+		object-fit: cover;
+	}
+	.wb-navmenu-head-text {
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+	}
+	.wb-navmenu-head-name {
+		font-weight: 700;
+		font-size: 0.92rem;
+	}
+	.wb-navmenu-head-bio {
+		font-size: 0.72rem;
+		color: var(--wb-muted);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.wb-navmenu-divider {
+		height: 1px;
+		background: var(--glass-border, var(--wb-border));
+		margin: 0 0.2rem 0.4rem;
+		opacity: 0.6;
+	}
+
+	/* 菜单列表 */
+	.wb-navmenu-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.1rem;
+	}
+	.wb-navmenu-item {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		padding: 0.55rem 0.7rem;
+		border-radius: 0.7rem;
+		color: inherit;
+		text-decoration: none;
+		font-size: 0.88rem;
+		transition: all 0.14s ease;
+		border: 1px solid transparent;
+	}
+	.wb-navmenu-item:hover {
+		background: var(--glass-surface-soft, var(--wb-hover));
+		border-color: var(--glass-border, transparent);
+	}
+	.wb-navmenu-item.is-active {
+		background: color-mix(in oklch, var(--primary) 26%, transparent);
+		border-color: color-mix(in oklch, var(--primary) 50%, transparent);
+		color: var(--primary);
+		font-weight: 600;
+	}
+	.wb-navmenu-item-icon {
+		font-size: 1.25rem;
+		flex-shrink: 0;
+	}
+	.wb-navmenu-item-check {
+		margin-left: auto;
+		font-size: 1.1rem;
+	}
+</style>
+
+<script>
+	// 下拉菜单开合逻辑（顶栏在 swup 容器外，初始化一次即可）
+	function initNavMenu() {
+		const root = document.getElementById("wb-navmenu");
+		if (!root || root.dataset.init) return;
+		root.dataset.init = "1";
+
+		const trigger = document.getElementById("wb-navmenu-trigger");
+		const panel = document.getElementById("wb-navmenu-panel");
+		if (!trigger || !panel) return;
+
+		const open = () => {
+			panel.hidden = false;
+			trigger.setAttribute("aria-expanded", "true");
+		};
+		const close = () => {
+			panel.hidden = true;
+			trigger.setAttribute("aria-expanded", "false");
+		};
+		const toggle = () => (panel.hidden ? open() : close());
+
+		trigger.addEventListener("click", (e) => {
+			e.stopPropagation();
+			toggle();
+		});
+
+		document.addEventListener("click", (e) => {
+			if (!root.contains(e.target as Node)) close();
+		});
+		document.addEventListener("keydown", (e) => {
+			if (e.key === "Escape") close();
+		});
+
+		// swup 页面切换后同步高亮
+		const syncActive = () => {
+			const path = window.location.pathname;
+			const norm = (s: string) => s.replace(/\/+$/, "") || "/";
+			const p = norm(path);
+			root.querySelectorAll<HTMLAnchorElement>(".wb-navmenu-item").forEach(
+				(a) => {
+					const u = norm(
+						(a.getAttribute("href") || "").split("?")[0].split("#")[0],
+					);
+					const active = p === u || (u !== "/" && p.startsWith(u));
+					a.classList.toggle("is-active", active);
+					const check = a.querySelector(".wb-navmenu-item-check");
+					if (check) (check as HTMLElement).style.display = active ? "" : "none";
+				},
+			);
+		};
+
+		if (window.swup?.hooks) {
+			window.swup.hooks.on("page:view", syncActive);
+			window.swup.hooks.on("content:replace", syncActive);
+		} else {
+			document.addEventListener("swup:enable", () => {
+				window.swup?.hooks?.on("page:view", syncActive);
+			});
+		}
+		syncActive();
+	}
+
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", initNavMenu);
+	} else {
+		initNavMenu();
+	}
+</script>
