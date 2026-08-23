@@ -20,6 +20,10 @@
 | ikan | [ikanbot.com](https://ikanbot.com) | 🎬 综合 | ⭐⭐⭐⭐ |
 | 雅图 | [yatu.tv](https://yatu.tv) | 🎬 综合 | ⭐⭐⭐ |
 | 饺子 | [jiaozi.me](https://jiaozi.me) | 📦 网盘 | ⭐⭐⭐ |
+| 每日分享·不死鸟 | [iui.su/fx](https://iui.su/fx/) | 🎬 综合 | ⭐⭐⭐⭐ |
+| 歪比巴卜 | [wbbb1.com](https://www.wbbb1.com/) | 🎬 综合 | ⭐⭐⭐⭐ |
+| 近未來盡未來 | [xon.ip-ddns.com](https://xon.ip-ddns.com/) | 🎬 综合 | ⭐⭐⭐ |
+| 可乐影视2 | [klyingshi2.com](https://www.klyingshi2.com/) | 🎬 综合 | ⭐⭐⭐ |
 
 ## 🧰 其他推荐
 
