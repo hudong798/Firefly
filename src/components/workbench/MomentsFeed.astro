@@ -1,39 +1,78 @@
 ---
-// 想法页：QQ 动态风格的说说列表
+// 说说页：QQ 动态风格的说说列表
 import type { ThoughtMoment } from "@/data/thoughts";
+import { MOMENT_PREVIEW_LIMIT } from "@/data/thoughts";
 
 interface Props {
 	moments: ThoughtMoment[];
 }
 
 const { moments } = Astro.props;
+
+// 截断预览：列表页最多展示 MOMENT_PREVIEW_LIMIT 字，超出需进详情页
+function previewOf(content: string) {
+	const isLong = content.length > MOMENT_PREVIEW_LIMIT;
+	return {
+		isLong,
+		text: isLong ? content.slice(0, MOMENT_PREVIEW_LIMIT) + "…" : content,
+	};
+}
 ---
 
 <div class="moments">
 	{
-		moments.map((m) => (
-			<article class="moment card-base rounded-[var(--radius-large)]">
-				<header class="moment-head">
-					<div class="moment-who">
-						<span class="moment-name">Idong</span>
-						<span class="moment-time">
-							{m.mood && <span class="moment-mood">{m.mood}</span>}
-							{m.date}
-						</span>
-					</div>
-				</header>
+		moments.map((m) => {
+			const p = previewOf(m.content);
+			const detailHref = `/thoughts/${m.id}/`;
+			return p.isLong ? (
+				// 超长说说：整张卡片可点击进入详情
+				<a class="moment moment--link card-base rounded-[var(--radius-large)]" href={detailHref}>
+					<header class="moment-head">
+						<div class="moment-who">
+							<span class="moment-name">Idong</span>
+							<span class="moment-time">
+								{m.mood && <span class="moment-mood">{m.mood}</span>}
+								{m.date}
+							</span>
+						</div>
+					</header>
 
-				<p class="moment-content">{m.content}</p>
+					<p class="moment-content">{p.text}</p>
 
-				{m.tags && m.tags.length > 0 && (
-					<div class="moment-tags">
-						{m.tags.map((t) => (
-							<span class="moment-tag">#{t}</span>
-						))}
-					</div>
-				)}
-			</article>
-		))
+					{m.tags && m.tags.length > 0 && (
+						<div class="moment-tags">
+							{m.tags.map((t) => (
+								<span class="moment-tag">#{t}</span>
+							))}
+						</div>
+					)}
+
+					<span class="moment-more">查看详情 ›</span>
+				</a>
+			) : (
+				<article class="moment card-base rounded-[var(--radius-large)]">
+					<header class="moment-head">
+						<div class="moment-who">
+							<span class="moment-name">Idong</span>
+							<span class="moment-time">
+								{m.mood && <span class="moment-mood">{m.mood}</span>}
+								{m.date}
+							</span>
+						</div>
+					</header>
+
+					<p class="moment-content">{m.content}</p>
+
+					{m.tags && m.tags.length > 0 && (
+						<div class="moment-tags">
+							{m.tags.map((t) => (
+								<span class="moment-tag">#{t}</span>
+							))}
+						</div>
+					)}
+				</article>
+			);
+		})
 	}
 	{moments.length === 0 && (
 		<div class="moment-empty card-base rounded-[var(--radius-large)]">
@@ -91,6 +130,35 @@ const { moments } = Astro.props;
 		line-height: 1.7;
 		white-space: pre-wrap;
 		word-break: break-word;
+	}
+
+	/* 可点击的整卡：去掉链接默认样式 + 悬停上浮 */
+	.moment--link {
+		display: block;
+		text-decoration: none;
+		color: inherit;
+		transition:
+			transform 0.18s ease,
+			box-shadow 0.18s ease;
+		cursor: pointer;
+	}
+
+	.moment--link:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 8px 24px -12px rgba(0, 0, 0, 0.35);
+	}
+
+	/* 查看详情提示 */
+	.moment-more {
+		display: inline-block;
+		margin-top: 0.55rem;
+		font-size: 0.82rem;
+		font-weight: 600;
+		color: var(--primary);
+	}
+
+	.moment--link:hover .moment-more {
+		text-decoration: underline;
 	}
 
 	/* 标签 */

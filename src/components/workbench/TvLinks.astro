@@ -1,0 +1,324 @@
+---
+// 影视板块：分类卡片墙。影视网站按类型分组，每张卡片含站名/类型标签/评分/跳转；
+// 其余为其他推荐、解析接口（代码块）、18+ 专区（警示卡）。
+import {
+	tvSites,
+	tvOthers,
+	tvParsers,
+	tvAdult,
+	tvTypeOrder,
+	type TvType,
+} from "@/data/tv";
+
+const typeClass: Record<TvType, string> = {
+	综合: "all",
+	动漫: "anime",
+	短剧: "drama",
+	网盘: "netdisk",
+	其他: "other",
+};
+
+const grouped = tvTypeOrder
+	.map((type) => ({ type, sites: tvSites.filter((s) => s.type === type) }))
+	.filter((g) => g.sites.length > 0);
+
+const stars = (rating: number) => "★".repeat(rating) + "☆".repeat(5 - rating);
+---
+
+<div class="tv-links">
+	{
+		grouped.map((g) => (
+			<section class="tv-group">
+				<h3 class="tv-group-h">
+					<span class="tv-group-bar" />
+					{g.type}
+					<span class="tv-group-count">{g.sites.length}</span>
+				</h3>
+				<div class="tv-grid">
+					{g.sites.map((s) => (
+						<a class="tv-card" href={s.url} target="_blank" rel="noopener">
+							<div class="tv-card-top">
+								<span class="tv-card-name">{s.name}</span>
+								<span class="tv-card-arrow">↗</span>
+							</div>
+							<span class={`tv-tag tv-tag--${typeClass[s.type]}`}>{s.type}</span>
+							<span class="tv-rating" aria-label={`评分 ${s.rating} 星`}>
+								<span class="tv-stars-filled">{stars(s.rating)}</span>
+								<em class="tv-rating-num">{s.rating.toFixed(1)}</em>
+							</span>
+						</a>
+					))}
+				</div>
+			</section>
+		))
+	}
+
+	<!-- 其他推荐 -->
+	<section class="tv-group">
+		<h3 class="tv-group-h">
+			<span class="tv-group-bar" />
+			其他推荐
+		</h3>
+		<div class="tv-grid tv-grid--simple">
+			{
+				tvOthers.map((o) => (
+					<a class="tv-card tv-card--simple" href={o.url} target="_blank" rel="noopener">
+						<span class="tv-card-name">{o.name}</span>
+						<span class="tv-card-arrow">↗</span>
+					</a>
+				))
+			}
+		</div>
+	</section>
+
+	<!-- 解析接口 -->
+	<section class="tv-group">
+		<h3 class="tv-group-h">
+			<span class="tv-group-bar" />
+			解析接口
+		</h3>
+		<p class="tv-parser-note">
+			通用解析接口，复制后在影视地址前拼接 <code>?url=</code> 即可使用。
+		</p>
+		<div class="tv-parsers">
+			{
+				tvParsers.map((p) => (
+					<div class="tv-parser">
+						<span class="tv-parser-name">{p.name}</span>
+						<code class="tv-parser-url">{p.url}</code>
+					</div>
+				))
+			}
+		</div>
+	</section>
+
+	<!-- 18+ 专区 -->
+	<section class="tv-adult">
+		<h3 class="tv-adult-h">⚠ 18+ 专区</h3>
+		<p class="tv-adult-warn">
+			以下网址需<strong>手动输入</strong>，请勿直接复制，注意甄别网络安全。
+		</p>
+		<ul class="tv-adult-list">
+			{
+				tvAdult.map((a) => (
+					<li>
+						<span class="tv-adult-no">{a.no}</span>
+						{a.site}
+					</li>
+				))
+			}
+		</ul>
+	</section>
+</div>
+
+<style>
+	.tv-links {
+		margin-top: 1.4rem;
+	}
+
+	/* 分组 */
+	.tv-group {
+		margin-top: 1.6rem;
+	}
+	.tv-group-h {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 1.1rem;
+		font-weight: 700;
+		margin: 0 0 0.8rem;
+	}
+	.tv-group-bar {
+		width: 4px;
+		height: 18px;
+		border-radius: 2px;
+		background: var(--primary);
+		display: inline-block;
+		flex-shrink: 0;
+	}
+	.tv-group-count {
+		font-size: 0.75rem;
+		font-weight: 500;
+		color: var(--content-meta);
+		background: var(--btn-regular-bg);
+		border-radius: 999px;
+		padding: 0.05rem 0.5rem;
+	}
+
+	/* 卡片网格 */
+	.tv-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+		gap: 0.8rem;
+	}
+
+	.tv-card {
+		display: flex;
+		flex-direction: column;
+		gap: 0.55rem;
+		padding: 0.85rem 0.95rem;
+		border-radius: var(--radius-large, 14px);
+		background: var(--card-bg, rgba(255, 255, 255, 0.04));
+		border: 1px solid var(--line-divider, rgba(255, 255, 255, 0.08));
+		text-decoration: none;
+		color: inherit;
+		transition:
+			transform 0.18s ease,
+			border-color 0.18s ease,
+			background 0.18s ease;
+	}
+	.tv-card:hover {
+		transform: translateY(-3px);
+		border-color: var(--primary);
+		background: var(--card-bg-hover, rgba(255, 255, 255, 0.08));
+	}
+	.tv-card-top {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+	}
+	.tv-card-name {
+		font-size: 0.95rem;
+		font-weight: 600;
+		color: var(--text-90, #e6edf3);
+	}
+	.tv-card-arrow {
+		color: var(--content-meta);
+		font-size: 0.85rem;
+		transition: color 0.18s ease;
+	}
+	.tv-card:hover .tv-card-arrow {
+		color: var(--primary);
+	}
+	.tv-card--simple .tv-card-name {
+		font-size: 0.9rem;
+	}
+
+	/* 类型标签 */
+	.tv-tag {
+		align-self: flex-start;
+		font-size: 0.72rem;
+		padding: 0.1rem 0.5rem;
+		border-radius: 999px;
+		color: #fff;
+		font-weight: 500;
+		line-height: 1.4;
+	}
+	.tv-tag--all {
+		background: #1d9e75;
+	}
+	.tv-tag--anime {
+		background: #7f77dd;
+	}
+	.tv-tag--drama {
+		background: #d85a30;
+	}
+	.tv-tag--netdisk {
+		background: #378add;
+	}
+	.tv-tag--other {
+		background: #5f5e5a;
+	}
+
+	/* 评分 */
+	.tv-rating {
+		font-size: 0.8rem;
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
+	}
+	.tv-stars-filled {
+		color: #ef9f27;
+		letter-spacing: 1px;
+	}
+	.tv-rating-num {
+		color: var(--content-meta);
+		font-style: normal;
+		font-size: 0.75rem;
+	}
+
+	/* 解析接口 */
+	.tv-parser-note {
+		color: var(--content-meta);
+		font-size: 0.85rem;
+		margin: 0 0 0.6rem;
+	}
+	.tv-parser-note code {
+		background: var(--inline-code-bg);
+		padding: 0.1rem 0.4rem;
+		border-radius: 6px;
+	}
+	.tv-parsers {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+		gap: 0.6rem;
+	}
+	.tv-parser {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		padding: 0.6rem 0.85rem;
+		border-radius: 10px;
+		background: var(--card-bg, rgba(255, 255, 255, 0.04));
+		border: 1px solid var(--line-divider, rgba(255, 255, 255, 0.08));
+	}
+	.tv-parser-name {
+		font-weight: 600;
+		font-size: 0.85rem;
+		color: var(--text-90, #e6edf3);
+	}
+	.tv-parser-url {
+		font-family: var(--font-mono, monospace);
+		font-size: 0.78rem;
+		color: var(--primary);
+		word-break: break-all;
+	}
+
+	/* 18+ 专区 */
+	.tv-adult {
+		margin-top: 1.6rem;
+		border: 1px solid #a32d2d;
+		background: rgba(163, 45, 45, 0.08);
+		border-radius: var(--radius-large, 14px);
+		padding: 1.1rem 1.4rem;
+	}
+	.tv-adult-h {
+		color: #f09595;
+		font-size: 1.05rem;
+		font-weight: 700;
+		margin: 0 0 0.4rem;
+	}
+	.tv-adult-warn {
+		color: #f09595;
+		font-size: 0.85rem;
+		margin: 0 0 0.8rem;
+	}
+	.tv-adult-warn strong {
+		color: #f7c1c1;
+	}
+	.tv-adult-list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+		gap: 0.4rem 1rem;
+	}
+	.tv-adult-list li {
+		font-family: var(--font-mono, monospace);
+		font-size: 0.82rem;
+		color: var(--content-meta);
+	}
+	.tv-adult-no {
+		color: #f09595;
+		margin-right: 0.4rem;
+	}
+
+	@media (max-width: 640px) {
+		.tv-grid {
+			grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+			gap: 0.6rem;
+		}
+	}
+</style>

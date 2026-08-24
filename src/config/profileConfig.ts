@@ -2,10 +2,10 @@ import type { ProfileConfig } from "../types/config";
 
 export const profileConfig: ProfileConfig = {
 	// 头像
-	avatar: "/assets/images/scenes-gathered.webp",
+	avatar: "/assets/images/avatar.webp",
 
 	// 名字
-	name: "Itong798",
+	name: "Idong",
 
 	// 个人签名
 	bio: "Regard the suspicious gazes of others as mere flickering ghost fires, and boldly walk your night path.",

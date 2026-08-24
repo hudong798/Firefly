@@ -52,7 +52,7 @@ const description = i18n(I18nKey.guestbookDescription);
 		</h2>
 		{
 			isCommentEnabled ? (
-				<Comment post={guestbookPost} customPath="/guestbook/" />
+				<Comment post={guestbookPost} customPath="/guestbook/" hideHeader />
 			) : (
 				<div class="card-base p-8 mb-6 relative overflow-hidden">
 					<div class="text-center py-8 text-[var(--content-meta)]">

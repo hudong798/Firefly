@@ -133,7 +133,7 @@ const { title, description, lang, setOGTypeArticle, postSlug, headings = [] } =
 		setupWorkbenchScroll();
 	}
 
-	// 顶栏站内文章搜索（数据来自构建时生成的 /ai-posts.json）
+	// 顶栏跨板块搜索（数据来自构建时生成的 /api/search-index.json）
 	// 顶栏在 swup 容器外、跨页面持久存在，因此只需初始化一次
 	function setupTitlebarSearch() {
 		const root = document.getElementById("wb-site-search");
@@ -144,77 +144,103 @@ const { title, description, lang, setOGTypeArticle, postSlug, headings = [] } =
 		const resultsEl = document.getElementById("wb-search-results");
 		if (!input || !resultsEl) return;
 
-		let posts: any[] | null = null;
+		// 统一搜索索引：覆盖 文章/说说/旅游/影视/AI/工具/游戏 七个板块
+		let index: any[] | null = null;
 
-		const loadPosts = () => {
-			if (posts) return Promise.resolve(posts);
-			return fetch("/ai-posts.json")
+		const loadIndex = () => {
+			if (index) return Promise.resolve(index);
+			return fetch("/api/search-index.json")
 				.then((r) => {
 					if (!r.ok) throw new Error("索引加载失败");
 					return r.json();
 				})
 				.then((data: any[]) => {
-					posts = data;
-					return posts;
+					index = data;
+					return index;
 				})
 				.catch(() => {
-					posts = [];
-					return posts;
+					index = [];
+					return index;
 				});
 		};
 
-		const matchPosts = (query: string, list: any[]) => {
+		// 跨板块匹配：标题/标签/摘要/正文加权，板块名命中整组上浮
+		const matchItems = (query: string, list: any[]) => {
 			const q = query.trim().toLowerCase();
 			if (!q) return [];
 			const scored = list.map((p) => {
 				const title = (p.title || "").toLowerCase();
-				const desc = (p.description || "").toLowerCase();
 				const tags = (p.tags || []).join(" ").toLowerCase();
-				const text = (p.text || "").toLowerCase();
+				const snippet = (p.snippet || "").toLowerCase();
+				const search = (p.search || "").toLowerCase();
+				const section = (p.sectionLabel || "").toLowerCase();
 				let score = 0;
 				if (title.includes(q)) score += 10;
 				if (tags.includes(q)) score += 4;
-				if (desc.includes(q)) score += 2;
-				if (text.includes(q)) score += 1;
+				if (section.includes(q)) score += 6; // 搜板块名 → 整组上浮
+				if (snippet.includes(q)) score += 2;
+				if (search.includes(q)) score += 1;
 				return { p, score };
 			});
 			return scored
 				.filter((x) => x.score > 0)
 				.sort((a, b) => b.score - a.score)
-				.slice(0, 6)
+				.slice(0, 12)
 				.map((x) => x.p);
 		};
 
+		// 结果按板块分组渲染，每个结果带彩色板块标签
 		const renderResults = (items: any[]) => {
 			resultsEl.innerHTML = "";
 			if (items.length === 0) {
 				const empty = document.createElement("div");
 				empty.className = "wb-search-empty";
-				empty.textContent = "未找到相关文章，换个关键词试试";
+				empty.textContent = "没有匹配的板块内容，换个关键词试试";
 				resultsEl.appendChild(empty);
-			} else {
-				items.forEach((p) => {
+				resultsEl.hidden = false;
+				return;
+			}
+
+			// 按板块聚合
+			const groups: Record<string, any[]> = {};
+			for (const it of items) {
+				const key = it.sectionLabel || "其他";
+				(groups[key] ||= []).push(it);
+			}
+
+			for (const [label, list] of Object.entries(groups)) {
+				const head = document.createElement("div");
+				head.className = "wb-search-group";
+				head.innerHTML = `<span class="wb-search-group-label">${label}</span><span class="wb-search-group-count">${list.length}</span>`;
+				resultsEl.appendChild(head);
+
+				for (const p of list) {
 					const a = document.createElement("a");
 					a.className = "wb-search-item";
-					a.href = "/posts/" + p.slug + "/";
+					a.href = p.url;
+					if (p.external) {
+						a.target = "_blank";
+						a.rel = "noopener noreferrer";
+					}
 
-					const title = document.createElement("div");
-					title.className = "wb-search-item-title";
-					title.textContent = p.title;
+					const titleRow = document.createElement("div");
+					titleRow.className = "wb-search-item-title";
+					titleRow.textContent = p.title;
+					if (p.external) {
+						const ext = document.createElement("span");
+						ext.className = "wb-search-item-ext";
+						ext.textContent = "↗";
+						titleRow.appendChild(ext);
+					}
 
 					const meta = document.createElement("div");
 					meta.className = "wb-search-item-meta";
-					const parts: string[] = [];
-					if (p.category) parts.push(p.category);
-					if (p.tags && p.tags.length)
-						parts.push(p.tags.slice(0, 3).join(" / "));
-					if (p.published) parts.push(p.published);
-					meta.textContent = parts.join(" · ");
+					meta.textContent = p.snippet || "";
 
-					a.appendChild(title);
+					a.appendChild(titleRow);
 					a.appendChild(meta);
 					resultsEl.appendChild(a);
-				});
+				}
 			}
 			resultsEl.hidden = false;
 		};
@@ -265,14 +291,14 @@ const { title, description, lang, setOGTypeArticle, postSlug, headings = [] } =
 				return;
 			}
 			timer = window.setTimeout(() => {
-				loadPosts().then((list) => renderResults(matchPosts(q, list)));
+				loadIndex().then((list) => renderResults(matchItems(q, list)));
 			}, 150);
 		});
 
 		input.addEventListener("focus", () => {
 			if (input.value.trim()) {
-				loadPosts().then((list) =>
-					renderResults(matchPosts(input.value, list)),
+				loadIndex().then((list) =>
+					renderResults(matchItems(input.value, list)),
 				);
 			}
 		});

@@ -598,6 +598,37 @@
   text-align: center;
 }
 
+/* 搜索结果：按板块分组 */
+.wb-search-group {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 1rem 0.3rem;
+  background: var(--wb-rail);
+  position: sticky;
+  top: 0;
+}
+.wb-search-group-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--primary);
+}
+.wb-search-group-count {
+  font-size: 0.68rem;
+  color: var(--wb-muted);
+  background: var(--wb-hover);
+  border-radius: 999px;
+  padding: 0 0.4rem;
+  min-width: 1.1rem;
+  text-align: center;
+}
+.wb-search-item-ext {
+  font-size: 0.7rem;
+  color: var(--wb-muted);
+  margin-left: 0.25rem;
+}
+
 /* ---------- 管理后台 ---------- */
 .wb-admin-form {
   display: flex;

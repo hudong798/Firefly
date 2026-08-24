@@ -3,18 +3,12 @@ import GomokuGame from "@/components/games/GomokuGame.svelte";
 import TicTacToe from "@/components/games/TicTacToe.svelte";
 import LinkRows from "@/components/workbench/LinkRows.astro";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import { onlineGames } from "@/data/games";
 
 const title = "游戏";
 const description = "在线小游戏";
 
-const onlineGames = [
-	{ name: "中国象棋", icon: "♟️", desc: "人机对战", url: "https://www.xiangqi.com" },
-	{ name: "国际象棋", icon: "👑", desc: "在线对弈", url: "https://www.chess.com/play/online" },
-	{ name: "2048", icon: "🔢", desc: "经典数字合并", url: "https://play2048.co" },
-	{ name: "扫雷", icon: "💣", desc: "经典逻辑游戏", url: "https://minesweeper.online" },
-	{ name: "数独", icon: "🧩", desc: "数字推理", url: "https://www.sudoku.com" },
-	{ name: "俄罗斯方块", icon: "🟦", desc: "经典下落方块", url: "https://tetris.com/play-tetris" },
-];
+const onlineGameList = onlineGames;
 ---
 
 <MainGridLayout title={title} description={description}>
@@ -33,7 +27,7 @@ const onlineGames = [
 
 	<h2 class="section-h2 section-h2-gap">🔗 更多在线游戏</h2>
 	<p class="section-hint">点击跳转到在线可玩的游戏，无需注册。</p>
-	<LinkRows items={onlineGames} />
+	<LinkRows items={onlineGameList} />
 </MainGridLayout>
 
 <style>
