@@ -1,15 +1,13 @@
 ---
-// 想法：文章/随笔列表（会话式展示）
-import ChatHome from "@/components/workbench/ChatHome.astro";
+// 想法：QQ 动态一样的随想记录
+import MomentsFeed from "@/components/workbench/MomentsFeed.astro";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
-import { getSortedPosts } from "@/utils/content-utils";
+import { moments } from "@/data/thoughts";
 
 const title = "想法";
 const description = "我的想法与随笔";
-
-const posts = await getSortedPosts();
 ---
 
 <MainGridLayout title={title} description={description}>
-	<ChatHome posts={posts} />
+	<MomentsFeed moments={moments} />
 </MainGridLayout>

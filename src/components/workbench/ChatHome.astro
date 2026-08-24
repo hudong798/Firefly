@@ -25,18 +25,18 @@ const tagHue = (tag: string) => {
 ---
 
 <!-- 系统消息 -->
-<div class="wb-sys-msg">🔗 已连接 AI 工作台 · 会话自动恢复 · 共 {posts.length} 个会话</div>
+<div class="wb-sys-msg">🔗 已连接 · 会话自动恢复 · 共 {posts.length} 个会话</div>
 
 <!-- 助手欢迎消息 -->
 <div class="wb-msg wb-msg--assistant">
 	<img class="wb-avatar" src={profileConfig.avatar} alt="" />
 	<div class="wb-msg-main">
 		<div class="wb-msg-meta">
-			<span class="wb-msg-author">{profileConfig.name} · 工作台</span>
+			<span class="wb-msg-author">{profileConfig.name}</span>
 			<span class="wb-msg-time">刚刚</span>
 		</div>
 		<div class="wb-bubble">
-			<p>你好，我是 <strong>{profileConfig.name}</strong> 的 AI 工作台 🤖</p>
+			<p>你好，我是 <strong>{profileConfig.name}</strong> 的助手 🤖</p>
 			<p>
 				文章以「会话」的形式呈现。点击下面的快捷指令，或直接浏览最近的文章。
 			</p>

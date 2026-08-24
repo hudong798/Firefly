@@ -8,7 +8,7 @@ export const profileConfig: ProfileConfig = {
 	name: "Itong798",
 
 	// 个人签名
-	bio: "Hello, I'm hdd.",
+	bio: "Regard the suspicious gazes of others as mere flickering ghost fires, and boldly walk your night path.",
 
 	// 链接配置
 	// 已经预装的图标集：fa6-brands，fa6-regular，fa6-solid，material-symbols，simple-icons

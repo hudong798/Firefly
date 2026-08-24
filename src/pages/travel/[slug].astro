@@ -1,0 +1,293 @@
+---
+import { marked } from "marked";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import { travels, type TravelEntry } from "@/data/travels";
+
+export function getStaticPaths() {
+	return travels.map((t) => ({
+		params: { slug: t.slug },
+		props: { entry: t },
+	}));
+}
+
+interface Props {
+	entry: TravelEntry;
+}
+
+const { entry } = Astro.props;
+
+// 用 marked 把 markdown 正文渲染成 HTML（async:false 保证返回字符串）
+const mdHtml = marked.parse(entry.content ?? "", { async: false }) as string;
+---
+
+<MainGridLayout title={entry.title} description={entry.summary}>
+	<a class="travel-back" href="/travel/">← 返回旅行足迹</a>
+
+	<article class="travel-detail card-base rounded-[var(--radius-large)]">
+		<div class="travel-detail-cover">
+			<img src={entry.cover} alt={entry.title} />
+		</div>
+
+		<div class="travel-detail-head">
+			<h1 class="travel-detail-title">{entry.title}</h1>
+			<div class="travel-detail-meta">
+				<span>📅 {entry.date}</span>
+				<span>📍 {entry.location}</span>
+			</div>
+			{
+				entry.tags && entry.tags.length > 0 && (
+					<div class="travel-detail-tags">
+						{entry.tags.map((tag) => (
+							<span class="travel-tag">#{tag}</span>
+						))}
+					</div>
+				)
+			}
+		</div>
+
+		<div
+			class="travel-detail-content"
+			set:html={mdHtml}
+		/>
+
+		{
+			entry.gallery && entry.gallery.length > 0 && (
+				<div class="travel-detail-gallery">
+					<h2 class="gallery-h2">📷 沿途风景</h2>
+					<div class="gallery-grid">
+						{entry.gallery.map((src) => (
+							<a class="gallery-item" href={src} target="_blank" rel="noopener">
+								<img src={src} alt="沿途风景" loading="lazy" />
+							</a>
+						))}
+					</div>
+				</div>
+			)
+		}
+	</article>
+</MainGridLayout>
+
+<style>
+	.travel-back {
+		display: inline-block;
+		margin-bottom: 0.9rem;
+		font-size: 0.85rem;
+		color: var(--content-meta, #9aa7b5);
+		text-decoration: none;
+		transition: color 0.2s ease;
+	}
+	.travel-back:hover {
+		color: var(--primary, #5aa9ff);
+	}
+
+	.travel-detail {
+		overflow: hidden;
+	}
+
+	/* 顶部大封面 */
+	.travel-detail-cover {
+		width: 100%;
+		aspect-ratio: 21 / 9;
+		overflow: hidden;
+		background: var(--card-bg, rgba(255, 255, 255, 0.04));
+	}
+	.travel-detail-cover img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		display: block;
+	}
+
+	.travel-detail-head {
+		padding: 1.2rem 1.6rem 0.4rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+	.travel-detail-title {
+		margin: 0;
+		font-size: 1.6rem;
+		font-weight: 800;
+		color: var(--text-90, #e6edf3);
+	}
+	.travel-detail-meta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 1rem;
+		font-size: 0.85rem;
+		color: var(--content-meta, #9aa7b5);
+	}
+	.travel-detail-tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+	}
+	.travel-detail-tags .travel-tag {
+		font-size: 0.74rem;
+		color: var(--primary, #5aa9ff);
+	}
+
+	/* markdown 正文区域：明确高对比配色，不依赖 prose 主题判定
+	   注意：正文里的 h2/p/li 是 set:html 动态注入的，Astro scoped CSS 不会自动给它们加
+	   data-astro-cid，所以所有子元素选择器都要用 :global() 才能命中。 */
+	.travel-detail-content {
+		padding: 0.6rem 1.6rem 1.2rem;
+		font-size: 1rem;
+		line-height: 1.85;
+		word-break: break-word;
+	}
+
+	/* 浅色主题：深灰，白底高对比 */
+	.travel-detail-content,
+	.travel-detail-content :global(h1),
+	.travel-detail-content :global(h2),
+	.travel-detail-content :global(h3),
+	.travel-detail-content :global(h4),
+	.travel-detail-content :global(p),
+	.travel-detail-content :global(li),
+	.travel-detail-content :global(strong),
+	.travel-detail-content :global(span) {
+		color: #2a2e35 !important;
+	}
+	/* 深色主题：纯白，深底高对比 */
+	:global(:root.dark) .travel-detail-content,
+	:global(:root.dark) .travel-detail-content :global(h1),
+	:global(:root.dark) .travel-detail-content :global(h2),
+	:global(:root.dark) .travel-detail-content :global(h3),
+	:global(:root.dark) .travel-detail-content :global(h4),
+	:global(:root.dark) .travel-detail-content :global(p),
+	:global(:root.dark) .travel-detail-content :global(li),
+	:global(:root.dark) .travel-detail-content :global(strong),
+	:global(:root.dark) .travel-detail-content :global(span) {
+		color: #ffffff !important;
+	}
+
+	/* 标题单独尺寸 */
+	.travel-detail-content :global(h1),
+	.travel-detail-content :global(h2),
+	.travel-detail-content :global(h3) {
+		line-height: 1.4;
+		margin: 1.5em 0 0.6em;
+		font-weight: 700;
+	}
+	.travel-detail-content :global(h1) { font-size: 1.5rem; }
+	.travel-detail-content :global(h2) { font-size: 1.28rem; }
+	.travel-detail-content :global(h3) { font-size: 1.12rem; }
+
+	/* 段落与列表 */
+	.travel-detail-content :global(p) { margin: 0.85em 0; }
+	.travel-detail-content :global(ul),
+	.travel-detail-content :global(ol) {
+		margin: 0.85em 0;
+		padding-left: 1.4em;
+	}
+	.travel-detail-content :global(li) { margin: 0.4em 0; }
+	.travel-detail-content :global(li)::marker {
+		color: var(--primary, #5aa9ff);
+	}
+
+	/* 引用块：用独立颜色，避免被上面的 !important 覆盖后没有层次 */
+	.travel-detail-content :global(blockquote) {
+		margin: 1em 0;
+		padding: 0.6em 1em;
+		border-left: 3px solid var(--primary, #5aa9ff);
+		border-radius: 0 0.5rem 0.5rem 0;
+		background: rgba(90, 169, 255, 0.1);
+		color: #4a525c !important;
+	}
+	:global(:root.dark) .travel-detail-content :global(blockquote) {
+		background: rgba(90, 169, 255, 0.12);
+		color: #b7c0ca !important;
+	}
+
+	/* 图片 */
+	.travel-detail-content :global(img) {
+		max-width: 100%;
+		border-radius: 0.6rem;
+		margin: 0.8em 0;
+	}
+
+	/* 行内代码：单独恢复代码色，不被纯白覆盖 */
+	.travel-detail-content :global(code) {
+		font-size: 0.9em;
+		background: rgba(90, 169, 255, 0.12);
+		color: #c0392b !important;
+		padding: 0.12em 0.4em;
+		border-radius: 0.4rem;
+	}
+	:global(:root.dark) .travel-detail-content :global(code) {
+		background: rgba(255, 255, 255, 0.1);
+		color: #ffb4a2 !important;
+	}
+
+	/* 链接：单独恢复主题色 */
+	.travel-detail-content :global(a) {
+		color: var(--primary, #5aa9ff) !important;
+		text-decoration: underline;
+		text-underline-offset: 3px;
+		text-decoration-thickness: 1px;
+	}
+
+	/* 双重保险：即使 .dark 类没生效，只要系统/浏览器处于暗色模式，正文也强制纯白 */
+	@media (prefers-color-scheme: dark) {
+		.travel-detail-content,
+		.travel-detail-content :global(h1),
+		.travel-detail-content :global(h2),
+		.travel-detail-content :global(h3),
+		.travel-detail-content :global(h4),
+		.travel-detail-content :global(p),
+		.travel-detail-content :global(li),
+		.travel-detail-content :global(strong),
+		.travel-detail-content :global(span) {
+			color: #ffffff !important;
+		}
+	}
+
+	/* 风景照片墙 */
+	.travel-detail-gallery {
+		padding: 0 1.6rem 1.6rem;
+	}
+	.gallery-h2 {
+		font-size: 1.1rem;
+		font-weight: 700;
+		margin: 0.4rem 0 0.8rem;
+		color: var(--text-90, #e6edf3);
+	}
+	.gallery-grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 0.6rem;
+	}
+	.gallery-item {
+		display: block;
+		aspect-ratio: 4 / 3;
+		overflow: hidden;
+		border-radius: var(--radius-medium, 0.6rem);
+		background: var(--card-bg, rgba(255, 255, 255, 0.04));
+	}
+	.gallery-item img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		display: block;
+		transition: transform 0.4s ease;
+	}
+	.gallery-item:hover img {
+		transform: scale(1.08);
+	}
+
+	@media (max-width: 700px) {
+		.travel-detail-cover {
+			aspect-ratio: 16 / 9;
+		}
+		.travel-detail-head,
+		.travel-detail-content,
+		.travel-detail-gallery {
+			padding-left: 1.1rem;
+			padding-right: 1.1rem;
+		}
+		.gallery-grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+</style>

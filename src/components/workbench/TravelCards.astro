@@ -1,0 +1,170 @@
+---
+// 旅游板块：封面卡片网格（封面图 + 标题 + 时间 + 地点 + 简介）
+import type { TravelEntry } from "@/data/travels";
+
+interface Props {
+	items: TravelEntry[];
+}
+
+const { items } = Astro.props;
+---
+
+<div class="travel-grid">
+	{
+		items.map((t) => (
+			<a
+				class="travel-card card-base rounded-[var(--radius-large)]"
+				href={`/travel/${t.slug}/`}
+			>
+				<div class="travel-cover">
+					<img src={t.cover} alt={t.title} loading="lazy" />
+				</div>
+				<div class="travel-body">
+					<h3 class="travel-title">{t.title}</h3>
+					<div class="travel-meta">
+						<span class="travel-meta-item">📅 {t.date}</span>
+						<span class="travel-meta-item">📍 {t.location}</span>
+					</div>
+					<p class="travel-summary">{t.summary}</p>
+					{
+						t.tags && t.tags.length > 0 && (
+							<div class="travel-tags">
+								{t.tags.map((tag) => (
+									<span class="travel-tag">#{tag}</span>
+								))}
+							</div>
+						)
+					}
+					<span class="travel-more">查看游记 →</span>
+				</div>
+			</a>
+		))
+	}
+</div>
+
+<style>
+	.travel-grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 1.1rem;
+	}
+
+	.travel-card {
+		overflow: hidden;
+		display: flex;
+		flex-direction: column;
+		text-decoration: none;
+		color: inherit;
+		cursor: pointer;
+		transition:
+			transform 0.2s ease,
+			box-shadow 0.2s ease;
+	}
+
+	.travel-card:hover {
+		transform: translateY(-4px);
+		box-shadow: 0 12px 30px rgb(0 0 0 / 0.28);
+	}
+
+	/* 封面图：3:2 比例，占满卡片顶部 */
+	.travel-cover {
+		position: relative;
+		width: 100%;
+		aspect-ratio: 3 / 2;
+		overflow: hidden;
+		background: var(--card-bg, rgba(255, 255, 255, 0.04));
+	}
+
+	.travel-cover img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		display: block;
+		transition: transform 0.4s ease;
+	}
+
+	.travel-card:hover .travel-cover img {
+		transform: scale(1.06);
+	}
+
+	.travel-body {
+		padding: 0.95rem 1.05rem 1.1rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.travel-title {
+		margin: 0;
+		font-size: 1.05rem;
+		font-weight: 700;
+		color: var(--text-90, #e6edf3);
+	}
+
+	.travel-meta {
+		display: flex;
+		flex-direction: column;
+		gap: 0.2rem;
+		font-size: 0.78rem;
+		color: var(--content-meta, #9aa7b5);
+	}
+
+	.travel-meta-item {
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.travel-summary {
+		margin: 0.1rem 0 0;
+		font-size: 0.82rem;
+		line-height: 1.6;
+		color: var(--content-meta, #9aa7b5);
+		display: -webkit-box;
+		-webkit-line-clamp: 3;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+
+	.travel-tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+		margin-top: 0.1rem;
+	}
+
+	.travel-tag {
+		font-size: 0.72rem;
+		color: var(--primary, #5aa9ff);
+	}
+
+	.travel-more {
+		margin-top: 0.35rem;
+		font-size: 0.8rem;
+		font-weight: 600;
+		color: var(--primary, #5aa9ff);
+		opacity: 0.85;
+		transition:
+			opacity 0.2s ease,
+			transform 0.2s ease;
+	}
+
+	.travel-card:hover .travel-more {
+		opacity: 1;
+		transform: translateX(3px);
+	}
+
+	/* 平板：每行 2 个 */
+	@media (max-width: 900px) {
+		.travel-grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
+	/* 手机：每行 1 个 */
+	@media (max-width: 560px) {
+		.travel-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

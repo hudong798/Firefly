@@ -3,7 +3,7 @@ title: DSH 功能介绍：一个强大的 AI 编程助手环境
 published: 2026-08-14
 description: 一篇关于 DeepSeek Harness（DSH）的功能介绍：沙箱文件系统、丰富的工具集、子代理协作、工作流编排、后台任务等核心能力，以及一次真实的实战体验。
 tags: [DSH, AI, 编程助手, 工具, 效率]
-category: 技术
+category: AI
 pinned: false
 draft: false
 comment: true

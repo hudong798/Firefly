@@ -5,7 +5,7 @@ updated: 2026-08-14
 pinned: true
 image: "./fm/2.webp"
 tags: [资源]
-category: 文章
+category: 影视
 draft: false
 ---
 

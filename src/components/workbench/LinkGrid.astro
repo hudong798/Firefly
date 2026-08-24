@@ -1,0 +1,105 @@
+---
+// AI 等板块的横排 logo 网格：每行 N 个，只显示图标 + 名字
+// icon 为 emoji 备用；logo 为图片路径，优先级更高
+interface Props {
+	items: { name: string; icon?: string; logo?: string; url: string }[];
+	perRow?: number;
+}
+
+const { items, perRow = 6 } = Astro.props;
+---
+
+<div class="link-grid" style={`--per-row: ${perRow};`}>
+	{
+		items.map((it) => (
+			<a class="link-cell" href={it.url} target="_blank" rel="noopener">
+				{
+					it.logo ? (
+						<img class="link-cell-logo-img" src={it.logo} alt={it.name} loading="lazy" />
+					) : (
+						<span class="link-cell-logo">{it.icon ?? "🔗"}</span>
+					)
+				}
+				<span class="link-cell-name">{it.name}</span>
+			</a>
+		))
+	}
+</div>
+
+<style>
+	.link-grid {
+		display: grid;
+		grid-template-columns: repeat(var(--per-row, 6), 1fr);
+		gap: 0.9rem;
+	}
+
+	.link-cell {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 0.55rem;
+		padding: 1.15rem 0.5rem;
+		border-radius: var(--radius-large, 14px);
+		background: var(--card-bg, rgba(255, 255, 255, 0.04));
+		border: 1px solid var(--line-divider, rgba(255, 255, 255, 0.08));
+		text-decoration: none;
+		color: inherit;
+		transition:
+			transform 0.18s ease,
+			border-color 0.18s ease,
+			background 0.18s ease;
+	}
+
+	.link-cell:hover {
+		transform: translateY(-3px);
+		border-color: var(--primary);
+		background: var(--card-bg-hover, rgba(255, 255, 255, 0.08));
+	}
+
+	.link-cell-logo {
+		font-size: 2rem;
+		line-height: 1;
+	}
+
+	.link-cell-logo-img {
+		width: 2.6rem;
+		height: 2.6rem;
+		object-fit: contain;
+		border-radius: 22%;
+		flex-shrink: 0;
+		background: transparent;
+	}
+
+	.link-cell-name {
+		font-size: 0.85rem;
+		font-weight: 600;
+		color: var(--text-90, #e6edf3);
+		text-align: center;
+	}
+
+	/* 中等屏：每行 4 个，避免拥挤 */
+	@media (max-width: 1100px) {
+		.link-grid {
+			grid-template-columns: repeat(4, 1fr);
+		}
+	}
+
+	/* 小屏：每行 3 个 */
+	@media (max-width: 640px) {
+		.link-grid {
+			grid-template-columns: repeat(3, 1fr);
+			gap: 0.6rem;
+		}
+		.link-cell {
+			padding: 0.9rem 0.3rem;
+		}
+		.link-cell-logo {
+			font-size: 1.6rem;
+		}
+		.link-cell-logo-img {
+			width: 2.2rem;
+			height: 2.2rem;
+		}
+	}
+</style>

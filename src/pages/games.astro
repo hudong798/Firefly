@@ -1,8 +1,8 @@
 ---
 import GomokuGame from "@/components/games/GomokuGame.svelte";
 import TicTacToe from "@/components/games/TicTacToe.svelte";
+import LinkRows from "@/components/workbench/LinkRows.astro";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
-import { profileConfig } from "@/config";
 
 const title = "游戏";
 const description = "在线小游戏";
@@ -18,113 +18,50 @@ const onlineGames = [
 ---
 
 <MainGridLayout title={title} description={description}>
-	<!-- 页面内容 = 助手消息气泡 -->
-	<div class="wb-msg wb-msg--assistant">
-		<img class="wb-avatar" src={profileConfig.avatar} alt="" />
-		<div class="wb-msg-main">
-			<div class="wb-msg-meta">
-				<span class="wb-msg-author">{title}</span>
-				<span class="wb-msg-time">page</span>
-			</div>
-			<div class="wb-bubble wb-page-bubble">
-				<div class="wb-article-body">
-					<h2>🕹️ 站内小游戏</h2>
-					<p class="wb-games-hint">无需安装，点击棋盘直接开玩，人机对战。</p>
-					<div class="wb-games-grid">
-						<div class="wb-game-panel">
-							<h3>⚫ 五子棋</h3>
-							<GomokuGame client:load />
-						</div>
-						<div class="wb-game-panel">
-							<h3>⭕ 井字棋</h3>
-							<TicTacToe client:load />
-						</div>
-					</div>
-
-					<h2 class="wb-games-h2">🔗 更多在线游戏</h2>
-					<p class="wb-games-hint">点击卡片跳转到在线可玩的游戏，无需注册。</p>
-					<div class="wb-game-links">
-						{onlineGames.map((g) => (
-							<a
-								class="wb-game-card"
-								href={g.url}
-								target="_blank"
-								rel="noopener noreferrer"
-							>
-								<span class="wb-game-ico">{g.icon}</span>
-								<span class="wb-game-name">{g.name}</span>
-								<span class="wb-game-desc">{g.desc}</span>
-							</a>
-						))}
-					</div>
-				</div>
-			</div>
+	<h2 class="section-h2">🕹️ 站内小游戏</h2>
+	<p class="section-hint">无需安装，点击棋盘直接开玩，人机对战。</p>
+	<div class="games-grid">
+		<div class="game-panel card-base">
+			<h3>⚫ 五子棋</h3>
+			<GomokuGame client:load />
+		</div>
+		<div class="game-panel card-base">
+			<h3>⭕ 井字棋</h3>
+			<TicTacToe client:load />
 		</div>
 	</div>
+
+	<h2 class="section-h2 section-h2-gap">🔗 更多在线游戏</h2>
+	<p class="section-hint">点击跳转到在线可玩的游戏，无需注册。</p>
+	<LinkRows items={onlineGames} />
 </MainGridLayout>
 
 <style>
-	.wb-games-hint {
-		color: var(--content-meta);
-		margin: 0.25rem 0 1rem;
+	.section-h2 {
+		font-size: 1.25rem;
+		font-weight: 700;
+		margin: 0 0 0.25rem;
 	}
-	.wb-games-h2 {
+	.section-h2-gap {
 		margin-top: 1.6rem;
 	}
-	.wb-games-grid {
+	.section-hint {
+		color: var(--content-meta);
+		font-size: 0.88rem;
+		margin: 0 0 0.9rem;
+	}
+	.games-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
 		gap: 1rem;
 	}
-	.wb-game-panel {
+	.game-panel {
 		padding: 0.9rem;
-		border-radius: 0.9rem;
-		border: 1px solid var(--wb-border);
-		background: var(--glass-surface-soft, var(--wb-hover));
-		-webkit-backdrop-filter: var(--glass-blur, none);
-		backdrop-filter: var(--glass-blur, none);
+		border-radius: var(--radius-large);
 	}
-	.wb-game-panel h3 {
+	.game-panel h3 {
 		margin: 0 0 0.7rem;
 		font-size: 0.95rem;
 		text-align: center;
-	}
-	.wb-game-links {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-		gap: 0.8rem;
-	}
-	.wb-game-card {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 0.3rem;
-		padding: 1rem 0.75rem;
-		border-radius: 0.9rem;
-		border: 1px solid var(--wb-border);
-		background: var(--glass-surface-strong, var(--wb-bubble));
-		-webkit-backdrop-filter: var(--glass-blur, none);
-		backdrop-filter: var(--glass-blur, none);
-		text-decoration: none;
-		color: inherit;
-		box-shadow: var(--glass-highlight, none), var(--wb-shadow-sm);
-		transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
-	}
-	.wb-game-card:hover {
-		transform: translateY(-4px);
-		border-color: color-mix(in oklch, var(--primary) 60%, var(--wb-border));
-		box-shadow: 0 8px 24px oklch(0.35 0.03 var(--hue) / 0.18);
-	}
-	.wb-game-ico {
-		font-size: 1.7rem;
-		line-height: 1;
-	}
-	.wb-game-name {
-		font-weight: 700;
-		font-size: 0.92rem;
-	}
-	.wb-game-desc {
-		font-size: 0.75rem;
-		color: var(--content-meta);
 	}
 </style>

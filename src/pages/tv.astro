@@ -1,8 +1,9 @@
 ---
 import { getEntry, render } from "astro:content";
 import Markdown from "@components/misc/Markdown.astro";
+import ThoughtList from "@/components/workbench/ThoughtList.astro";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
-import { profileConfig } from "@/config";
+import { getSortedPosts } from "@/utils/content-utils";
 
 const title = "影视";
 const description = "影视推荐与观后感";
@@ -14,29 +15,44 @@ if (!post) {
 }
 
 const { Content } = await render(post);
+
+// 相关文章：分类为「影视」的文章归入本板块
+const relatedPosts = (await getSortedPosts()).filter(
+	(p) => p.data.category === "影视",
+);
 ---
 
 <MainGridLayout title={title} description={description}>
-	<!-- 页面内容 = 助手消息气泡 -->
-	<div class="wb-msg wb-msg--assistant">
-		<img class="wb-avatar" src={profileConfig.avatar} alt="" />
-		<div class="wb-msg-main">
-			<div class="wb-msg-meta">
-				<span class="wb-msg-author">{title}</span>
-				<span class="wb-msg-time">page</span>
-			</div>
-			<div class="wb-bubble wb-page-bubble">
-				<div class="wb-article-body markdown-content">
-					<Markdown class="mt-2">
-						<Content />
-					</Markdown>
-				</div>
-			</div>
-		</div>
+	<div class="page-card card-base rounded-[var(--radius-large)]">
+		<Markdown class="markdown-content">
+			<Content />
+		</Markdown>
 	</div>
+
+	{
+		relatedPosts.length > 0 && (
+			<>
+				<h2 class="section-h2">📄 相关文章</h2>
+				<ThoughtList posts={relatedPosts} />
+			</>
+		)
+	}
 </MainGridLayout>
 
 <style>
+	.page-card {
+		padding: 1.5rem 1.8rem;
+	}
+	.section-h2 {
+		font-size: 1.25rem;
+		font-weight: 700;
+		margin: 1.6rem 0 0.9rem;
+	}
+	@media (max-width: 768px) {
+		.page-card {
+			padding: 1.1rem 1rem;
+		}
+	}
 	/* 内容页面表格美化：圆角卡片式 + 斑马纹 + 悬停高亮 */
 	:global(.markdown-content table) {
 		width: 100%;

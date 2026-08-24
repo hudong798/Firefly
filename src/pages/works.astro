@@ -1,5 +1,5 @@
 ---
-import ChatHome from "@/components/workbench/ChatHome.astro";
+import ThoughtList from "@/components/workbench/ThoughtList.astro";
 import { getSortedPosts } from "@/utils/content-utils";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
 
@@ -10,5 +10,5 @@ const posts = await getSortedPosts();
 ---
 
 <MainGridLayout title={title} description={description}>
-  <ChatHome posts={posts} />
+  <ThoughtList posts={posts} />
 </MainGridLayout>
