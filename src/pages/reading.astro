@@ -1,7 +1,7 @@
 ---
 // 阅读板块：每本书的阅读感悟，微信朋友圈式时间流
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
-import { bookNotes } from "@/data/books";
+import { bookNotes, READING_PREVIEW_LIMIT } from "@/data/books";
 import { profileConfig } from "@/config";
 
 const title = "阅读";
@@ -19,11 +19,23 @@ function formatDate(d: string) {
 	if (diff < 2 * day) return "昨天";
 	return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
 }
+
+// 截断预览：列表页最多展示 READING_PREVIEW_LIMIT 字，超出需进详情页
+function previewOf(feeling: string) {
+	const isLong = feeling.length > READING_PREVIEW_LIMIT;
+	return {
+		isLong,
+		text: isLong ? feeling.slice(0, READING_PREVIEW_LIMIT) + "…" : feeling,
+	};
+}
 ---
 
 <MainGridLayout title={title} description={description}>
 	<div class="reading-feed">
-		{notes.map((book) => (
+		{notes.map((book) => {
+			const p = previewOf(book.feeling);
+			const detailHref = `/reading/${book.id}/`;
+			return (
 			<article class="reading-card card-base">
 				<header class="reading-header">
 					<img class="reading-avatar" src={profileConfig.avatar} alt="" loading="lazy" />
@@ -43,10 +55,14 @@ function formatDate(d: string) {
 					</div>
 
 					<p class="reading-feeling">
-						{book.feeling.split("\n").map((para, i) => (
+						{p.text.split("\n").map((para, i) => (
 							<span class="reading-para" key={i}>{para}</span>
 						))}
 					</p>
+
+					{p.isLong && (
+						<a class="reading-more" href={detailHref}>查看详情 ›</a>
+					)}
 
 					<div class="reading-tags">
 						{book.tags.map((tag) => (
@@ -66,7 +82,8 @@ function formatDate(d: string) {
 					</button>
 				</footer>
 			</article>
-		))}
+			);
+		})}
 	</div>
 </MainGridLayout>
 
@@ -172,6 +189,21 @@ function formatDate(d: string) {
 	}
 	.reading-para + .reading-para {
 		margin-top: 0.55rem;
+	}
+
+	/* 查看详情链接 */
+	.reading-more {
+		display: inline-block;
+		margin-bottom: 0.7rem;
+		font-size: 0.82rem;
+		font-weight: 600;
+		color: var(--primary);
+		text-decoration: none;
+		transition: opacity 0.15s ease, transform 0.15s ease;
+	}
+	.reading-more:hover {
+		opacity: 0.8;
+		transform: translateX(2px);
 	}
 
 	/* 标签 */
