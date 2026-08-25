@@ -3,6 +3,11 @@
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
 import { bookNotes, READING_PREVIEW_LIMIT } from "@/data/books";
 import { profileConfig } from "@/config";
+import { commentConfig } from "@/config/commentConfig";
+
+// Twikoo 评论系统配置（阅读板块评论接入真实后端）
+const twikooEnvId = commentConfig.twikoo?.envId || "";
+const twikooLang = commentConfig.twikoo?.lang || "zh-CN";
 
 const title = "阅读";
 const description = "我的阅读感悟与书单";
@@ -83,12 +88,7 @@ function previewOf(feeling: string) {
 				</footer>
 
 				<div class="reading-comments" id={`comments-${book.id}`} hidden>
-					<div class="rc-list" data-list={book.id}></div>
-					<form class="rc-form" data-form={book.id}>
-						<input class="rc-name" type="text" value={profileConfig.name} maxlength="20" aria-label="昵称" />
-						<input class="rc-input" type="text" placeholder="说点什么…" maxlength="200" aria-label="评论内容" />
-						<button type="submit" class="rc-send">发送</button>
-					</form>
+					<div class="reading-tk" id={`tcomment-${book.id}`}></div>
 				</div>
 			</article>
 			);
@@ -269,96 +269,21 @@ function previewOf(feeling: string) {
 		margin-top: 0.6rem;
 		padding-top: 0.7rem;
 		border-top: 1px dashed var(--line-color);
-		display: flex;
-		flex-direction: column;
-		gap: 0.6rem;
 	}
 	.reading-comments[hidden] {
 		display: none;
 	}
-	.rc-list {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
+	.reading-tk {
+		min-height: 1rem;
 	}
-	.rc-item {
-		display: flex;
-		flex-direction: column;
-		gap: 0.15rem;
-		padding: 0.5rem 0.7rem;
-		border-radius: 0.6rem;
-		background: var(--glass-surface, var(--wb-hover));
+	/* Twikoo 注入 DOM 的主题适配（scoped 不命中，用 :global） */
+	.reading-tk :global(.tk-main) {
+		background: transparent !important;
+		box-shadow: none !important;
 	}
-	.rc-meta {
-		display: flex;
-		align-items: baseline;
-		gap: 0.5rem;
-	}
-	.rc-name-text {
-		font-size: 0.8rem;
-		font-weight: 600;
-		color: var(--deep-text);
-	}
-	.rc-time {
-		font-size: 0.7rem;
-		color: var(--content-meta);
-	}
-	.rc-text {
-		font-size: 0.86rem;
-		line-height: 1.55;
-		color: var(--content-normal);
-		white-space: pre-wrap;
-		word-break: break-word;
-	}
-	.rc-empty {
-		font-size: 0.8rem;
-		color: var(--content-meta);
-		margin: 0;
-	}
-	.rc-form {
-		display: flex;
-		gap: 0.4rem;
-		align-items: center;
-	}
-	.rc-name {
-		width: 5.5rem;
-		flex-shrink: 0;
-		padding: 0.4rem 0.55rem;
-		border-radius: 0.5rem;
-		border: 1px solid var(--line-color);
-		background: var(--glass-surface, var(--wb-hover));
-		color: var(--deep-text);
-		font-size: 0.8rem;
-	}
-	.rc-input {
-		flex: 1;
-		min-width: 0;
-		padding: 0.4rem 0.6rem;
-		border-radius: 0.5rem;
-		border: 1px solid var(--line-color);
-		background: var(--glass-surface, var(--wb-hover));
-		color: var(--deep-text);
-		font-size: 0.85rem;
-	}
-	.rc-name:focus,
-	.rc-input:focus {
-		outline: none;
-		border-color: color-mix(in oklch, var(--primary) 50%, transparent);
-	}
-	.rc-send {
-		flex-shrink: 0;
-		padding: 0.4rem 0.85rem;
-		border: none;
-		border-radius: 0.5rem;
-		background: var(--primary);
-		color: #fff;
-		font-size: 0.82rem;
-		font-weight: 600;
-		cursor: pointer;
-		transition: filter 0.15s ease;
-	}
-	.rc-send:hover {
-		filter: brightness(1.08);
+	.reading-tk :global(.tk-comments-container),
+	.reading-tk :global(.tk-comment) {
+		border-color: var(--line-color) !important;
 	}
 
 	@media (max-width: 768px) {
@@ -372,27 +297,21 @@ function previewOf(feeling: string) {
 </style>
 
 <script>
-	// 阅读板块交互：点赞（持久可切换）+ 评论（持久可输入/显示）
+	// 阅读板块交互：点赞（本地持久）+ 评论（接入 Twikoo 真实后端）
 	const LS_LIKE = "reading-likes";
-	const LS_COMMENT = "reading-comments";
 	const getLikes = () => {
 		try { return JSON.parse(localStorage.getItem(LS_LIKE) || "{}"); } catch { return {}; }
 	};
-	const getComments = () => {
-		try { return JSON.parse(localStorage.getItem(LS_COMMENT) || "{}"); } catch { return {}; }
-	};
 	const saveLikes = (o: Record<string, boolean>) => localStorage.setItem(LS_LIKE, JSON.stringify(o));
-	const saveComments = (o: Record<string, any[]>) => localStorage.setItem(LS_COMMENT, JSON.stringify(o));
-	const esc = (s: string) =>
-		s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c] as string));
-	const fmtTime = (t: number) => {
-		const d = new Date(t);
-		const p = (n: number) => String(n).padStart(2, "0");
-		return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
-	};
+
+	// 等待 twikoo 全局对象加载完成
+	function whenTwikoo(cb: () => void) {
+		if (typeof window.twikoo !== "undefined") { cb(); return; }
+		setTimeout(() => whenTwikoo(cb), 300);
+	}
 
 	function initReadingInteractions() {
-		// ---- 点赞 ----
+		// ---- 点赞（localStorage 持久可切换）----
 		document.querySelectorAll<HTMLButtonElement>("button[data-like]").forEach((btn) => {
 			if (btn.dataset.init) return;
 			btn.dataset.init = "1";
@@ -412,72 +331,60 @@ function previewOf(feeling: string) {
 			});
 		});
 
-		// ---- 评论展开/收起 ----
+		// ---- 评论展开 / 收起 + Twikoo 多实例初始化 ----
 		document.querySelectorAll<HTMLButtonElement>("button[data-comment-toggle]").forEach((btn) => {
 			if (btn.dataset.initToggle) return;
 			btn.dataset.initToggle = "1";
 			const id = btn.getAttribute("data-comment-toggle") || "";
 			const box = document.getElementById(`comments-${id}`);
 			if (!box) return;
-			btn.addEventListener("click", () => { box.hidden = !box.hidden; });
-		});
-
-		// ---- 评论渲染 ----
-		document.querySelectorAll<HTMLElement>(".rc-list[data-list]").forEach((list) => {
-			if (list.dataset.initList) return;
-			list.dataset.initList = "1";
-			const id = list.getAttribute("data-list") || "";
-			const update = () => {
-				const arr = getComments()[id] || [];
-				const countEl = document.querySelector<HTMLElement>(
-					`.comment-count[data-comment-count="${id}"]`,
-				);
-				if (countEl) {
-					const base = Number.parseInt(countEl.dataset.base || "0", 10);
-					countEl.textContent = String(base + arr.length);
+			btn.addEventListener("click", () => {
+				const willShow = box.hidden;
+				box.hidden = !box.hidden;
+				if (willShow && !box.dataset.tkInited) {
+					const el = document.getElementById(`tcomment-${id}`);
+					if (!el) return;
+					box.dataset.tkInited = "1";
+					whenTwikoo(() => {
+						window.twikoo
+							.init({
+								envId: window.__twikooEnv,
+								el: `#tcomment-${id}`,
+								path: `/reading/${id}`,
+								lang: window.__twikooLang || "zh-CN",
+							})
+							.catch((e: unknown) => console.error("[Reading Twikoo] init failed:", e));
+					});
 				}
-				if (!arr.length) {
-					list.innerHTML = `<p class="rc-empty">还没有评论，来抢沙发～</p>`;
-					return;
-				}
-				list.innerHTML = arr
-					.map(
-						(c: any) => `
-					<div class="rc-item">
-						<div class="rc-meta"><span class="rc-name-text">${esc(c.name)}</span><span class="rc-time">${fmtTime(c.time)}</span></div>
-						<div class="rc-text">${esc(c.text)}</div>
-					</div>`,
-					)
-					.join("");
-			};
-			(update as any)._fn = update;
-			(list as any)._update = update;
-			update();
-		});
-
-		// ---- 评论提交 ----
-		document.querySelectorAll<HTMLFormElement>("form[data-form]").forEach((form) => {
-			if (form.dataset.initForm) return;
-			form.dataset.initForm = "1";
-			const id = form.getAttribute("data-form") || "";
-			form.addEventListener("submit", (e) => {
-				e.preventDefault();
-				const nameEl = form.querySelector<HTMLInputElement>(".rc-name");
-				const inputEl = form.querySelector<HTMLInputElement>(".rc-input");
-				if (!nameEl || !inputEl) return;
-				const name = (nameEl.value || "匿名").trim() || "匿名";
-				const text = (inputEl.value || "").trim();
-				if (!text) { inputEl.focus(); return; }
-				const all = getComments();
-				all[id] = all[id] || [];
-				all[id].push({ name, text, time: Date.now() });
-				saveComments(all);
-				inputEl.value = "";
-				const list = document.querySelector<HTMLElement>(`.rc-list[data-list="${id}"]`);
-				if (list && (list as any)._update) (list as any)._update();
-				const box = document.getElementById(`comments-${id}`);
-				if (box && box.hidden) box.hidden = false;
 			});
+		});
+
+		// ---- 刷新真实评论计数 ----
+		refreshCommentCounts();
+	}
+
+	function refreshCommentCounts() {
+		whenTwikoo(() => {
+			if (!window.twikoo.getCommentsCount) return;
+			const els = document.querySelectorAll<HTMLElement>(".comment-count[data-comment-count]");
+			if (!els.length) return;
+			const urls = Array.from(els).map(
+				(el) => `/reading/${el.getAttribute("data-comment-count")}`,
+			);
+			window.twikoo
+				.getCommentsCount({ envId: window.__twikooEnv, urls, includeReply: true })
+				.then((res: { url: string; count: number }[]) => {
+					res.forEach((item) => {
+						const id = (item.url || "").split("/").pop();
+						const el = document.querySelector<HTMLElement>(
+							`.comment-count[data-comment-count="${id}"]`,
+						);
+						if (el && typeof item.count === "number") {
+							el.textContent = String(item.count);
+						}
+					});
+				})
+				.catch(() => {});
 		});
 	}
 
@@ -487,4 +394,12 @@ function previewOf(feeling: string) {
 		initReadingInteractions();
 	}
 	document.addEventListener("swup:page:view", initReadingInteractions);
+	document.addEventListener("firefly:page:loaded", initReadingInteractions);
 </script>
+
+<!-- 设置 Twikoo 环境 ID 并加载 SDK（阅读列表页多实例评论） -->
+<script is:inline define:vars={{ twikooEnvId, twikooLang }}>
+	window.__twikooEnv = twikooEnvId;
+	window.__twikooLang = twikooLang;
+</script>
+<script is:inline src="/assets/js/firefly-twikoo-1.6.44.all.min.js"></script>

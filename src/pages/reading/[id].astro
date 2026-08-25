@@ -3,6 +3,12 @@
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
 import { bookNotes } from "@/data/books";
 import { profileConfig } from "@/config";
+import { commentConfig } from "@/config/commentConfig";
+import Twikoo from "@/components/comment/Twikoo.astro";
+
+// Twikoo 评论系统环境（详情页真实评论）
+const twikooEnvId = commentConfig.twikoo?.envId || "";
+const twikooLang = commentConfig.twikoo?.lang || "zh-CN";
 
 export function getStaticPaths() {
 	return bookNotes.map((book) => ({
@@ -54,19 +60,14 @@ const description = book.feeling.slice(0, 60);
 					<span class="rd-like-ic">♥</span>
 					<span class="like-count" data-base={book.likes}>{book.likes}</span>
 				</button>
-				<span class="rd-action">
+				<span class="rd-action" id="comments">
 					<span>💬</span>
 					<span class="comment-count" data-comment-count={book.id} data-base={book.comments}>{book.comments}</span>
 				</span>
 			</footer>
 
-			<div class="rd-comments" id={`comments-${book.id}`}>
-				<div class="rc-list" data-list={book.id}></div>
-				<form class="rc-form" data-form={book.id}>
-					<input class="rc-name" type="text" value={profileConfig.name} maxlength="20" aria-label="昵称" />
-					<input class="rc-input" type="text" placeholder="说点什么…" maxlength="200" aria-label="评论内容" />
-					<button type="submit" class="rc-send">发送</button>
-				</form>
+			<div class="rd-comments">
+				<Twikoo path={`/reading/${book.id}`} />
 			</div>
 		</article>
 	</div>
@@ -216,98 +217,16 @@ const description = book.feeling.slice(0, 60);
 		line-height: 1;
 	}
 
-	/* 评论区（详情页常显） */
+	/* 评论区（详情页常显，Twikoo 真实评论） */
 	.rd-comments {
 		margin-top: 0.9rem;
 		padding-top: 0.9rem;
 		border-top: 1px solid var(--line-color);
-		display: flex;
-		flex-direction: column;
-		gap: 0.7rem;
 	}
-	.rc-list {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-	}
-	.rc-item {
-		display: flex;
-		flex-direction: column;
-		gap: 0.15rem;
-		padding: 0.5rem 0.7rem;
-		border-radius: 0.6rem;
-		background: var(--glass-surface, var(--wb-hover));
-	}
-	.rc-meta {
-		display: flex;
-		align-items: baseline;
-		gap: 0.5rem;
-	}
-	.rc-name-text {
-		font-size: 0.8rem;
-		font-weight: 600;
-		color: var(--deep-text);
-	}
-	.rc-time {
-		font-size: 0.7rem;
-		color: var(--content-meta);
-	}
-	.rc-text {
-		font-size: 0.86rem;
-		line-height: 1.55;
-		color: var(--content-normal);
-		white-space: pre-wrap;
-		word-break: break-word;
-	}
-	.rc-empty {
-		font-size: 0.8rem;
-		color: var(--content-meta);
-		margin: 0;
-	}
-	.rc-form {
-		display: flex;
-		gap: 0.4rem;
-		align-items: center;
-	}
-	.rc-name {
-		width: 5.5rem;
-		flex-shrink: 0;
-		padding: 0.4rem 0.55rem;
-		border-radius: 0.5rem;
-		border: 1px solid var(--line-color);
-		background: var(--glass-surface, var(--wb-hover));
-		color: var(--deep-text);
-		font-size: 0.8rem;
-	}
-	.rc-input {
-		flex: 1;
-		min-width: 0;
-		padding: 0.4rem 0.6rem;
-		border-radius: 0.5rem;
-		border: 1px solid var(--line-color);
-		background: var(--glass-surface, var(--wb-hover));
-		color: var(--deep-text);
-		font-size: 0.85rem;
-	}
-	.rc-name:focus,
-	.rc-input:focus {
-		outline: none;
-		border-color: color-mix(in oklch, var(--primary) 50%, transparent);
-	}
-	.rc-send {
-		flex-shrink: 0;
-		padding: 0.4rem 0.85rem;
-		border: none;
-		border-radius: 0.5rem;
-		background: var(--primary);
-		color: #fff;
-		font-size: 0.82rem;
-		font-weight: 600;
-		cursor: pointer;
-		transition: filter 0.15s ease;
-	}
-	.rc-send:hover {
-		filter: brightness(1.08);
+	/* Twikoo 注入 DOM 的主题适配 */
+	.rd-comments :global(.tk-main) {
+		background: transparent !important;
+		box-shadow: none !important;
 	}
 
 	@media (max-width: 768px) {
@@ -318,24 +237,12 @@ const description = book.feeling.slice(0, 60);
 </style>
 
 <script>
-	// 阅读详情页交互：点赞（持久可切换）+ 评论（持久可输入/显示）
+	// 阅读详情页交互：点赞（本地持久）+ 评论计数刷新（接入 Twikoo 真实后端）
 	const LS_LIKE = "reading-likes";
-	const LS_COMMENT = "reading-comments";
 	const getLikes = () => {
 		try { return JSON.parse(localStorage.getItem(LS_LIKE) || "{}"); } catch { return {}; }
 	};
-	const getComments = () => {
-		try { return JSON.parse(localStorage.getItem(LS_COMMENT) || "{}"); } catch { return {}; }
-	};
 	const saveLikes = (o) => localStorage.setItem(LS_LIKE, JSON.stringify(o));
-	const saveComments = (o) => localStorage.setItem(LS_COMMENT, JSON.stringify(o));
-	const esc = (s) =>
-		s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-	const fmtTime = (t) => {
-		const d = new Date(t);
-		const p = (n) => String(n).padStart(2, "0");
-		return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
-	};
 
 	function initReadingInteractions() {
 		document.querySelectorAll("button[data-like]").forEach((btn) => {
@@ -357,55 +264,25 @@ const description = book.feeling.slice(0, 60);
 			});
 		});
 
-		document.querySelectorAll(".rc-list[data-list]").forEach((list) => {
-			if (list.dataset.initList) return;
-			list.dataset.initList = "1";
-			const id = list.getAttribute("data-list") || "";
-			const update = () => {
-				const arr = getComments()[id] || [];
-				const countEl = document.querySelector(`.comment-count[data-comment-count="${id}"]`);
-				if (countEl) {
-					const base = Number.parseInt(countEl.dataset.base || "0", 10);
-					countEl.textContent = String(base + arr.length);
-				}
-				if (!arr.length) {
-					list.innerHTML = `<p class="rc-empty">还没有评论，来抢沙发～</p>`;
-					return;
-				}
-				list.innerHTML = arr
-					.map(
-						(c) => `
-					<div class="rc-item">
-						<div class="rc-meta"><span class="rc-name-text">${esc(c.name)}</span><span class="rc-time">${fmtTime(c.time)}</span></div>
-						<div class="rc-text">${esc(c.text)}</div>
-					</div>`,
-					)
-					.join("");
-			};
-			list._update = update;
-			update();
-		});
+		// ---- 刷新真实评论计数（Twikoo 后端）----
+		refreshCommentCounts();
+	}
 
-		document.querySelectorAll("form[data-form]").forEach((form) => {
-			if (form.dataset.initForm) return;
-			form.dataset.initForm = "1";
-			const id = form.getAttribute("data-form") || "";
-			form.addEventListener("submit", (e) => {
-				e.preventDefault();
-				const nameEl = form.querySelector(".rc-name");
-				const inputEl = form.querySelector(".rc-input");
-				if (!nameEl || !inputEl) return;
-				const name = (nameEl.value || "匿名").trim() || "匿名";
-				const text = (inputEl.value || "").trim();
-				if (!text) { inputEl.focus(); return; }
-				const all = getComments();
-				all[id] = all[id] || [];
-				all[id].push({ name, text, time: Date.now() });
-				saveComments(all);
-				inputEl.value = "";
-				const list = document.querySelector(`.rc-list[data-list="${id}"]`);
-				if (list && list._update) list._update();
-			});
+	function whenTwikoo(cb) {
+		if (typeof window.twikoo !== "undefined") { cb(); return; }
+		setTimeout(() => whenTwikoo(cb), 300);
+	}
+
+	function refreshCommentCounts() {
+		whenTwikoo(() => {
+			if (!window.twikoo.getCommentsCount) return;
+			const el = document.querySelector(".comment-count[data-comment-count]");
+			if (!el) return;
+			const id = el.getAttribute("data-comment-count");
+			window.twikoo
+				.getCommentsCount({ envId: window.__twikooEnv, urls: [`/reading/${id}`], includeReply: true })
+				.then((res) => { if (res && res[0]) el.textContent = String(res[0].count); })
+				.catch(() => {});
 		});
 	}
 
@@ -415,4 +292,10 @@ const description = book.feeling.slice(0, 60);
 		initReadingInteractions();
 	}
 	document.addEventListener("swup:page:view", initReadingInteractions);
+</script>
+
+<!-- 设置 Twikoo 环境 ID，供评论计数刷新使用 -->
+<script is:inline define:vars={{ twikooEnvId, twikooLang }}>
+	window.__twikooEnv = twikooEnvId;
+	window.__twikooLang = twikooLang;
 </script>
