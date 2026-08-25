@@ -14,12 +14,22 @@ const { items, perRow = 6 } = Astro.props;
 		items.map((it) => (
 			<a class="link-cell" href={it.url} target="_blank" rel="noopener">
 				{
-					it.logo ? (
-						<img class="link-cell-logo-img" src={it.logo} alt={it.name} loading="lazy" />
-					) : (
-						<span class="link-cell-logo">{it.icon ?? "🔗"}</span>
+					it.logo && (
+						<img
+							class="link-cell-logo-img"
+							src={it.logo}
+							alt={it.name}
+							loading="lazy"
+							onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
+						/>
 					)
 				}
+				<span
+					class="link-cell-fallback"
+					style={it.logo ? "display:none" : "display:flex"}
+				>
+					{it.icon ?? (it.name ? it.name.trim().charAt(0) : "🔗")}
+				</span>
 				<span class="link-cell-name">{it.name}</span>
 			</a>
 		))
@@ -57,9 +67,19 @@ const { items, perRow = 6 } = Astro.props;
 		background: var(--card-bg-hover, rgba(255, 255, 255, 0.08));
 	}
 
-	.link-cell-logo {
-		font-size: 2rem;
+	.link-cell-fallback {
+		font-size: 1.5rem;
 		line-height: 1;
+		width: 2.6rem;
+		height: 2.6rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 22%;
+		background: var(--line-divider, rgba(255, 255, 255, 0.08));
+		font-weight: 700;
+		color: var(--text-90, #e6edf3);
+		flex-shrink: 0;
 	}
 
 	.link-cell-logo-img {
@@ -94,8 +114,10 @@ const { items, perRow = 6 } = Astro.props;
 		.link-cell {
 			padding: 0.9rem 0.3rem;
 		}
-		.link-cell-logo {
-			font-size: 1.6rem;
+		.link-cell-fallback {
+			font-size: 1.2rem;
+			width: 2.2rem;
+			height: 2.2rem;
 		}
 		.link-cell-logo-img {
 			width: 2.2rem;
