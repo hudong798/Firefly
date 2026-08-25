@@ -1,0 +1,316 @@
+---
+// 站长板块：个人名片
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import { profileConfig } from "@/config";
+
+const title = "站长";
+const description = "站长 IDONG 的个人名片";
+
+const qq = "519931819";
+const qqLink = `https://wpa.qq.com/msgrd?v=3&uin=${qq}&site=qq&menu=yes`;
+const intro =
+	"来啦来啦，IDONG，男，刚满18，新鲜出炉！人好话多不冷场，游戏能打，故事能听，偶尔还能当个气氛组。想找人聊天、开黑、分享日常的，欢迎来戳～QQ：519931819，加我备注一下下哈，不然我可能以为你走错门了。非诚勿扰，但诚意来了，我必回敬！";
+
+const chips = [
+	{ icon: "♂", label: "男" },
+	{ icon: "🎂", label: "刚满 18" },
+	{ icon: "🎮", label: "游戏能打" },
+	{ icon: "📖", label: "故事能听" },
+	{ icon: "🎤", label: "气氛组" },
+];
+---
+
+<MainGridLayout title={title} description={description}>
+	<div class="owner-wrap">
+		<article class="owner-card card-base">
+			<div class="owner-glow"></div>
+
+			<header class="owner-hero">
+				<div class="owner-avatar-box">
+					<img
+						class="owner-avatar"
+						src={profileConfig.avatar}
+						alt="IDONG"
+						loading="lazy"
+					/>
+					<span class="owner-online" title="在线"></span>
+				</div>
+				<div class="owner-hero-meta">
+					<h1 class="owner-name">IDONG</h1>
+					<p class="owner-sub">站长 · 新鲜出炉的 18 岁</p>
+				</div>
+			</header>
+
+			<div class="owner-chips">
+				{chips.map((c) => (
+					<span class="owner-chip">
+						<span class="owner-chip-ic">{c.icon}</span>
+						{c.label}
+					</span>
+				))}
+			</div>
+
+			<p class="owner-intro">{intro}</p>
+
+			<div class="owner-qq">
+				<div class="owner-qq-info">
+					<span class="owner-qq-label">QQ</span>
+					<span class="owner-qq-num">{qq}</span>
+				</div>
+				<div class="owner-qq-actions">
+					<button type="button" class="owner-qq-btn" id="owner-copy-qq">
+						复制
+					</button>
+					<a
+						class="owner-qq-btn owner-qq-btn-primary"
+						href={qqLink}
+						target="_blank"
+						rel="noopener"
+					>
+						加我 QQ
+					</a>
+				</div>
+			</div>
+
+			<p class="owner-tip">
+				💡 加我备注一下下哈，不然我可能以为你走错门了～
+			</p>
+		</article>
+	</div>
+</MainGridLayout>
+
+<style>
+	.owner-wrap {
+		display: flex;
+		justify-content: center;
+		padding: 1rem 0 2rem;
+	}
+	.owner-card {
+		position: relative;
+		width: 100%;
+		max-width: 600px;
+		padding: 1.8rem 1.6rem 1.5rem;
+		border-radius: var(--radius-large);
+		overflow: hidden;
+	}
+	/* 背景柔光 */
+	.owner-glow {
+		position: absolute;
+		top: -40%;
+		left: 50%;
+		width: 120%;
+		height: 80%;
+		transform: translateX(-50%);
+		background: radial-gradient(
+			closest-side,
+			color-mix(in oklch, var(--primary) 28%, transparent),
+			transparent
+		);
+		opacity: 0.55;
+		pointer-events: none;
+	}
+
+	/* 头部 */
+	.owner-hero {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		position: relative;
+		margin-bottom: 1.2rem;
+	}
+	.owner-avatar-box {
+		position: relative;
+		flex-shrink: 0;
+	}
+	.owner-avatar {
+		width: 4.4rem;
+		height: 4.4rem;
+		border-radius: 1rem;
+		object-fit: cover;
+		border: 1px solid var(--glass-border, var(--wb-border));
+		box-shadow: 0 4px 14px oklch(0.3 0.02 var(--hue) / 0.3);
+	}
+	.owner-online {
+		position: absolute;
+		right: -2px;
+		bottom: -2px;
+		width: 0.95rem;
+		height: 0.95rem;
+		border-radius: 50%;
+		background: #44e08a;
+		border: 2px solid var(--wb-surface, #fff);
+		box-shadow: 0 0 8px #44e08a;
+	}
+	.owner-hero-meta {
+		display: flex;
+		flex-direction: column;
+		gap: 0.2rem;
+	}
+	.owner-name {
+		margin: 0;
+		font-size: 1.6rem;
+		font-weight: 800;
+		letter-spacing: 0.02em;
+		color: var(--deep-text);
+	}
+	.owner-sub {
+		margin: 0;
+		font-size: 0.85rem;
+		color: var(--content-meta);
+	}
+
+	/* 标签 */
+	.owner-chips {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.45rem;
+		position: relative;
+		margin-bottom: 1.1rem;
+	}
+	.owner-chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3rem;
+		font-size: 0.76rem;
+		padding: 0.3rem 0.6rem;
+		border-radius: 999px;
+		background: color-mix(in oklch, var(--primary) 14%, transparent);
+		color: var(--primary);
+		border: 1px solid color-mix(in oklch, var(--primary) 28%, transparent);
+	}
+	.owner-chip-ic {
+		font-size: 0.9rem;
+		line-height: 1;
+	}
+
+	/* 正文 */
+	.owner-intro {
+		position: relative;
+		margin: 0 0 1.2rem;
+		font-size: 0.96rem;
+		line-height: 1.85;
+		color: var(--content-normal);
+		white-space: pre-wrap;
+	}
+
+	/* QQ 卡 */
+	.owner-qq {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.8rem;
+		padding: 0.85rem 1rem;
+		border-radius: 0.9rem;
+		background: color-mix(in oklch, var(--primary) 8%, transparent);
+		border: 1px solid color-mix(in oklch, var(--primary) 20%, transparent);
+		position: relative;
+	}
+	.owner-qq-info {
+		display: flex;
+		align-items: baseline;
+		gap: 0.5rem;
+	}
+	.owner-qq-label {
+		font-size: 0.8rem;
+		color: var(--content-meta);
+	}
+	.owner-qq-num {
+		font-size: 1.15rem;
+		font-weight: 700;
+		color: var(--primary);
+		letter-spacing: 0.04em;
+		font-variant-numeric: tabular-nums;
+	}
+	.owner-qq-actions {
+		display: flex;
+		gap: 0.5rem;
+	}
+	.owner-qq-btn {
+		font-size: 0.82rem;
+		font-weight: 600;
+		padding: 0.4rem 0.85rem;
+		border-radius: 0.55rem;
+		border: 1px solid color-mix(in oklch, var(--primary) 35%, transparent);
+		background: transparent;
+		color: var(--primary);
+		text-decoration: none;
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+	.owner-qq-btn:hover {
+		background: color-mix(in oklch, var(--primary) 14%, transparent);
+	}
+	.owner-qq-btn-primary {
+		background: var(--primary);
+		color: #fff;
+		border-color: var(--primary);
+	}
+	.owner-qq-btn-primary:hover {
+		filter: brightness(1.08);
+	}
+	.owner-qq-btn.copied {
+		color: #44e08a;
+		border-color: #44e08a;
+	}
+
+	.owner-tip {
+		margin: 0.9rem 0 0;
+		font-size: 0.8rem;
+		color: var(--content-meta);
+		text-align: center;
+	}
+
+	@media (max-width: 520px) {
+		.owner-card {
+			padding: 1.4rem 1.1rem 1.2rem;
+		}
+		.owner-qq {
+			flex-direction: column;
+			align-items: stretch;
+		}
+		.owner-qq-actions {
+			justify-content: stretch;
+		}
+		.owner-qq-btn {
+			flex: 1;
+			text-align: center;
+		}
+	}
+</style>
+
+<script>
+	function initOwner() {
+		const btn = document.getElementById("owner-copy-qq");
+		if (!btn || btn.dataset.init) return;
+		btn.dataset.init = "1";
+		btn.addEventListener("click", async () => {
+			const num = "519931819";
+			try {
+				await navigator.clipboard.writeText(num);
+			} catch {
+				const ta = document.createElement("textarea");
+				ta.value = num;
+				document.body.appendChild(ta);
+				ta.select();
+				try {
+					document.execCommand("copy");
+				} catch {}
+				ta.remove();
+			}
+			const old = btn.textContent;
+			btn.textContent = "已复制 ✓";
+			btn.classList.add("copied");
+			setTimeout(() => {
+				btn.textContent = old;
+				btn.classList.remove("copied");
+			}, 1500);
+		});
+	}
+
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", initOwner);
+	} else {
+		initOwner();
+	}
+	document.addEventListener("swup:page:view", initOwner);
+</script>

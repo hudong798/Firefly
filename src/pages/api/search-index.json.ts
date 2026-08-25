@@ -228,6 +228,23 @@ export const GET: APIRoute = async () => {
 		});
 	}
 
+	// ---- 站长 ----
+	const ownerIntro =
+		"来啦来啦，IDONG，男，刚满18，新鲜出炉！人好话多不冷场，游戏能打，故事能听，偶尔还能当个气氛组。想找人聊天、开黑、分享日常的，欢迎来戳～QQ：519931819，加我备注一下下哈，不然我可能以为你走错门了。非诚勿扰，但诚意来了，我必回敬！";
+	items.push({
+		id: "owner-idong",
+		section: "owner",
+		sectionLabel: "站长",
+		title: "站长 · IDONG",
+		snippet: "18 岁 · 游戏能打 · 故事能听 · 气氛组",
+		tags: ["站长", "IDONG"],
+		url: "/owner/",
+		external: false,
+		search: [ownerIntro, "站长", "IDONG", "QQ", "聊天", "开黑", "519931819"]
+			.join(" ")
+			.toLowerCase(),
+	});
+
 	return new Response(JSON.stringify(items), {
 		headers: {
 			"Content-Type": "application/json; charset=utf-8",
