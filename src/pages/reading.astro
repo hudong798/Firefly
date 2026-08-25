@@ -1,0 +1,258 @@
+---
+// 阅读板块：每本书的阅读感悟，微信朋友圈式时间流
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import { bookNotes } from "@/data/books";
+import { profileConfig } from "@/config";
+
+const title = "阅读";
+const description = "我的阅读感悟与书单";
+const notes = [...bookNotes].sort(
+	(a, b) => +new Date(b.date) - +new Date(a.date),
+);
+
+function formatDate(d: string) {
+	const date = new Date(d);
+	const now = new Date();
+	const diff = +now - +date;
+	const day = 24 * 60 * 60 * 1000;
+	if (diff < day) return "今天";
+	if (diff < 2 * day) return "昨天";
+	return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+}
+---
+
+<MainGridLayout title={title} description={description}>
+	<div class="reading-feed">
+		{notes.map((book) => (
+			<article class="reading-card card-base">
+				<header class="reading-header">
+					<img class="reading-avatar" src={profileConfig.avatar} alt="" loading="lazy" />
+					<div class="reading-meta">
+						<span class="reading-author">{profileConfig.name}</span>
+						<span class="reading-time">{formatDate(book.date)}</span>
+					</div>
+				</header>
+
+				<div class="reading-body">
+					<div class="reading-book" style={`--book-hue:${book.hue}deg;`}>
+						<span class="reading-cover">{book.cover}</span>
+						<div class="reading-book-info">
+							<h3 class="reading-title">《{book.title}》</h3>
+							<p class="reading-author-line">{book.author}</p>
+						</div>
+					</div>
+
+					<p class="reading-feeling">
+						{book.feeling.split("\n").map((para, i) => (
+							<span class="reading-para" key={i}>{para}</span>
+						))}
+					</p>
+
+					<div class="reading-tags">
+						{book.tags.map((tag) => (
+							<span class="reading-tag">{tag}</span>
+						))}
+					</div>
+				</div>
+
+				<footer class="reading-footer">
+					<button type="button" class="reading-action" data-like={book.id}>
+						<svg viewBox="0 0 24 24" class="reading-action-icon"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+						<span>{book.likes}</span>
+					</button>
+					<button type="button" class="reading-action">
+						<svg viewBox="0 0 24 24" class="reading-action-icon"><path d="M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18z"/></svg>
+						<span>{book.comments}</span>
+					</button>
+				</footer>
+			</article>
+		))}
+	</div>
+</MainGridLayout>
+
+<style>
+	.reading-feed {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		max-width: 680px;
+		margin: 0 auto;
+	}
+	.reading-card {
+		padding: 1rem 1.1rem 0.8rem;
+		border-radius: var(--radius-large);
+		transition: transform 0.15s ease, box-shadow 0.15s ease;
+	}
+	.reading-card:hover {
+		transform: translateY(-1px);
+	}
+
+	/* 头部 */
+	.reading-header {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		margin-bottom: 0.85rem;
+	}
+	.reading-avatar {
+		width: 2.5rem;
+		height: 2.5rem;
+		border-radius: 0.45rem;
+		object-fit: cover;
+		box-shadow: 0 1px 4px oklch(0.3 0.02 var(--hue) / 0.25);
+	}
+	.reading-meta {
+		display: flex;
+		flex-direction: column;
+		gap: 0.1rem;
+	}
+	.reading-author {
+		font-size: 0.95rem;
+		font-weight: 700;
+		color: var(--deep-text);
+	}
+	.reading-time {
+		font-size: 0.78rem;
+		color: var(--content-meta);
+	}
+
+	/* 书籍卡片 */
+	.reading-book {
+		display: flex;
+		align-items: center;
+		gap: 0.8rem;
+		padding: 0.8rem 0.9rem;
+		border-radius: 0.85rem;
+		background: linear-gradient(
+			135deg,
+			oklch(0.42 0.07 var(--book-hue, 210)) 0%,
+			oklch(0.28 0.05 var(--book-hue, 250)) 100%
+		);
+		border: 1px solid oklch(0.55 0.08 var(--book-hue, 210) / 0.35);
+		margin-bottom: 0.9rem;
+		cursor: pointer;
+		transition: transform 0.15s ease, filter 0.15s ease;
+	}
+	.reading-book:hover {
+		transform: scale(1.01);
+		filter: brightness(1.08);
+	}
+	.reading-cover {
+		font-size: 2.4rem;
+		line-height: 1;
+		text-shadow: 0 2px 8px oklch(0.2 0.03 var(--book-hue) / 0.4);
+	}
+	.reading-book-info {
+		display: flex;
+		flex-direction: column;
+		gap: 0.15rem;
+	}
+	.reading-title {
+		margin: 0;
+		font-size: 1rem;
+		font-weight: 700;
+		color: #fff;
+	}
+	.reading-author-line {
+		margin: 0;
+		font-size: 0.8rem;
+		color: oklch(0.9 0.02 var(--book-hue) / 0.9);
+	}
+
+	/* 感悟正文 */
+	.reading-feeling {
+		margin: 0 0 0.8rem;
+		font-size: 0.94rem;
+		line-height: 1.75;
+		color: var(--content-normal);
+		white-space: pre-wrap;
+	}
+	.reading-para {
+		display: block;
+	}
+	.reading-para + .reading-para {
+		margin-top: 0.55rem;
+	}
+
+	/* 标签 */
+	.reading-tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.35rem;
+		margin-bottom: 0.7rem;
+	}
+	.reading-tag {
+		font-size: 0.72rem;
+		padding: 0.2rem 0.5rem;
+		border-radius: 999px;
+		background: color-mix(in oklch, var(--primary) 14%, transparent);
+		color: var(--primary);
+		border: 1px solid color-mix(in oklch, var(--primary) 28%, transparent);
+	}
+
+	/* 底部操作栏 */
+	.reading-footer {
+		display: flex;
+		gap: 1rem;
+		padding-top: 0.65rem;
+		border-top: 1px solid var(--line-color);
+	}
+	.reading-action {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		padding: 0.25rem 0.4rem;
+		border: none;
+		background: transparent;
+		color: var(--content-meta);
+		font-size: 0.82rem;
+		cursor: pointer;
+		border-radius: 0.4rem;
+		transition: color 0.15s ease, background 0.15s ease;
+	}
+	.reading-action:hover {
+		color: var(--primary);
+		background: color-mix(in oklch, var(--primary) 10%, transparent);
+	}
+	.reading-action.is-liked {
+		color: #ff5a79;
+	}
+	.reading-action-icon {
+		width: 1.05rem;
+		height: 1.05rem;
+		fill: currentColor;
+	}
+
+	@media (max-width: 768px) {
+		.reading-card {
+			padding: 0.9rem 0.95rem 0.7rem;
+		}
+		.reading-cover {
+			font-size: 2rem;
+		}
+	}
+</style>
+
+<script>
+	// 点赞简单交互：仅本地计数 + 变色
+	function initReadingLikes() {
+		document.querySelectorAll<HTMLButtonElement>("[data-like]").forEach((btn) => {
+			if (btn.dataset.likeInit) return;
+			btn.dataset.likeInit = "1";
+			btn.addEventListener("click", () => {
+				const span = btn.querySelector("span");
+				if (!span) return;
+				const liked = btn.classList.toggle("is-liked");
+				let n = Number.parseInt(span.textContent || "0", 10);
+				span.textContent = String(liked ? n + 1 : n);
+			});
+		});
+	}
+
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", initReadingLikes);
+	} else {
+		initReadingLikes();
+	}
+	document.addEventListener("swup:page:view", initReadingLikes);
+</script>

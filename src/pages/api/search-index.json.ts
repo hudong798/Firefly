@@ -8,7 +8,7 @@ import { travels } from "@/data/travels";
 import { tvSites, tvOthers, tvParsers, tvAdult } from "@/data/tv";
 import { aiTools } from "@/data/ai";
 import { toolGroups } from "@/data/tools";
-import { onlineGames, builtinGames } from "@/data/games";
+import { bookNotes } from "@/data/books";
 import { removeFileExtension } from "@/utils/url-utils";
 
 // 清洗 markdown：去代码块/HTML/图片/链接语法，保留可检索文本
@@ -190,18 +190,22 @@ export const GET: APIRoute = async () => {
 		}
 	}
 
-	// ---- 游戏 ----
-	for (const g of [...onlineGames, ...builtinGames]) {
+	// ---- 阅读 ----
+	for (const b of bookNotes) {
+		const tags = (b.tags || []).map(String);
+		const search = [b.title, b.author, tags.join(" "), b.feeling, "阅读", "书籍"]
+			.join(" ")
+			.toLowerCase();
 		items.push({
-			id: `game-${g.name}`,
-			section: "game",
-			sectionLabel: "游戏",
-			title: g.name,
-			snippet: g.desc,
-			tags: ["游戏"],
-			url: g.url,
-			external: !g.url.startsWith("/"),
-			search: [g.name, g.desc, "游戏", "在线"].join(" ").toLowerCase(),
+			id: `book-${b.id}`,
+			section: "reading",
+			sectionLabel: "阅读",
+			title: `《${b.title}》`,
+			snippet: `${b.author} · ${b.feeling.slice(0, 90).replace(/\n/g, " ")}`,
+			tags,
+			url: `/reading/`,
+			external: false,
+			search,
 		});
 	}
 

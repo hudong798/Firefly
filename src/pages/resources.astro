@@ -1,0 +1,154 @@
+---
+// 资源板块：聚合影视、书籍、工具、AI、旅游、说说等分类入口
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import { Icon } from "astro-icon/components";
+
+const title = "资源";
+const description = "影视、书籍、工具、AI 等资源导航";
+
+const categories = [
+	{
+		name: "影视",
+		desc: "在线观影、影视解析、番剧推荐",
+		url: "/tv/",
+		icon: "material-symbols:movie",
+		color: "#60a5fa",
+	},
+	{
+		name: "书籍",
+		desc: "阅读感悟与书单推荐",
+		url: "/reading/",
+		icon: "material-symbols:menu-book",
+		color: "#34d399",
+	},
+	{
+		name: "AI",
+		desc: "国内外 AI、绘画、模型导航",
+		url: "/ai/",
+		icon: "material-symbols:smart-toy",
+		color: "#a78bfa",
+	},
+	{
+		name: "工具",
+		desc: "实用在线工具与资源站",
+		url: "/tools/",
+		icon: "material-symbols:handyman",
+		color: "#fbbf24",
+	},
+	{
+		name: "旅游",
+		desc: "旅行记录与目的地攻略",
+		url: "/travel/",
+		icon: "material-symbols:flight",
+		color: "#f87171",
+	},
+	{
+		name: "说说",
+		desc: "随想、随笔与生活碎片",
+		url: "/thoughts/",
+		icon: "material-symbols:lightbulb",
+		color: "#38bdf8",
+	},
+];
+---
+
+<MainGridLayout title={title} description={description}>
+	<p class="resources-hint">点击下方卡片进入对应资源分类。</p>
+
+	<div class="resources-grid">
+		{categories.map((cat) => (
+			<a class="resource-card card-base" href={cat.url} style={`--cat-color:${cat.color};`}>
+				<div class="resource-icon-wrap">
+					<Icon name={cat.icon} class="resource-icon" />
+				</div>
+				<div class="resource-info">
+					<h3 class="resource-name">{cat.name}</h3>
+					<p class="resource-desc">{cat.desc}</p>
+				</div>
+				<Icon name="material-symbols:arrow-forward-ios" class="resource-arrow" />
+			</a>
+		))}
+	</div>
+</MainGridLayout>
+
+<style>
+	.resources-hint {
+		margin: 0 0 1rem;
+		font-size: 0.9rem;
+		color: var(--content-meta);
+		text-align: center;
+	}
+	.resources-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+		gap: 1rem;
+	}
+
+	.resource-card {
+		display: flex;
+		align-items: center;
+		gap: 0.9rem;
+		padding: 1rem 1.1rem;
+		border-radius: var(--radius-large);
+		text-decoration: none;
+		color: inherit;
+		border: 1px solid transparent;
+		transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+	}
+	.resource-card:hover {
+		transform: translateY(-2px);
+		border-color: color-mix(in srgb, var(--cat-color) 45%, transparent);
+		box-shadow: 0 8px 24px color-mix(in srgb, var(--cat-color) 18%, transparent);
+	}
+
+	.resource-icon-wrap {
+		flex-shrink: 0;
+		width: 3.2rem;
+		height: 3.2rem;
+		border-radius: 0.9rem;
+		display: grid;
+		place-items: center;
+		background: color-mix(in srgb, var(--cat-color) 18%, transparent);
+		border: 1px solid color-mix(in srgb, var(--cat-color) 30%, transparent);
+	}
+	.resource-icon {
+		font-size: 1.6rem;
+		color: var(--cat-color);
+	}
+
+	.resource-info {
+		flex: 1;
+		min-width: 0;
+	}
+	.resource-name {
+		margin: 0 0 0.15rem;
+		font-size: 1.05rem;
+		font-weight: 700;
+		color: var(--deep-text);
+	}
+	.resource-desc {
+		margin: 0;
+		font-size: 0.8rem;
+		color: var(--content-meta);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.resource-arrow {
+		flex-shrink: 0;
+		font-size: 0.95rem;
+		color: var(--content-meta);
+		transition: transform 0.15s ease, color 0.15s ease;
+	}
+	.resource-card:hover .resource-arrow {
+		transform: translateX(3px);
+		color: var(--cat-color);
+	}
+
+	@media (max-width: 640px) {
+		.resources-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

@@ -4,39 +4,74 @@
 // 这里叠加 ASCII 原子像素装饰与中央弹出文字。
 import { profileConfig } from "@/config";
 
-// ASCII 原子像素装饰元素（前景点缀）
-const asciiAtoms = [
-	{ glyph: "◌", x: "8%", y: "22%", size: "2.4rem", delay: "0s" },
-	{ glyph: "✦", x: "90%", y: "18%", size: "1.8rem", delay: "0.6s" },
-	{ glyph: "◍", x: "82%", y: "74%", size: "2.8rem", delay: "1.2s" },
-	{ glyph: "⚛", x: "14%", y: "78%", size: "2.2rem", delay: "1.8s" },
-	{ glyph: "▪", x: "55%", y: "12%", size: "1.4rem", delay: "0.9s" },
-	{ glyph: "▚", x: "68%", y: "88%", size: "1.6rem", delay: "1.5s" },
-	{ glyph: "+", x: "30%", y: "88%", size: "1.4rem", delay: "0.3s" },
-	{ glyph: "◦", x: "44%", y: "10%", size: "1.6rem", delay: "2.1s" },
+// ASCII 星点装饰（前景点缀）：以星星 / 光点类符号为主，仅留 1 个 ⚛ 作“原子”焦点
+// dur: 每颗闪烁节奏（错开即像夜空眨眼）；big: 视觉焦点符号
+const asciiStars = [
+	{ glyph: "⚛", x: "10%", y: "22%", size: "3rem",   delay: "0s",   dur: "4.8s", big: true },
+	{ glyph: "✦", x: "88%", y: "15%", size: "2rem",   delay: "0.6s", dur: "3.4s" },
+	{ glyph: "★", x: "84%", y: "73%", size: "2.6rem", delay: "1.4s", dur: "4.2s", big: true },
+	{ glyph: "✧", x: "16%", y: "80%", size: "2rem",   delay: "1.0s", dur: "3.8s" },
+	{ glyph: "✶", x: "86%", y: "54%", size: "1.6rem", delay: "2.0s", dur: "3.2s" },
+	{ glyph: "✷", x: "43%", y: "9%",  size: "1.7rem", delay: "2.6s", dur: "4.0s" },
+	{ glyph: "·", x: "6%",  y: "52%", size: "1.4rem", delay: "0.9s", dur: "3.6s" },
+	{ glyph: "⋆", x: "93%", y: "44%", size: "1.7rem", delay: "2.3s", dur: "3.5s" },
+	{ glyph: "⊹", x: "34%", y: "66%", size: "1.6rem", delay: "2.9s", dur: "4.1s" },
+	{ glyph: "◦", x: "4%",  y: "85%", size: "1.5rem", delay: "1.7s", dur: "4.4s" },
+	{ glyph: "*", x: "95%", y: "63%", size: "1.4rem", delay: "0.8s", dur: "3.0s" },
+	{ glyph: "✺", x: "60%", y: "19%", size: "1.6rem", delay: "1.2s", dur: "3.7s" },
+	{ glyph: "❋", x: "28%", y: "38%", size: "1.5rem", delay: "3.1s", dur: "4.3s" },
+	{ glyph: "◌", x: "68%", y: "89%", size: "1.8rem", delay: "1.5s", dur: "4.6s" },
 ];
+
+// 史铁生名句：拆成“手电筒”依次照亮的词 / 字
+// 中文逐字、英文 / 数字按词（自带尾随空格，避免词粘连）；纯空格段跳过
+function tokenize(text: string) {
+	const out: { type: string; ch: string; i?: number }[] = [];
+	const segs = text.split(/(\s+)/);
+	for (let k = 0; k < segs.length; k++) {
+		const seg = segs[k];
+		if (seg === "" || /^\s+$/.test(seg)) continue; // 空段 / 纯空格段跳过
+		const nextIsSpace = k + 1 < segs.length && /^\s+$/.test(segs[k + 1]);
+		if (/[一-鿿]/.test(seg)) {
+			for (const ch of seg) out.push({ type: "char", ch });
+		} else {
+			out.push({ type: "word", ch: seg + (nextIsSpace ? " " : "") });
+		}
+	}
+	// 给可见字符分配连续序号，让手电筒顺序扫过
+	let vi = 0;
+	for (const t of out) t.i = vi++;
+	return out;
+}
+const quoteTokens = tokenize(profileConfig.bio || "");
+const quoteCount = quoteTokens.filter((t) => t.type !== "space").length;
 ---
 
-<!-- 全屏首页舞台：液态玻璃背景 + ASCII 原子像素装饰 + 中央弹出文字 -->
+<!-- 全屏首页舞台：液态玻璃背景 + ASCII 星点闪烁 + 中央弹出文字 -->
 <div class="wb-home-stage">
-	<!-- ASCII 原子像素点缀层 -->
+	<!-- 像素点阵 + 网格（科技基底） -->
+	<div class="wb-pixel-dots" aria-hidden="true"></div>
+	<div class="wb-pixel-grid" aria-hidden="true"></div>
+
+	<!-- ASCII 星点闪烁层（星星为主，⚛ 为原子焦点） -->
 	<div class="wb-ascii-layer" aria-hidden="true">
-		{asciiAtoms.map((a) => (
+		{asciiStars.map((a) => (
 			<span
-				class="wb-ascii-atom"
-				style={`left:${a.x}; top:${a.y}; font-size:${a.size}; animation-delay:${a.delay};`}
+				class={`wb-ascii-atom${a.big ? " is-big" : ""}`}
+				style={`left:${a.x}; top:${a.y}; font-size:${a.size}; animation-delay:${a.delay}; animation-duration:${a.dur};`}
 			>
 				{a.glyph}
 			</span>
 		))}
 	</div>
 
-	<!-- 网格/像素纹理层 -->
-	<div class="wb-pixel-grid" aria-hidden="true"></div>
-
-	<!-- 中央艺术字：流动光效引言 + 署名 -->
+	<!-- 中央艺术字：史铁生名句（手电筒逐词照亮） + 署名 -->
 	<div class="wb-home-hero">
-		<p class="quote-light">{profileConfig.bio}</p>
+		<p class="quote-light" style={`--n:${quoteCount}; --cycle:7s;`}>
+			{quoteTokens.map((t) => (
+				<span class="q-word" style={`--i:${t.i}`}>{t.ch}</span>
+			))}
+		</p>
 		<div class="quote-author">———史铁生</div>
 	</div>
 </div>
@@ -88,7 +123,43 @@ const asciiAtoms = [
 		overflow: hidden;
 	}
 
-	/* ---------- ASCII 原子像素点缀层 ---------- */
+	/* ---------- 像素点阵（颗粒感基底） ---------- */
+	.wb-pixel-dots {
+		position: absolute;
+		inset: 0;
+		z-index: 1;
+		pointer-events: none;
+		background-image: radial-gradient(rgb(120 190 255 / 0.08) 1px, transparent 1.6px);
+		background-size: 24px 24px;
+		mask-image: radial-gradient(ellipse at center, black 22%, transparent 82%);
+		-webkit-mask-image: radial-gradient(ellipse at center, black 22%, transparent 82%);
+		animation: wb-dot-pulse 6.5s ease-in-out infinite;
+	}
+
+	/* ---------- 像素网格纹理（科技感，收敛） ---------- */
+	.wb-pixel-grid {
+		position: absolute;
+		inset: 0;
+		z-index: 1;
+		pointer-events: none;
+		background-image:
+			linear-gradient(rgb(120 180 255 / 0.05) 1px, transparent 1px),
+			linear-gradient(90deg, rgb(120 180 255 / 0.05) 1px, transparent 1px);
+		background-size: 38px 38px;
+		mask-image: radial-gradient(ellipse at center, black 26%, transparent 80%);
+		-webkit-mask-image: radial-gradient(ellipse at center, black 26%, transparent 80%);
+		animation: wb-pixel-scan 11s linear infinite;
+	}
+	@keyframes wb-pixel-scan {
+		0%   { background-position: 0 0; }
+		100% { background-position: 0 38px; }
+	}
+	@keyframes wb-dot-pulse {
+		0%, 100% { opacity: 0.3; }
+		50%      { opacity: 0.5; }
+	}
+
+	/* ---------- ASCII 星点闪烁层（星星为主，⚛ 为原子焦点） ---------- */
 	.wb-ascii-layer {
 		position: absolute;
 		inset: 0;
@@ -97,52 +168,26 @@ const asciiAtoms = [
 	}
 	.wb-ascii-atom {
 		position: absolute;
-		color: rgb(150 200 255 / 0.5);
-		text-shadow: 0 0 18px rgb(90 180 255 / 0.6);
-		animation: wb-ascii-float 7s ease-in-out infinite alternate;
-		transform: translateY(0);
+		font-family: var(--wb-mono, ui-monospace, monospace);
+		color: rgb(165 210 255 / 0.6);
+		text-shadow: 0 0 8px rgb(90 180 255 / 0.4);
+		animation-name: wb-twinkle;
+		animation-timing-function: ease-in-out;
+		animation-iteration-count: infinite;
 		-webkit-user-select: none;
 		user-select: none;
 	}
-	@keyframes wb-ascii-float {
-		0% {
-			transform: translateY(0) translateX(0);
-			opacity: 0.4;
-		}
-		50% {
-			transform: translateY(-1.2rem) translateX(0.6rem);
-			opacity: 1;
-		}
-		100% {
-			transform: translateY(0.6rem) translateX(-0.4rem);
-			opacity: 0.5;
-		}
+	/* 视觉焦点符号（⚛ 原子 + ★ 星）：稍亮、闪烁幅度更大 */
+	.wb-ascii-atom.is-big {
+		color: rgb(200 232 255 / 0.78);
+		text-shadow: 0 0 14px rgb(120 200 255 / 0.55);
+	}
+	@keyframes wb-twinkle {
+		0%, 100% { opacity: 0.22; transform: scale(0.9); }
+		50%      { opacity: 0.9;  transform: scale(1.06); }
 	}
 
-	/* ---------- 像素网格/扫描线纹理（科技感） ---------- */
-	.wb-pixel-grid {
-		position: absolute;
-		inset: 0;
-		z-index: 1;
-		pointer-events: none;
-		background-image:
-			linear-gradient(rgb(120 180 255 / 0.06) 1px, transparent 1px),
-			linear-gradient(90deg, rgb(120 180 255 / 0.06) 1px, transparent 1px);
-		background-size: 44px 44px;
-		mask-image: radial-gradient(ellipse at center, black 30%, transparent 78%);
-		-webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 78%);
-		animation: wb-pixel-scan 8s linear infinite;
-	}
-	@keyframes wb-pixel-scan {
-		0% {
-			background-position: 0 0;
-		}
-		100% {
-			background-position: 0 44px;
-		}
-	}
-
-	/* ---------- 中央艺术字：流动光效引言 ---------- */
+	/* ---------- 中央艺术字：史铁生名句（手电筒逐词照亮） ---------- */
 	.wb-home-hero {
 		position: absolute;
 		inset: 0;
@@ -156,7 +201,6 @@ const asciiAtoms = [
 		padding: 0 1.5rem;
 	}
 
-	/* 流动光效艺术字：光带沿文字扫过 + 呼吸式辉光 */
 	.quote-light {
 		margin: 0;
 		max-width: 20em;
@@ -165,25 +209,29 @@ const asciiAtoms = [
 		font-weight: 700;
 		font-style: italic;
 		letter-spacing: 0.02em;
-		line-height: 1.6;
-		background: linear-gradient(
-			105deg,
-			rgb(165 210 255 / 0.7) 0%,
-			rgb(255 255 255 / 1) 18%,
-			rgb(205 235 255 / 0.95) 36%,
-			rgb(255 255 255 / 1) 52%,
-			rgb(150 205 255 / 0.65) 70%,
-			rgb(255 255 255 / 0.98) 86%,
-			rgb(165 210 255 / 0.7) 100%
-		);
-		background-size: 260% 100%;
-		-webkit-background-clip: text;
-		background-clip: text;
-		-webkit-text-fill-color: transparent;
-		animation:
-			quote-rise 1.2s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both,
-			quote-shimmer 7s linear infinite,
-			quote-glow 4.8s ease-in-out infinite;
+		line-height: 1.9;
+		/* 整句上浮入场，不再用流动渐变（改用逐词手电筒） */
+		animation: quote-rise 1.2s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+	}
+
+	/* 每个词 / 字默认暗蓝，被“手电筒”扫到时点亮发光 */
+	/* 用 inline 保留正常文字流与空格，避免词与词粘连 */
+	.q-word {
+		display: inline;
+		color: rgb(150 195 245 / 0.30);
+		animation: wb-flashlight var(--cycle, 7s) linear infinite;
+		animation-delay: calc(var(--i) * (var(--cycle, 7s) / var(--n, 10)));
+	}
+	/* 手电筒：光斑经过该词时由暗转亮再转暗，配合 delay 形成横向扫过 */
+	@keyframes wb-flashlight {
+		0%   { color: rgb(150 195 245 / 0.30); text-shadow: none; }
+		7%   {
+			color: rgb(255 255 255 / 1);
+			text-shadow: 0 0 10px rgb(185 222 255 / 0.9),
+			             0 0 26px rgb(120 190 255 / 0.5);
+		}
+		30%  { color: rgb(150 195 245 / 0.30); text-shadow: none; }
+		100% { color: rgb(150 195 245 / 0.30); text-shadow: none; }
 	}
 
 	/* 署名：史铁生（低调收尾，带微光） */
@@ -201,45 +249,28 @@ const asciiAtoms = [
 
 	/* 文字上浮入场 */
 	@keyframes quote-rise {
-		0% {
-			opacity: 0;
-			transform: translateY(2.4rem);
-		}
-		100% {
-			opacity: 1;
-			transform: translateY(0);
-		}
+		0%   { opacity: 0; transform: translateY(2.4rem); }
+		100% { opacity: 1; transform: translateY(0); }
 	}
-	/* 光带沿文字流动 */
-	@keyframes quote-shimmer {
-		0% {
-			background-position: 180% center;
-		}
-		100% {
-			background-position: -80% center;
-		}
+
+	/* 移动端：简化装饰，避免干扰中央文字 */
+	@media (max-width: 860px) {
+		.wb-ascii-atom.is-big { font-size: 2.2rem !important; }
+		.wb-pixel-dots { opacity: 0.6; }
 	}
-	/* 辉光呼吸，像光在轻轻涌动 */
-	@keyframes quote-glow {
-		0%,
-		100% {
-			filter: drop-shadow(0 0 10px rgb(120 190 255 / 0.45))
-				drop-shadow(0 0 26px rgb(120 190 255 / 0.2));
-		}
-		50% {
-			filter: drop-shadow(0 0 18px rgb(150 210 255 / 0.7))
-				drop-shadow(0 0 46px rgb(120 190 255 / 0.35));
-		}
-	}
+
 	@media (prefers-reduced-motion: reduce) {
-		.quote-light {
-			animation: quote-rise 0.6s ease both;
-		}
-		.quote-author {
-			animation: quote-rise 0.6s ease both;
+		.quote-light { animation: quote-rise 0.6s ease both; }
+		.quote-author { animation: quote-rise 0.6s ease both; }
+		/* 降级：静态显示全部文字，不再闪烁 */
+		.q-word {
+			animation: none;
+			color: rgb(205 230 255 / 0.92);
+			text-shadow: 0 0 12px rgb(120 190 255 / 0.4);
 		}
 		.wb-ascii-atom,
-		.wb-pixel-grid {
+		.wb-pixel-grid,
+		.wb-pixel-dots {
 			animation: none;
 		}
 	}
