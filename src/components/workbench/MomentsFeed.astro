@@ -2,12 +2,17 @@
 // 说说页：QQ 动态风格的说说列表
 import type { ThoughtMoment } from "@/data/thoughts";
 import { MOMENT_PREVIEW_LIMIT } from "@/data/thoughts";
+import { commentConfig } from "@/config/commentConfig";
 
 interface Props {
 	moments: ThoughtMoment[];
 }
 
 const { moments } = Astro.props;
+
+// Twikoo 评论系统配置（说说列表接入真实后端，多实例）
+const twikooEnvId = commentConfig.twikoo?.envId || "";
+const twikooLang = commentConfig.twikoo?.lang || "zh-CN";
 
 // 截断预览：列表页最多展示 MOMENT_PREVIEW_LIMIT 字，超出需进详情页
 function previewOf(content: string) {
@@ -24,53 +29,47 @@ function previewOf(content: string) {
 		moments.map((m) => {
 			const p = previewOf(m.content);
 			const detailHref = `/thoughts/${m.id}/`;
-			return p.isLong ? (
-				// 超长说说：整张卡片可点击进入详情
-				<a class="moment moment--link card-base rounded-[var(--radius-large)]" href={detailHref}>
-					<header class="moment-head">
-						<div class="moment-who">
-							<span class="moment-name">Idong</span>
-							<span class="moment-time">
-								{m.mood && <span class="moment-mood">{m.mood}</span>}
-								{m.date}
-							</span>
-						</div>
-					</header>
+			return (
+			<article class="moment card-base rounded-[var(--radius-large)]">
+				<header class="moment-head">
+					<div class="moment-who">
+						<span class="moment-name">Idong</span>
+						<span class="moment-time">
+							{m.mood && <span class="moment-mood">{m.mood}</span>}
+							{m.date}
+						</span>
+					</div>
+				</header>
 
-					<p class="moment-content">{p.text}</p>
+				<p class="moment-content">{p.text}</p>
 
-					{m.tags && m.tags.length > 0 && (
-						<div class="moment-tags">
-							{m.tags.map((t) => (
-								<span class="moment-tag">#{t}</span>
-							))}
-						</div>
-					)}
+				{m.tags && m.tags.length > 0 && (
+					<div class="moment-tags">
+						{m.tags.map((t) => (
+							<span class="moment-tag">#{t}</span>
+						))}
+					</div>
+				)}
 
-					<span class="moment-more">查看详情 ›</span>
-				</a>
-			) : (
-				<article class="moment card-base rounded-[var(--radius-large)]">
-					<header class="moment-head">
-						<div class="moment-who">
-							<span class="moment-name">Idong</span>
-							<span class="moment-time">
-								{m.mood && <span class="moment-mood">{m.mood}</span>}
-								{m.date}
-							</span>
-						</div>
-					</header>
+				{p.isLong && (
+					<a class="moment-more" href={detailHref}>查看详情 ›</a>
+				)}
 
-					<p class="moment-content">{m.content}</p>
+				<footer class="moment-footer">
+					<button type="button" class="moment-action" data-like={m.id}>
+						<svg viewBox="0 0 24 24" class="moment-action-icon"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+						<span class="like-count" data-base={m.likes ?? 0}>{m.likes ?? 0}</span>
+					</button>
+					<button type="button" class="moment-action" data-comment-toggle={m.id}>
+						<svg viewBox="0 0 24 24" class="moment-action-icon"><path d="M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18z"/></svg>
+						<span class="comment-count" data-comment-count={m.id} data-base={m.comments ?? 0}>{m.comments ?? 0}</span>
+					</button>
+				</footer>
 
-					{m.tags && m.tags.length > 0 && (
-						<div class="moment-tags">
-							{m.tags.map((t) => (
-								<span class="moment-tag">#{t}</span>
-							))}
-						</div>
-					)}
-				</article>
+				<div class="moment-comments" id={`comments-${m.id}`} hidden>
+					<div class="moment-tk" id={`tcomment-${m.id}`}></div>
+				</div>
+			</article>
 			);
 		})
 	}
@@ -132,22 +131,6 @@ function previewOf(content: string) {
 		word-break: break-word;
 	}
 
-	/* 可点击的整卡：去掉链接默认样式 + 悬停上浮 */
-	.moment--link {
-		display: block;
-		text-decoration: none;
-		color: inherit;
-		transition:
-			transform 0.18s ease,
-			box-shadow 0.18s ease;
-		cursor: pointer;
-	}
-
-	.moment--link:hover {
-		transform: translateY(-2px);
-		box-shadow: 0 8px 24px -12px rgba(0, 0, 0, 0.35);
-	}
-
 	/* 查看详情提示 */
 	.moment-more {
 		display: inline-block;
@@ -155,10 +138,12 @@ function previewOf(content: string) {
 		font-size: 0.82rem;
 		font-weight: 600;
 		color: var(--primary);
+		text-decoration: none;
+		transition: opacity 0.15s ease, transform 0.15s ease;
 	}
-
-	.moment--link:hover .moment-more {
-		text-decoration: underline;
+	.moment-more:hover {
+		opacity: 0.8;
+		transform: translateX(2px);
 	}
 
 	/* 标签 */
@@ -174,6 +159,62 @@ function previewOf(content: string) {
 		color: var(--primary);
 	}
 
+	/* 底部操作栏（点赞 / 评论） */
+	.moment-footer {
+		display: flex;
+		gap: 1rem;
+		margin-top: 0.7rem;
+		padding-top: 0.65rem;
+		border-top: 1px solid var(--line-color);
+	}
+	.moment-action {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		padding: 0.25rem 0.4rem;
+		border: none;
+		background: transparent;
+		color: var(--content-meta);
+		font-size: 0.82rem;
+		cursor: pointer;
+		border-radius: 0.4rem;
+		transition: color 0.15s ease, background 0.15s ease;
+	}
+	.moment-action:hover {
+		color: var(--primary);
+		background: color-mix(in oklch, var(--primary) 10%, transparent);
+	}
+	.moment-action.is-liked {
+		color: #ff5a79;
+	}
+	.moment-action-icon {
+		width: 1.05rem;
+		height: 1.05rem;
+		fill: currentColor;
+	}
+
+	/* 评论区：默认隐藏，点击评论按钮展开 */
+	.moment-comments {
+		margin-top: 0.6rem;
+		padding-top: 0.7rem;
+		border-top: 1px dashed var(--line-color);
+	}
+	.moment-comments[hidden] {
+		display: none;
+	}
+	.moment-tk {
+		min-height: 1rem;
+	}
+	/* Twikoo 注入 DOM 的主题适配（scoped 不命中，用 :global） */
+	.moment-tk :global(.tk-main) {
+		background: transparent !important;
+		box-shadow: none !important;
+	}
+	.moment-tk :global(.tk-comments-container),
+	.moment-tk :global(.tk-comment) {
+		border-color: var(--line-color) !important;
+	}
+
 	.moment-empty {
 		padding: 3rem 1.5rem;
 		text-align: center;
@@ -186,3 +227,111 @@ function previewOf(content: string) {
 		}
 	}
 </style>
+
+<script>
+	// 说说列表交互：点赞（本地持久）+ 评论（接入 Twikoo 真实后端，多实例）
+	const LS_LIKE = "moments-likes";
+	const getLikes = () => {
+		try { return JSON.parse(localStorage.getItem(LS_LIKE) || "{}"); } catch { return {}; }
+	};
+	const saveLikes = (o: Record<string, boolean>) => localStorage.setItem(LS_LIKE, JSON.stringify(o));
+
+	// 等待 twikoo 全局对象加载完成
+	function whenTwikoo(cb: () => void) {
+		if (typeof window.twikoo !== "undefined") { cb(); return; }
+		setTimeout(() => whenTwikoo(cb), 300);
+	}
+
+	function initMomentInteractions() {
+		// ---- 点赞（localStorage 持久可切换）----
+		document.querySelectorAll<HTMLButtonElement>("button[data-like]").forEach((btn) => {
+			if (btn.dataset.init) return;
+			btn.dataset.init = "1";
+			const id = btn.getAttribute("data-like") || "";
+			const countEl = btn.querySelector<HTMLElement>(".like-count");
+			const base = countEl ? Number.parseInt(countEl.dataset.base || "0", 10) : 0;
+			const liked = !!getLikes()[id];
+			btn.classList.toggle("is-liked", liked);
+			if (countEl) countEl.textContent = String(base + (liked ? 1 : 0));
+			btn.addEventListener("click", () => {
+				const lk = getLikes();
+				const now = !lk[id];
+				if (now) lk[id] = true; else delete lk[id];
+				saveLikes(lk);
+				btn.classList.toggle("is-liked", now);
+				if (countEl) countEl.textContent = String(base + (now ? 1 : 0));
+			});
+		});
+
+		// ---- 评论展开 / 收起 + Twikoo 多实例初始化 ----
+		document.querySelectorAll<HTMLButtonElement>("button[data-comment-toggle]").forEach((btn) => {
+			if (btn.dataset.initToggle) return;
+			btn.dataset.initToggle = "1";
+			const id = btn.getAttribute("data-comment-toggle") || "";
+			const box = document.getElementById(`comments-${id}`);
+			if (!box) return;
+			btn.addEventListener("click", () => {
+				const willShow = box.hidden;
+				box.hidden = !box.hidden;
+				if (willShow && !box.dataset.tkInited) {
+					const el = document.getElementById(`tcomment-${id}`);
+					if (!el) return;
+					box.dataset.tkInited = "1";
+					whenTwikoo(() => {
+						window.twikoo
+							.init({
+								envId: window.__twikooEnv,
+								el: `#tcomment-${id}`,
+								path: `/thoughts/${id}`,
+								lang: window.__twikooLang || "zh-CN",
+							})
+							.catch((e: unknown) => console.error("[Moments Twikoo] init failed:", e));
+					});
+				}
+			});
+		});
+
+		// ---- 刷新真实评论计数 ----
+		refreshCommentCounts();
+	}
+
+	function refreshCommentCounts() {
+		whenTwikoo(() => {
+			if (!window.twikoo.getCommentsCount) return;
+			const els = document.querySelectorAll<HTMLElement>(".comment-count[data-comment-count]");
+			if (!els.length) return;
+			const urls = Array.from(els).map(
+				(el) => `/thoughts/${el.getAttribute("data-comment-count")}`,
+			);
+			window.twikoo
+				.getCommentsCount({ envId: window.__twikooEnv, urls, includeReply: true })
+				.then((res: { url: string; count: number }[]) => {
+					res.forEach((item) => {
+						const id = (item.url || "").split("/").pop();
+						const el = document.querySelector<HTMLElement>(
+							`.comment-count[data-comment-count="${id}"]`,
+						);
+						if (el && typeof item.count === "number") {
+							el.textContent = String(item.count);
+						}
+					});
+				})
+				.catch(() => {});
+		});
+	}
+
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", initMomentInteractions);
+	} else {
+		initMomentInteractions();
+	}
+	document.addEventListener("swup:page:view", initMomentInteractions);
+	document.addEventListener("firefly:page:loaded", initMomentInteractions);
+</script>
+
+<!-- 设置 Twikoo 环境 ID 并加载 SDK（说说列表页多实例评论） -->
+<script is:inline define:vars={{ twikooEnvId, twikooLang }}>
+	window.__twikooEnv = twikooEnvId;
+	window.__twikooLang = twikooLang;
+</script>
+<script is:inline src="/assets/js/firefly-twikoo-1.6.44.all.min.js"></script>

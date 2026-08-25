@@ -1,7 +1,13 @@
 ---
 // 说说详情页：展示单条说说的完整内容
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import Twikoo from "@/components/comment/Twikoo.astro";
 import { moments } from "@/data/thoughts";
+import { commentConfig } from "@/config/commentConfig";
+
+// Twikoo 评论系统配置（详情页评论计数刷新使用）
+const twikooEnvId = commentConfig.twikoo?.envId || "";
+const twikooLang = commentConfig.twikoo?.lang || "zh-CN";
 
 export function getStaticPaths() {
 	return moments.map((m) => ({
@@ -39,7 +45,23 @@ const description = moment.content.slice(0, 60);
 					</div>
 				)
 			}
+
+			<footer class="td-footer">
+				<button type="button" class="td-action td-like-btn" data-like={moment.id}>
+					<span class="td-like-ic">♥</span>
+					<span class="like-count" data-base={moment.likes ?? 0}>{moment.likes ?? 0}</span>
+				</button>
+				<span class="td-action">
+					<span>💬</span>
+					<span class="comment-count" data-comment-count={moment.id} data-base={moment.comments ?? 0}>{moment.comments ?? 0}</span>
+				</span>
+			</footer>
 		</article>
+
+		<!-- 真实评论区（Twikoo 后端，路径按每条说说区分） -->
+		<div class="td-comments" id={`comments-${moment.id}`}>
+			<Twikoo path={`/thoughts/${moment.id}`} />
+		</div>
 	</div>
 </MainGridLayout>
 
@@ -111,9 +133,135 @@ const description = moment.content.slice(0, 60);
 		color: var(--primary);
 	}
 
+	/* 底部操作栏（点赞 / 评论数） */
+	.td-footer {
+		display: flex;
+		gap: 1rem;
+		margin-top: 1rem;
+		padding-top: 0.7rem;
+		border-top: 1px solid var(--line-color);
+	}
+	.td-action {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		font-size: 0.85rem;
+		color: var(--content-meta);
+	}
+	.td-like-btn {
+		border: none;
+		background: transparent;
+		cursor: pointer;
+		border-radius: 0.4rem;
+		padding: 0.25rem 0.4rem;
+		transition: color 0.15s ease, background 0.15s ease;
+	}
+	.td-like-btn:hover {
+		color: var(--primary);
+		background: color-mix(in oklch, var(--primary) 10%, transparent);
+	}
+	.td-like-btn.is-liked {
+		color: #ff5a79;
+	}
+	.td-like-ic {
+		font-size: 1rem;
+		line-height: 1;
+	}
+
+	/* 评论区（详情页常显） */
+	.td-comments {
+		margin-top: 0.4rem;
+	}
+	.td-comments :global(.tk-main) {
+		background: transparent !important;
+		box-shadow: none !important;
+	}
+	.td-comments :global(.tk-comments-container),
+	.td-comments :global(.tk-comment) {
+		border-color: var(--line-color) !important;
+	}
+
 	@media (max-width: 768px) {
 		.td-card {
 			padding: 1.1rem 1.1rem 1rem;
 		}
 	}
 </style>
+
+<script>
+	// 说说详情页交互：点赞（本地持久，与列表共享）+ 评论（Twikoo 真实后端，常显）
+	const LS_LIKE = "moments-likes";
+	const getLikes = () => {
+		try { return JSON.parse(localStorage.getItem(LS_LIKE) || "{}"); } catch { return {}; }
+	};
+	const saveLikes = (o: Record<string, boolean>) => localStorage.setItem(LS_LIKE, JSON.stringify(o));
+
+	function whenTwikoo(cb: () => void) {
+		if (typeof window.twikoo !== "undefined") { cb(); return; }
+		setTimeout(() => whenTwikoo(cb), 300);
+	}
+
+	function initThoughtDetail() {
+		// ---- 点赞（localStorage 持久可切换）----
+		document.querySelectorAll<HTMLButtonElement>("button[data-like]").forEach((btn) => {
+			if (btn.dataset.init) return;
+			btn.dataset.init = "1";
+			const id = btn.getAttribute("data-like") || "";
+			const countEl = btn.querySelector<HTMLElement>(".like-count");
+			const base = countEl ? Number.parseInt(countEl.dataset.base || "0", 10) : 0;
+			const liked = !!getLikes()[id];
+			btn.classList.toggle("is-liked", liked);
+			if (countEl) countEl.textContent = String(base + (liked ? 1 : 0));
+			btn.addEventListener("click", () => {
+				const lk = getLikes();
+				const now = !lk[id];
+				if (now) lk[id] = true; else delete lk[id];
+				saveLikes(lk);
+				btn.classList.toggle("is-liked", now);
+				if (countEl) countEl.textContent = String(base + (now ? 1 : 0));
+			});
+		});
+
+		// ---- 刷新真实评论计数 ----
+		refreshCommentCounts();
+	}
+
+	function refreshCommentCounts() {
+		whenTwikoo(() => {
+			if (!window.twikoo.getCommentsCount) return;
+			const els = document.querySelectorAll<HTMLElement>(".comment-count[data-comment-count]");
+			if (!els.length) return;
+			const urls = Array.from(els).map(
+				(el) => `/thoughts/${el.getAttribute("data-comment-count")}`,
+			);
+			window.twikoo
+				.getCommentsCount({ envId: window.__twikooEnv, urls, includeReply: true })
+				.then((res: { url: string; count: number }[]) => {
+					res.forEach((item) => {
+						const id = (item.url || "").split("/").pop();
+						const el = document.querySelector<HTMLElement>(
+							`.comment-count[data-comment-count="${id}"]`,
+						);
+						if (el && typeof item.count === "number") {
+							el.textContent = String(item.count);
+						}
+					});
+				})
+				.catch(() => {});
+		});
+	}
+
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", initThoughtDetail);
+	} else {
+		initThoughtDetail();
+	}
+	document.addEventListener("swup:page:view", initThoughtDetail);
+	document.addEventListener("firefly:page:loaded", initThoughtDetail);
+</script>
+
+<!-- 设置 Twikoo 环境 ID（SDK 由 Twikoo 组件加载，详情页单实例） -->
+<script is:inline define:vars={{ twikooEnvId, twikooLang }}>
+	window.__twikooEnv = twikooEnvId;
+	window.__twikooLang = twikooLang;
+</script>
