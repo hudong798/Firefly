@@ -74,13 +74,22 @@ function previewOf(feeling: string) {
 				<footer class="reading-footer">
 					<button type="button" class="reading-action" data-like={book.id}>
 						<svg viewBox="0 0 24 24" class="reading-action-icon"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-						<span>{book.likes}</span>
+						<span class="like-count" data-base={book.likes}>{book.likes}</span>
 					</button>
-					<button type="button" class="reading-action">
+					<button type="button" class="reading-action" data-comment-toggle={book.id}>
 						<svg viewBox="0 0 24 24" class="reading-action-icon"><path d="M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18z"/></svg>
-						<span>{book.comments}</span>
+						<span class="comment-count" data-comment-count={book.id} data-base={book.comments}>{book.comments}</span>
 					</button>
 				</footer>
+
+				<div class="reading-comments" id={`comments-${book.id}`} hidden>
+					<div class="rc-list" data-list={book.id}></div>
+					<form class="rc-form" data-form={book.id}>
+						<input class="rc-name" type="text" value={profileConfig.name} maxlength="20" aria-label="昵称" />
+						<input class="rc-input" type="text" placeholder="说点什么…" maxlength="200" aria-label="评论内容" />
+						<button type="submit" class="rc-send">发送</button>
+					</form>
+				</div>
 			</article>
 			);
 		})}
@@ -114,7 +123,7 @@ function previewOf(feeling: string) {
 	.reading-avatar {
 		width: 2.5rem;
 		height: 2.5rem;
-		border-radius: 0.45rem;
+		border-radius: 50%;
 		object-fit: cover;
 		box-shadow: 0 1px 4px oklch(0.3 0.02 var(--hue) / 0.25);
 	}
@@ -255,6 +264,103 @@ function previewOf(feeling: string) {
 		fill: currentColor;
 	}
 
+	/* 评论区：默认隐藏，点击评论按钮展开 */
+	.reading-comments {
+		margin-top: 0.6rem;
+		padding-top: 0.7rem;
+		border-top: 1px dashed var(--line-color);
+		display: flex;
+		flex-direction: column;
+		gap: 0.6rem;
+	}
+	.reading-comments[hidden] {
+		display: none;
+	}
+	.rc-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+	.rc-item {
+		display: flex;
+		flex-direction: column;
+		gap: 0.15rem;
+		padding: 0.5rem 0.7rem;
+		border-radius: 0.6rem;
+		background: var(--glass-surface, var(--wb-hover));
+	}
+	.rc-meta {
+		display: flex;
+		align-items: baseline;
+		gap: 0.5rem;
+	}
+	.rc-name-text {
+		font-size: 0.8rem;
+		font-weight: 600;
+		color: var(--deep-text);
+	}
+	.rc-time {
+		font-size: 0.7rem;
+		color: var(--content-meta);
+	}
+	.rc-text {
+		font-size: 0.86rem;
+		line-height: 1.55;
+		color: var(--content-normal);
+		white-space: pre-wrap;
+		word-break: break-word;
+	}
+	.rc-empty {
+		font-size: 0.8rem;
+		color: var(--content-meta);
+		margin: 0;
+	}
+	.rc-form {
+		display: flex;
+		gap: 0.4rem;
+		align-items: center;
+	}
+	.rc-name {
+		width: 5.5rem;
+		flex-shrink: 0;
+		padding: 0.4rem 0.55rem;
+		border-radius: 0.5rem;
+		border: 1px solid var(--line-color);
+		background: var(--glass-surface, var(--wb-hover));
+		color: var(--deep-text);
+		font-size: 0.8rem;
+	}
+	.rc-input {
+		flex: 1;
+		min-width: 0;
+		padding: 0.4rem 0.6rem;
+		border-radius: 0.5rem;
+		border: 1px solid var(--line-color);
+		background: var(--glass-surface, var(--wb-hover));
+		color: var(--deep-text);
+		font-size: 0.85rem;
+	}
+	.rc-name:focus,
+	.rc-input:focus {
+		outline: none;
+		border-color: color-mix(in oklch, var(--primary) 50%, transparent);
+	}
+	.rc-send {
+		flex-shrink: 0;
+		padding: 0.4rem 0.85rem;
+		border: none;
+		border-radius: 0.5rem;
+		background: var(--primary);
+		color: #fff;
+		font-size: 0.82rem;
+		font-weight: 600;
+		cursor: pointer;
+		transition: filter 0.15s ease;
+	}
+	.rc-send:hover {
+		filter: brightness(1.08);
+	}
+
 	@media (max-width: 768px) {
 		.reading-card {
 			padding: 0.9rem 0.95rem 0.7rem;
@@ -266,25 +372,119 @@ function previewOf(feeling: string) {
 </style>
 
 <script>
-	// 点赞简单交互：仅本地计数 + 变色
-	function initReadingLikes() {
-		document.querySelectorAll<HTMLButtonElement>("[data-like]").forEach((btn) => {
-			if (btn.dataset.likeInit) return;
-			btn.dataset.likeInit = "1";
+	// 阅读板块交互：点赞（持久可切换）+ 评论（持久可输入/显示）
+	const LS_LIKE = "reading-likes";
+	const LS_COMMENT = "reading-comments";
+	const getLikes = () => {
+		try { return JSON.parse(localStorage.getItem(LS_LIKE) || "{}"); } catch { return {}; }
+	};
+	const getComments = () => {
+		try { return JSON.parse(localStorage.getItem(LS_COMMENT) || "{}"); } catch { return {}; }
+	};
+	const saveLikes = (o: Record<string, boolean>) => localStorage.setItem(LS_LIKE, JSON.stringify(o));
+	const saveComments = (o: Record<string, any[]>) => localStorage.setItem(LS_COMMENT, JSON.stringify(o));
+	const esc = (s: string) =>
+		s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c] as string));
+	const fmtTime = (t: number) => {
+		const d = new Date(t);
+		const p = (n: number) => String(n).padStart(2, "0");
+		return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+	};
+
+	function initReadingInteractions() {
+		// ---- 点赞 ----
+		document.querySelectorAll<HTMLButtonElement>("button[data-like]").forEach((btn) => {
+			if (btn.dataset.init) return;
+			btn.dataset.init = "1";
+			const id = btn.getAttribute("data-like") || "";
+			const countEl = btn.querySelector<HTMLElement>(".like-count");
+			const base = countEl ? Number.parseInt(countEl.dataset.base || "0", 10) : 0;
+			const liked = !!getLikes()[id];
+			btn.classList.toggle("is-liked", liked);
+			if (countEl) countEl.textContent = String(base + (liked ? 1 : 0));
 			btn.addEventListener("click", () => {
-				const span = btn.querySelector("span");
-				if (!span) return;
-				const liked = btn.classList.toggle("is-liked");
-				let n = Number.parseInt(span.textContent || "0", 10);
-				span.textContent = String(liked ? n + 1 : n);
+				const lk = getLikes();
+				const now = !lk[id];
+				if (now) lk[id] = true; else delete lk[id];
+				saveLikes(lk);
+				btn.classList.toggle("is-liked", now);
+				if (countEl) countEl.textContent = String(base + (now ? 1 : 0));
+			});
+		});
+
+		// ---- 评论展开/收起 ----
+		document.querySelectorAll<HTMLButtonElement>("button[data-comment-toggle]").forEach((btn) => {
+			if (btn.dataset.initToggle) return;
+			btn.dataset.initToggle = "1";
+			const id = btn.getAttribute("data-comment-toggle") || "";
+			const box = document.getElementById(`comments-${id}`);
+			if (!box) return;
+			btn.addEventListener("click", () => { box.hidden = !box.hidden; });
+		});
+
+		// ---- 评论渲染 ----
+		document.querySelectorAll<HTMLElement>(".rc-list[data-list]").forEach((list) => {
+			if (list.dataset.initList) return;
+			list.dataset.initList = "1";
+			const id = list.getAttribute("data-list") || "";
+			const update = () => {
+				const arr = getComments()[id] || [];
+				const countEl = document.querySelector<HTMLElement>(
+					`.comment-count[data-comment-count="${id}"]`,
+				);
+				if (countEl) {
+					const base = Number.parseInt(countEl.dataset.base || "0", 10);
+					countEl.textContent = String(base + arr.length);
+				}
+				if (!arr.length) {
+					list.innerHTML = `<p class="rc-empty">还没有评论，来抢沙发～</p>`;
+					return;
+				}
+				list.innerHTML = arr
+					.map(
+						(c: any) => `
+					<div class="rc-item">
+						<div class="rc-meta"><span class="rc-name-text">${esc(c.name)}</span><span class="rc-time">${fmtTime(c.time)}</span></div>
+						<div class="rc-text">${esc(c.text)}</div>
+					</div>`,
+					)
+					.join("");
+			};
+			(update as any)._fn = update;
+			(list as any)._update = update;
+			update();
+		});
+
+		// ---- 评论提交 ----
+		document.querySelectorAll<HTMLFormElement>("form[data-form]").forEach((form) => {
+			if (form.dataset.initForm) return;
+			form.dataset.initForm = "1";
+			const id = form.getAttribute("data-form") || "";
+			form.addEventListener("submit", (e) => {
+				e.preventDefault();
+				const nameEl = form.querySelector<HTMLInputElement>(".rc-name");
+				const inputEl = form.querySelector<HTMLInputElement>(".rc-input");
+				if (!nameEl || !inputEl) return;
+				const name = (nameEl.value || "匿名").trim() || "匿名";
+				const text = (inputEl.value || "").trim();
+				if (!text) { inputEl.focus(); return; }
+				const all = getComments();
+				all[id] = all[id] || [];
+				all[id].push({ name, text, time: Date.now() });
+				saveComments(all);
+				inputEl.value = "";
+				const list = document.querySelector<HTMLElement>(`.rc-list[data-list="${id}"]`);
+				if (list && (list as any)._update) (list as any)._update();
+				const box = document.getElementById(`comments-${id}`);
+				if (box && box.hidden) box.hidden = false;
 			});
 		});
 	}
 
 	if (document.readyState === "loading") {
-		document.addEventListener("DOMContentLoaded", initReadingLikes);
+		document.addEventListener("DOMContentLoaded", initReadingInteractions);
 	} else {
-		initReadingLikes();
+		initReadingInteractions();
 	}
-	document.addEventListener("swup:page:view", initReadingLikes);
+	document.addEventListener("swup:page:view", initReadingInteractions);
 </script>
