@@ -35,8 +35,12 @@ export const tvSites: TvSite[] = [
 	{ name: "每日分享·不死鸟", url: "https://iui.su/fx/", type: "综合", rating: 4 },
 	{ name: "歪比巴卜", url: "https://www.wbbb1.com/", type: "综合", rating: 4 },
 	{ name: "雅图", url: "https://yatu.tv", type: "综合", rating: 3 },
-	{ name: "近未來盡未來", url: "https://xon.ip-ddns.com/", type: "综合", rating: 3 },
-	{ name: "可乐影视2", url: "https://www.klyingshi2.com/", type: "综合", rating: 3 },
+	{ name: "近未來盡未來. - Rui", url: "https://xon.ip-ddns.com/", type: "综合", rating: 3 },
+	{ name: "影视导航", url: "https://www.klyingshi2.com/", type: "综合", rating: 3 },
+	{ name: "影视森林", url: "https://www.549.tv", type: "综合", rating: 4 },
+	{ name: "hqvod", url: "https://www.hqvod.com", type: "综合", rating: 4 },
+	{ name: "西瓜影视", url: "https://xiguazx.cc", type: "综合", rating: 4 },
+	{ name: "vv3nwjk", url: "https://www.vv3nwjk.com", type: "综合", rating: 4 },
 	{ name: "233 动漫", url: "https://233dm.com", type: "动漫", rating: 4 },
 	{ name: "火车太堵", url: "https://hctd1.com", type: "短剧", rating: 4 },
 	{ name: "看片狂人", url: "https://kpkuang.one", type: "短剧", rating: 4 },
@@ -48,9 +52,13 @@ export const tvSites: TvSite[] = [
 export const tvOthers: TvLink[] = [
 	{ name: "TBox", url: "https://tbox.fun" },
 	{ name: "硬核指南", url: "https://yinghezhinan.com" },
-	{ name: "小鱼", url: "https://xuanzi.ggff.net" },
-	{ name: "一糖", url: "https://iitang.com" },
+	{ name: "小鱼.🐟｜TV-LIVE", url: "https://xuanzi.ggff.net" },
+	{ name: "一糖导航", url: "https://iitang.com" },
 	{ name: "优质网站合集", url: "https://faxianx.com" },
+	{ name: "歪比巴卜导航", url: "https://www.xn--clr79vmzkema.com/" },
+	{ name: "hqvod 导航", url: "https://hqvod.top/" },
+	{ name: "西瓜导航", url: "https://www.xiguadh.com/" },
+	{ name: "FreeOK 搜索", url: "https://freeok.day" },
 ];
 
 // 解析接口
