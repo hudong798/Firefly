@@ -4,9 +4,10 @@ import MainGridLayout from "@/layouts/MainGridLayout.astro";
 import TvLinks from "@/components/workbench/TvLinks.astro";
 import { bookNotes } from "@/data/books";
 import { comics, comicTypeClass } from "@/data/comics";
+import { communities } from "@/data/communities";
 
 const title = "资源";
-const description = "影视、书籍、漫画等资源导航";
+const description = "影视、书籍、漫画、社区等资源导航";
 ---
 
 <MainGridLayout title={title} description={description}>
@@ -20,6 +21,9 @@ const description = "影视、书籍、漫画等资源导航";
 		</button>
 		<button class="res-tab" data-tab="comic" role="tab" aria-selected="false">
 			🎨 漫画资源
+		</button>
+		<button class="res-tab" data-tab="community" role="tab" aria-selected="false">
+			🌐 社区
 		</button>
 	</div>
 
@@ -58,6 +62,24 @@ const description = "影视、书籍、漫画等资源导航";
 						<span class={`comic-tag comic-tag--${comicTypeClass[c.type]}`}>
 							{c.type}
 						</span>
+					</a>
+				))
+			}
+		</div>
+	</section>
+
+	<!-- 社区面板 -->
+	<section class="res-panel" data-panel="community" role="tabpanel">
+		<div class="community-grid">
+			{
+				communities.map((c) => (
+					<a class="community-card" href={c.url} target="_blank" rel="noopener">
+						<span class="community-icon">{c.icon}</span>
+						<div class="community-info">
+							<span class="community-name">{c.name}</span>
+							<span class="community-desc">{c.desc}</span>
+						</div>
+						<span class="community-arrow">↗</span>
 					</a>
 				))
 			}
@@ -235,6 +257,69 @@ const description = "影视、书籍、漫画等资源导航";
 	}
 	.comic-tag--overseas {
 		background: #378add;
+	}
+
+	/* ---------- 社区卡片 ---------- */
+	.community-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+		gap: 0.9rem;
+	}
+	.community-card {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 0.9rem 1rem;
+		border-radius: var(--radius-large, 14px);
+		background: var(--card-bg, rgba(255, 255, 255, 0.04));
+		border: 1px solid var(--line-divider, rgba(255, 255, 255, 0.08));
+		text-decoration: none;
+		color: inherit;
+		transition:
+			transform 0.18s ease,
+			border-color 0.18s ease,
+			background 0.18s ease;
+	}
+	.community-card:hover {
+		transform: translateY(-3px);
+		border-color: var(--primary);
+		background: var(--card-bg-hover, rgba(255, 255, 255, 0.08));
+	}
+	.community-icon {
+		font-size: 1.6rem;
+		line-height: 1;
+		flex-shrink: 0;
+	}
+	.community-info {
+		display: flex;
+		flex-direction: column;
+		gap: 0.15rem;
+		min-width: 0;
+		flex: 1;
+	}
+	.community-name {
+		font-size: 0.95rem;
+		font-weight: 600;
+		color: var(--text-90, #e6edf3);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.community-desc {
+		font-size: 0.78rem;
+		color: var(--content-meta);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.community-arrow {
+		color: var(--content-meta);
+		font-size: 0.85rem;
+		transition: color 0.18s ease;
+		flex-shrink: 0;
+	}
+	.community-card:hover .community-arrow {
+		color: var(--primary);
 	}
 
 	@media (max-width: 640px) {

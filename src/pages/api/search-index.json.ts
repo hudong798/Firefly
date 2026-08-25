@@ -10,6 +10,7 @@ import { aiTools } from "@/data/ai";
 import { toolGroups } from "@/data/tools";
 import { bookNotes } from "@/data/books";
 import { comics } from "@/data/comics";
+import { communities } from "@/data/communities";
 import { removeFileExtension } from "@/utils/url-utils";
 
 // 清洗 markdown：去代码块/HTML/图片/链接语法，保留可检索文本
@@ -225,6 +226,21 @@ export const GET: APIRoute = async () => {
 			url: c.url,
 			external: true,
 			search,
+		});
+	}
+
+	// ---- 社区 ----
+	for (const c of communities) {
+		items.push({
+			id: `community-${c.name}`,
+			section: "community",
+			sectionLabel: "社区",
+			title: c.name,
+			snippet: c.desc,
+			tags: ["社区", "论坛"],
+			url: c.url,
+			external: true,
+			search: [c.name, c.desc, "社区", "论坛"].join(" ").toLowerCase(),
 		});
 	}
 
