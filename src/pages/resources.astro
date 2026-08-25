@@ -1,154 +1,284 @@
 ---
-// 资源板块：聚合影视、书籍、工具、AI、旅游、说说等分类入口
+// 资源板块：液态玻璃横排导航（影视 / 书籍资源 / 漫画资源），点击切换下方内容
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
-import { Icon } from "astro-icon/components";
+import TvLinks from "@/components/workbench/TvLinks.astro";
+import { bookNotes } from "@/data/books";
+import { comics, comicTypeClass } from "@/data/comics";
 
 const title = "资源";
-const description = "影视、书籍、工具、AI 等资源导航";
-
-const categories = [
-	{
-		name: "影视",
-		desc: "在线观影、影视解析、番剧推荐",
-		url: "/tv/",
-		icon: "material-symbols:movie",
-		color: "#60a5fa",
-	},
-	{
-		name: "书籍",
-		desc: "阅读感悟与书单推荐",
-		url: "/reading/",
-		icon: "material-symbols:menu-book",
-		color: "#34d399",
-	},
-	{
-		name: "AI",
-		desc: "国内外 AI、绘画、模型导航",
-		url: "/ai/",
-		icon: "material-symbols:smart-toy",
-		color: "#a78bfa",
-	},
-	{
-		name: "工具",
-		desc: "实用在线工具与资源站",
-		url: "/tools/",
-		icon: "material-symbols:handyman",
-		color: "#fbbf24",
-	},
-	{
-		name: "旅游",
-		desc: "旅行记录与目的地攻略",
-		url: "/travel/",
-		icon: "material-symbols:flight",
-		color: "#f87171",
-	},
-	{
-		name: "说说",
-		desc: "随想、随笔与生活碎片",
-		url: "/thoughts/",
-		icon: "material-symbols:lightbulb",
-		color: "#38bdf8",
-	},
-];
+const description = "影视、书籍、漫画等资源导航";
 ---
 
 <MainGridLayout title={title} description={description}>
-	<p class="resources-hint">点击下方卡片进入对应资源分类。</p>
-
-	<div class="resources-grid">
-		{categories.map((cat) => (
-			<a class="resource-card card-base" href={cat.url} style={`--cat-color:${cat.color};`}>
-				<div class="resource-icon-wrap">
-					<Icon name={cat.icon} class="resource-icon" />
-				</div>
-				<div class="resource-info">
-					<h3 class="resource-name">{cat.name}</h3>
-					<p class="resource-desc">{cat.desc}</p>
-				</div>
-				<Icon name="material-symbols:arrow-forward-ios" class="resource-arrow" />
-			</a>
-		))}
+	<!-- 液态玻璃横排导航 -->
+	<div class="res-tabs" role="tablist" aria-label="资源分类">
+		<button class="res-tab is-active" data-tab="tv" role="tab" aria-selected="true">
+			🎬 影视
+		</button>
+		<button class="res-tab" data-tab="book" role="tab" aria-selected="false">
+			📚 书籍资源
+		</button>
+		<button class="res-tab" data-tab="comic" role="tab" aria-selected="false">
+			🎨 漫画资源
+		</button>
 	</div>
+
+	<!-- 影视面板 -->
+	<section class="res-panel is-active" data-panel="tv" role="tabpanel">
+		<TvLinks />
+	</section>
+
+	<!-- 书籍资源面板 -->
+	<section class="res-panel" data-panel="book" role="tabpanel">
+		<div class="book-grid">
+			{
+				bookNotes.map((book) => (
+					<a class="book-card" href="/reading/" style={`--book-hue:${book.hue}deg;`}>
+						<span class="book-cover">{book.cover}</span>
+						<div class="book-info">
+							<h3 class="book-title">《{book.title}》</h3>
+							<p class="book-author">{book.author}</p>
+						</div>
+					</a>
+				))
+			}
+		</div>
+	</section>
+
+	<!-- 漫画资源面板 -->
+	<section class="res-panel" data-panel="comic" role="tabpanel">
+		<div class="comic-grid">
+			{
+				comics.map((c) => (
+					<a class="comic-card" href={c.url} target="_blank" rel="noopener">
+						<div class="comic-top">
+							<span class="comic-name">{c.name}</span>
+							<span class="comic-arrow">↗</span>
+						</div>
+						<span class={`comic-tag comic-tag--${comicTypeClass[c.type]}`}>
+							{c.type}
+						</span>
+					</a>
+				))
+			}
+		</div>
+	</section>
 </MainGridLayout>
 
 <style>
-	.resources-hint {
-		margin: 0 0 1rem;
-		font-size: 0.9rem;
-		color: var(--content-meta);
-		text-align: center;
-	}
-	.resources-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-		gap: 1rem;
-	}
-
-	.resource-card {
+	/* ---------- 液态玻璃横排导航 ---------- */
+	.res-tabs {
 		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 0.4rem;
+		width: fit-content;
+		max-width: 100%;
+		margin: 0 auto 1.6rem;
+		padding: 0.4rem;
+		border-radius: 999px;
+		background: var(--glass-surface-strong, var(--wb-rail));
+		-webkit-backdrop-filter: blur(24px) saturate(170%);
+		backdrop-filter: blur(24px) saturate(170%);
+		border: 1px solid var(--glass-border, var(--wb-border));
+		box-shadow: var(--glass-highlight, none), var(--wb-shadow-md);
+	}
+	.res-tab {
+		display: inline-flex;
 		align-items: center;
-		gap: 0.9rem;
-		padding: 1rem 1.1rem;
-		border-radius: var(--radius-large);
-		text-decoration: none;
-		color: inherit;
+		gap: 0.35rem;
 		border: 1px solid transparent;
-		transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+		background: transparent;
+		color: var(--content-meta);
+		font-size: 0.9rem;
+		padding: 0.5rem 1.15rem;
+		border-radius: 999px;
+		cursor: pointer;
+		white-space: nowrap;
+		transition: all 0.18s ease;
 	}
-	.resource-card:hover {
-		transform: translateY(-2px);
-		border-color: color-mix(in srgb, var(--cat-color) 45%, transparent);
-		box-shadow: 0 8px 24px color-mix(in srgb, var(--cat-color) 18%, transparent);
-	}
-
-	.resource-icon-wrap {
-		flex-shrink: 0;
-		width: 3.2rem;
-		height: 3.2rem;
-		border-radius: 0.9rem;
-		display: grid;
-		place-items: center;
-		background: color-mix(in srgb, var(--cat-color) 18%, transparent);
-		border: 1px solid color-mix(in srgb, var(--cat-color) 30%, transparent);
-	}
-	.resource-icon {
-		font-size: 1.6rem;
-		color: var(--cat-color);
-	}
-
-	.resource-info {
-		flex: 1;
-		min-width: 0;
-	}
-	.resource-name {
-		margin: 0 0 0.15rem;
-		font-size: 1.05rem;
-		font-weight: 700;
+	.res-tab:hover {
+		background: var(--glass-surface-soft, var(--wb-hover));
 		color: var(--deep-text);
 	}
-	.resource-desc {
-		margin: 0;
-		font-size: 0.8rem;
-		color: var(--content-meta);
+	.res-tab.is-active {
+		background: color-mix(in oklch, var(--primary) 26%, transparent);
+		border-color: color-mix(in oklch, var(--primary) 50%, transparent);
+		color: var(--primary);
+		font-weight: 600;
+	}
+
+	/* ---------- 面板切换 ---------- */
+	.res-panel {
+		display: none;
+	}
+	.res-panel.is-active {
+		display: block;
+		animation: res-fade 0.25s ease;
+	}
+	@keyframes res-fade {
+		from {
+			opacity: 0;
+			transform: translateY(0.4rem);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	/* ---------- 书籍卡片 ---------- */
+	.book-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+		gap: 1rem;
+	}
+	.book-card {
+		display: flex;
+		align-items: center;
+		gap: 0.8rem;
+		padding: 0.8rem 0.9rem;
+		border-radius: 0.85rem;
+		text-decoration: none;
+		color: inherit;
+		background: linear-gradient(
+			135deg,
+			oklch(0.42 0.07 var(--book-hue, 210)) 0%,
+			oklch(0.28 0.05 var(--book-hue, 250)) 100%
+		);
+		border: 1px solid oklch(0.55 0.08 var(--book-hue, 210) / 0.35);
+		transition: transform 0.15s ease, filter 0.15s ease;
+	}
+	.book-card:hover {
+		transform: translateY(-2px);
+		filter: brightness(1.08);
+	}
+	.book-cover {
+		font-size: 2rem;
+		line-height: 1;
+		text-shadow: 0 2px 8px oklch(0.2 0.03 var(--book-hue) / 0.4);
+	}
+	.book-info {
+		min-width: 0;
+	}
+	.book-title {
+		margin: 0 0 0.15rem;
+		font-size: 0.95rem;
+		font-weight: 700;
+		color: #fff;
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
 	}
-
-	.resource-arrow {
-		flex-shrink: 0;
-		font-size: 0.95rem;
-		color: var(--content-meta);
-		transition: transform 0.15s ease, color 0.15s ease;
+	.book-author {
+		margin: 0;
+		font-size: 0.78rem;
+		color: oklch(0.9 0.02 var(--book-hue) / 0.9);
 	}
-	.resource-card:hover .resource-arrow {
-		transform: translateX(3px);
-		color: var(--cat-color);
+
+	/* ---------- 漫画卡片 ---------- */
+	.comic-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+		gap: 0.8rem;
+	}
+	.comic-card {
+		display: flex;
+		flex-direction: column;
+		gap: 0.55rem;
+		padding: 0.85rem 0.95rem;
+		border-radius: var(--radius-large, 14px);
+		background: var(--card-bg, rgba(255, 255, 255, 0.04));
+		border: 1px solid var(--line-divider, rgba(255, 255, 255, 0.08));
+		text-decoration: none;
+		color: inherit;
+		transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+	}
+	.comic-card:hover {
+		transform: translateY(-3px);
+		border-color: var(--primary);
+		background: var(--card-bg-hover, rgba(255, 255, 255, 0.08));
+	}
+	.comic-top {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+	}
+	.comic-name {
+		font-size: 0.95rem;
+		font-weight: 600;
+		color: var(--text-90, #e6edf3);
+	}
+	.comic-arrow {
+		color: var(--content-meta);
+		font-size: 0.85rem;
+		transition: color 0.18s ease;
+	}
+	.comic-card:hover .comic-arrow {
+		color: var(--primary);
+	}
+	.comic-tag {
+		align-self: flex-start;
+		font-size: 0.72rem;
+		padding: 0.1rem 0.5rem;
+		border-radius: 999px;
+		color: #fff;
+		font-weight: 500;
+		line-height: 1.4;
+	}
+	.comic-tag--manga {
+		background: #d85a30;
+	}
+	.comic-tag--strip {
+		background: #7f77dd;
+	}
+	.comic-tag--overseas {
+		background: #378add;
 	}
 
 	@media (max-width: 640px) {
-		.resources-grid {
-			grid-template-columns: 1fr;
+		.comic-grid {
+			grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+			gap: 0.6rem;
+		}
+		.book-grid {
+			grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
 		}
 	}
 </style>
+
+<script>
+	// 资源页 tab 切换（swup 容器内，每次导航重新绑定）
+	function initResTabs() {
+		const root = document.querySelector<HTMLElement>(".res-tabs");
+		if (!root) return;
+		const tabs = root.querySelectorAll<HTMLButtonElement>(".res-tab");
+		const panels = document.querySelectorAll<HTMLElement>(".res-panel");
+		if (tabs.length === 0) return;
+
+		tabs.forEach((tab) => {
+			if (tab.dataset.bind) return;
+			tab.dataset.bind = "1";
+			tab.addEventListener("click", () => {
+				const name = tab.dataset.tab;
+				if (!name) return;
+				tabs.forEach((t) => {
+					const active = t === tab;
+					t.classList.toggle("is-active", active);
+					t.setAttribute("aria-selected", String(active));
+				});
+				panels.forEach((p) =>
+					p.classList.toggle("is-active", p.dataset.panel === name),
+				);
+			});
+		});
+	}
+
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", initResTabs);
+	} else {
+		initResTabs();
+	}
+	document.addEventListener("swup:page:view", initResTabs);
+</script>

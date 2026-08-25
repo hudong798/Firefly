@@ -9,6 +9,7 @@ import { tvSites, tvOthers, tvParsers, tvAdult } from "@/data/tv";
 import { aiTools } from "@/data/ai";
 import { toolGroups } from "@/data/tools";
 import { bookNotes } from "@/data/books";
+import { comics } from "@/data/comics";
 import { removeFileExtension } from "@/utils/url-utils";
 
 // 清洗 markdown：去代码块/HTML/图片/链接语法，保留可检索文本
@@ -205,6 +206,24 @@ export const GET: APIRoute = async () => {
 			tags,
 			url: `/reading/`,
 			external: false,
+			search,
+		});
+	}
+
+	// ---- 漫画 ----
+	for (const c of comics) {
+		const search = [c.name, c.type, "漫画", "在线看漫", "条漫", "动漫"]
+			.join(" ")
+			.toLowerCase();
+		items.push({
+			id: `comic-${c.name}`,
+			section: "comic",
+			sectionLabel: "漫画",
+			title: c.name,
+			snippet: `漫画资源（${c.type}）· 在线看漫`,
+			tags: [c.type],
+			url: c.url,
+			external: true,
 			search,
 		});
 	}
