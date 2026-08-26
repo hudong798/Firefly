@@ -1,20 +1,46 @@
 ---
-// 站长板块：个人名片
+// 站长板块：结构化个人名片
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
-import { profileConfig } from "@/config";
+import { profileConfig, siteConfig } from "@/config";
 
 const title = "站长";
-const description = "站长 IDONG 的个人名片";
+const description = "站长 Idong 的个人名片";
 
 const qq = "519931819";
 const qqLink = `https://wpa.qq.com/msgrd?v=3&uin=${qq}&site=qq&menu=yes`;
-const intro =
-	"来啦来啦，IDONG，男，刚满18，新鲜出炉！人好话多不冷场，游戏能打，故事能听，偶尔还能当个气氛组。想找人聊天、开黑、分享日常的，欢迎来戳～QQ：519931819，加我备注一下下哈，不然我可能以为你走错门了。非诚勿扰，但诚意来了，我必回敬！";
+
+// 一句话主句
+const tagline =
+	"你好呀，我是 Idong——一个刚满 18、热爱新鲜事物、话多不冷场的站长。欢迎光临我的小站。";
+
+// 分区内容
+const bio = [
+	"男，18 岁，坐标天南地北，喜欢折腾。没错，就是那种会在深夜突然冒出一个灵感、然后硬是把它做出来的类型。这个站就是我折腾的产物之一。",
+	"人好话多不冷场，游戏能打，故事能听，偶尔还能当个气氛组。想找人聊天、开黑、分享日常的，欢迎随时来戳我。",
+];
+
+const likes = [
+	"🎮 爱好打游戏，输了从不坑队友，只会怪网速",
+	"🎨 折腾网站 & 设计，享受把想法变成作品的过程",
+	"📖 喜欢听故事，也爱讲故事，深夜档常驻",
+	"☕ 咖啡续命选手，熬夜写代码的头号嫌疑人",
+];
+
+const aboutSite = [
+	`「${siteConfig.title}」是我亲手搭建的小站，一个记录生活、分享想法、整理好物的小天地。`,
+	"这里既有我的琐碎日常与想法，也有我收藏的影视、工具、阅读笔记和旅行足迹。希望你能在这里发现点有趣的东西。",
+];
+
+const contacts = [
+	"QQ：519931819（加我请备注一下来历，不然容易怀疑你走错门）",
+	"Email：xiaye@msn.com",
+	"更多入口见页面底部链接（抖音 / RSS 等）",
+];
 
 const chips = [
-	{ icon: "♂", label: "男" },
-	{ icon: "🎂", label: "刚满 18" },
+	{ icon: "♂", label: "男 · 18" },
 	{ icon: "🎮", label: "游戏能打" },
+	{ icon: "🎨", label: "爱折腾" },
 	{ icon: "📖", label: "故事能听" },
 	{ icon: "🎤", label: "气氛组" },
 ];
@@ -25,22 +51,24 @@ const chips = [
 		<article class="owner-card card-base">
 			<div class="owner-glow"></div>
 
+			{/* 头部：头像 + 名字 */}
 			<header class="owner-hero">
 				<div class="owner-avatar-box">
 					<img
 						class="owner-avatar"
 						src={profileConfig.avatar}
-						alt="IDONG"
+						alt="Idong"
 						loading="lazy"
 					/>
 					<span class="owner-online" title="在线"></span>
 				</div>
 				<div class="owner-hero-meta">
-					<h1 class="owner-name">IDONG</h1>
-					<p class="owner-sub">站长 · 新鲜出炉的 18 岁</p>
+					<h1 class="owner-name">Idong</h1>
+					<p class="owner-sub">站长 · 刚满 18 · 爱折腾的气氛组</p>
 				</div>
 			</header>
 
+			{/* 标签 */}
 			<div class="owner-chips">
 				{chips.map((c) => (
 					<span class="owner-chip">
@@ -50,8 +78,43 @@ const chips = [
 				))}
 			</div>
 
-			<p class="owner-intro">{intro}</p>
+			{/* 一句话主句 */}
+			<p class="owner-tagline">{tagline}</p>
 
+			{/* 分段简介 */}
+			<div class="owner-section">
+				<h2 class="owner-section-title">🙋 关于我</h2>
+				{bio.map((p) => (
+					<p class="owner-p">{p}</p>
+				))}
+			</div>
+
+			<div class="owner-section">
+				<h2 class="owner-section-title">💫 兴趣爱好</h2>
+				<ul class="owner-list">
+					{likes.map((l) => (
+						<li>{l}</li>
+					))}
+				</ul>
+			</div>
+
+			<div class="owner-section">
+				<h2 class="owner-section-title">🌐 关于本站</h2>
+				{aboutSite.map((p) => (
+					<p class="owner-p">{p}</p>
+				))}
+			</div>
+
+			<div class="owner-section">
+				<h2 class="owner-section-title">📮 联系我</h2>
+				<ul class="owner-list">
+					{contacts.map((c) => (
+						<li>{c}</li>
+					))}
+				</ul>
+			</div>
+
+			{/* QQ 快速联系 */}
 			<div class="owner-qq">
 				<div class="owner-qq-info">
 					<span class="owner-qq-label">QQ</span>
@@ -72,9 +135,7 @@ const chips = [
 				</div>
 			</div>
 
-			<p class="owner-tip">
-				💡 加我备注一下下哈，不然我可能以为你走错门了～
-			</p>
+			<p class="owner-tip">💡 加我备注一下下哈，不然我可能以为你走错门了～</p>
 		</article>
 	</div>
 </MainGridLayout>
@@ -88,8 +149,8 @@ const chips = [
 	.owner-card {
 		position: relative;
 		width: 100%;
-		max-width: 600px;
-		padding: 1.8rem 1.6rem 1.5rem;
+		max-width: 640px;
+		padding: 2rem 1.8rem 1.6rem;
 		border-radius: var(--radius-large);
 		overflow: hidden;
 	}
@@ -98,12 +159,12 @@ const chips = [
 		position: absolute;
 		top: -40%;
 		left: 50%;
-		width: 120%;
-		height: 80%;
+		width: 130%;
+		height: 60%;
 		transform: translateX(-50%);
 		background: radial-gradient(
 			closest-side,
-			color-mix(in oklch, var(--primary) 28%, transparent),
+			color-mix(in oklch, var(--primary) 26%, transparent),
 			transparent
 		);
 		opacity: 0.55;
@@ -116,7 +177,7 @@ const chips = [
 		align-items: center;
 		gap: 1rem;
 		position: relative;
-		margin-bottom: 1.2rem;
+		margin-bottom: 1.05rem;
 	}
 	.owner-avatar-box {
 		position: relative;
@@ -165,7 +226,7 @@ const chips = [
 		flex-wrap: wrap;
 		gap: 0.45rem;
 		position: relative;
-		margin-bottom: 1.1rem;
+		margin-bottom: 1.05rem;
 	}
 	.owner-chip {
 		display: inline-flex;
@@ -183,27 +244,66 @@ const chips = [
 		line-height: 1;
 	}
 
-	/* 正文 */
-	.owner-intro {
+	/* 一句话主句 */
+	.owner-tagline {
 		position: relative;
-		margin: 0 0 1.2rem;
-		font-size: 0.96rem;
-		line-height: 1.85;
+		margin: 0 0 1.3rem;
+		padding-bottom: 1rem;
+		border-bottom: 1px dashed var(--line-color, var(--glass-border));
+		font-size: 1.02rem;
+		font-weight: 600;
+		line-height: 1.75;
+		color: var(--deep-text);
+	}
+
+	/* 分段 */
+	.owner-section {
+		position: relative;
+		margin-bottom: 1.2rem;
+	}
+	.owner-section-title {
+		display: flex;
+		align-items: center;
+		margin: 0 0 0.55rem;
+		font-size: 1rem;
+		font-weight: 700;
+		color: var(--primary);
+		gap: 0.35rem;
+	}
+	.owner-p {
+		margin: 0 0 0.5rem;
+		font-size: 0.94rem;
+		line-height: 1.8;
 		color: var(--content-normal);
-		white-space: pre-wrap;
+	}
+	.owner-p:last-child {
+		margin-bottom: 0;
+	}
+	.owner-list {
+		margin: 0;
+		padding-left: 1.1rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+	}
+	.owner-list li {
+		font-size: 0.92rem;
+		line-height: 1.7;
+		color: var(--content-normal);
 	}
 
 	/* QQ 卡 */
 	.owner-qq {
+		position: relative;
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
 		gap: 0.8rem;
+		margin-top: 1.5rem;
 		padding: 0.85rem 1rem;
 		border-radius: 0.9rem;
 		background: color-mix(in oklch, var(--primary) 8%, transparent);
 		border: 1px solid color-mix(in oklch, var(--primary) 20%, transparent);
-		position: relative;
 	}
 	.owner-qq-info {
 		display: flex;
@@ -262,7 +362,7 @@ const chips = [
 
 	@media (max-width: 520px) {
 		.owner-card {
-			padding: 1.4rem 1.1rem 1.2rem;
+			padding: 1.5rem 1.2rem 1.2rem;
 		}
 		.owner-qq {
 			flex-direction: column;
