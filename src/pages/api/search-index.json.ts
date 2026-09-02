@@ -8,7 +8,6 @@ import { travels } from "@/data/travels";
 import { tvSites, tvOthers, tvParsers, tvAdult } from "@/data/tv";
 import { aiTools } from "@/data/ai";
 import { toolGroups } from "@/data/tools";
-import { bookNotes } from "@/data/books";
 import { comics } from "@/data/comics";
 import { communities } from "@/data/communities";
 import { removeFileExtension } from "@/utils/url-utils";
@@ -190,25 +189,6 @@ export const GET: APIRoute = async () => {
 				search: [it.name, it.desc, g.title, "工具"].join(" ").toLowerCase(),
 			});
 		}
-	}
-
-	// ---- 阅读 ----
-	for (const b of bookNotes) {
-		const tags = (b.tags || []).map(String);
-		const search = [b.title, b.author, tags.join(" "), b.feeling, "阅读", "书籍"]
-			.join(" ")
-			.toLowerCase();
-		items.push({
-			id: `book-${b.id}`,
-			section: "reading",
-			sectionLabel: "阅读",
-			title: `《${b.title}》`,
-			snippet: `${b.author} · ${b.feeling.slice(0, 90).replace(/\n/g, " ")}`,
-			tags,
-			url: `/reading/`,
-			external: false,
-			search,
-		});
 	}
 
 	// ---- 漫画 ----

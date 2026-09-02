@@ -1,18 +1,14 @@
 ---
 // 全站统一导航栏：头像 + 站点名 + 导航板块 + 搜索放大镜
 import { profileConfig, siteConfig } from "@/config";
+import NavSearch from "@/components/workbench/NavSearch.svelte";
 
 // 顶部导航板块
 const navItems = [
   { name: "首页", url: "/", icon: "home" },
   { name: "说说", url: "/thoughts/", icon: "chat" },
-  { name: "AI", url: "/ai/", icon: "ai" },
   { name: "旅游", url: "/travel/", icon: "travel" },
   { name: "资源", url: "/resources/", icon: "box" },
-  { name: "阅读", url: "/reading/", icon: "book" },
-  { name: "社区", url: "/community/", icon: "community" },
-  { name: "工具", url: "/tools/", icon: "tool" },
-  { name: "站长", url: "/owner/", icon: "user" },
   { name: "讨论", url: "/guestbook/", icon: "message" },
 ];
 
@@ -31,7 +27,7 @@ const currentPath = Astro.url.pathname;
     {navItems.map((item) => {
       const isActive = currentPath === item.url || (item.url !== "/" && currentPath.startsWith(item.url));
       return (
-        <a href={item.url} class={`site-nav__item${isActive ? " is-active" : ""}`}>
+        <a href={item.url} data-nav-href={item.url} class={`site-nav__item${isActive ? " is-active" : ""}`}>
           <span class="site-nav__icon">
             {item.icon === "home" && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>}
             {item.icon === "chat" && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>}
@@ -50,11 +46,66 @@ const currentPath = Astro.url.pathname;
     })}
   </div>
   <div class="site-nav__right">
-    <a href="/search/" class="site-nav__search" aria-label="搜索">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    </a>
+    <NavSearch client:only="svelte" />
   </div>
 </nav>
+
+<script>
+  // 根据当前路径更新导航高亮（兼容 swup 无刷新切换）
+  function updateSiteNavActive() {
+    const path = window.location.pathname;
+    document.querySelectorAll(".site-nav__item[data-nav-href]").forEach((el) => {
+      const href = el.getAttribute("data-nav-href") || "";
+      let active = false;
+      if (href === "/") {
+        active = path === "/" || path === "";
+      } else {
+        active = path === href || path.startsWith(href);
+      }
+      el.classList.toggle("is-active", active);
+    });
+  }
+
+  function bindSiteNav() {
+    // 点击时即时高亮，无需等待页面切换
+    document.querySelectorAll<HTMLElement>(".site-nav__item[data-nav-href]").forEach((el) => {
+      if (el.dataset.navBound) return;
+      el.dataset.navBound = "1";
+      el.addEventListener("click", () => {
+        document.querySelectorAll(".site-nav__item").forEach((n) => n.classList.remove("is-active"));
+        el.classList.add("is-active");
+      });
+    });
+  }
+
+  // 初始执行
+  bindSiteNav();
+  updateSiteNavActive();
+
+  // swup 无刷新切换后同步高亮（两种事件双保险）
+  document.addEventListener("swup:contentReplaced", () => {
+    bindSiteNav();
+    updateSiteNavActive();
+  });
+  if (window.swup?.hooks) {
+    window.swup.hooks.on("content:replace", updateSiteNavActive);
+  } else {
+    // swup 可能稍后初始化，轮询绑定一次
+    let tries = 0;
+    const timer = setInterval(() => {
+      tries++;
+      if (window.swup?.hooks) {
+        window.swup.hooks.on("content:replace", updateSiteNavActive);
+        clearInterval(timer);
+      } else if (tries > 20) {
+        clearInterval(timer);
+      }
+    }, 200);
+  }
+
+  // 浏览器前进 / 后退
+  window.addEventListener("popstate", updateSiteNavActive);
+</script>
 
 <style>
   .site-nav {
@@ -125,8 +176,12 @@ const currentPath = Astro.url.pathname;
     background: rgb(255 140 100 / 0.1);
   }
   .site-nav__item.is-active {
-    color: rgb(255 180 140 / 0.95);
-    background: rgb(255 140 100 / 0.12);
+    color: #fff1e6;
+    font-weight: 600;
+    background: linear-gradient(135deg, rgb(255 153 102 / 0.32), rgb(232 115 74 / 0.22));
+    border: 1px solid rgb(255 160 120 / 0.35);
+    box-shadow: 0 0 12px rgb(255 140 100 / 0.25), inset 0 0 8px rgb(255 180 140 / 0.12);
+    text-shadow: 0 0 8px rgb(255 200 160 / 0.5);
   }
   .site-nav__icon {
     display: flex;
@@ -141,28 +196,6 @@ const currentPath = Astro.url.pathname;
   }
   .site-nav__right {
     flex-shrink: 0;
-  }
-  .site-nav__search {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    color: rgb(255 200 170 / 0.8);
-    background: rgb(255 140 100 / 0.08);
-    border: 1px solid rgb(255 160 120 / 0.2);
-    transition: all 0.2s ease;
-  }
-  .site-nav__search:hover {
-    color: rgb(255 220 190 / 1);
-    background: rgb(255 140 100 / 0.15);
-    border-color: rgb(255 160 120 / 0.4);
-    transform: scale(1.05);
-  }
-  .site-nav__search svg {
-    width: 18px;
-    height: 18px;
   }
 
   /* 响应式 */

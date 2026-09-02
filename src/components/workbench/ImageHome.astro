@@ -2,10 +2,9 @@
 // 首页舞台：暖色星夜个人名片（Personal Card · Warm Night）
 // 左侧个人信息 + 右侧引言卡片，全屏铺满，暖色星空粒子背景
 import { profileConfig } from "@/config";
-import SiteNav from "@/components/workbench/SiteNav.astro";
 
 // 职业标签（打字机轮播效果）
-const roles = ["技术开发者", "全栈工程师", "内容创作者", "终身学习者"];
+const roles = ["AI学习者", "西格玛男人", "内容创作者", "终身学习者"];
 
 // 首页引言（右侧大卡片）
 const quote = "代码是诗，键盘是笔，屏幕是画布，让我们一起书写数字世界的篇章。";
@@ -118,13 +117,23 @@ const meteors = Array.from({ length: 5 }, (_, i) => {
       </div>
       <p class="hero-bio">{profileConfig.bio}</p>
       <div class="hero-actions">
-        <a href="/works/" class="hero-btn hero-btn--primary">
-          <span class="hero-btn-icon">📖</span>
-          阅读文章
+        <a href="/ai/" class="hero-btn hero-btn--primary">
+          <span class="hero-btn-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/>
+              <path d="M18.5 15l.7 1.9 1.9.7-1.9.7-.7 1.9-.7-1.9-1.9-.7 1.9-.7z"/>
+            </svg>
+          </span>
+          <span class="hero-btn-text">AI</span>
         </a>
-        <a href="/about/" class="hero-btn hero-btn--ghost">
-          <span class="hero-btn-icon">💫</span>
-          关于我
+        <a href="/owner/" class="hero-btn hero-btn--ghost">
+          <span class="hero-btn-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="8" r="4"/>
+              <path d="M4.5 21c0-4.1 3.4-6.5 7.5-6.5s7.5 2.4 7.5 6.5"/>
+            </svg>
+          </span>
+          <span class="hero-btn-text">关于我</span>
         </a>
       </div>
     </div>
@@ -471,8 +480,8 @@ const meteors = Array.from({ length: 5 }, (_, i) => {
   .hero-btn {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.6rem;
+    gap: 0.55rem;
+    padding: 0.78rem 1.7rem;
     border-radius: 999px;
     font-size: 0.95rem;
     font-weight: 600;
@@ -480,28 +489,69 @@ const meteors = Array.from({ length: 5 }, (_, i) => {
     transition: all 0.25s ease;
     cursor: pointer;
   }
+  /* 统一线性 SVG 图标风格 */
   .hero-btn-icon {
-    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.15em;
+    height: 1.15em;
+    flex-shrink: 0;
+  }
+  .hero-btn-icon svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  /* 艺术字文字 */
+  .hero-btn-text {
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    background-size: 100% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    transition: filter 0.25s ease, letter-spacing 0.25s ease;
   }
   .hero-btn--primary {
     background: linear-gradient(135deg, #ff9966 0%, #e8734a 100%);
-    color: #fff;
     box-shadow: 0 4px 20px rgb(232 115 74 / 0.35);
+  }
+  .hero-btn--primary .hero-btn-text {
+    background-image: linear-gradient(180deg, #ffffff 0%, #ffe9d6 100%);
+    filter: drop-shadow(0 1px 2px rgb(120 40 10 / 0.45));
+  }
+  .hero-btn--primary .hero-btn-icon {
+    color: #fff3e8;
+    filter: drop-shadow(0 1px 2px rgb(120 40 10 / 0.4));
   }
   .hero-btn--primary:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 28px rgb(232 115 74 / 0.5);
   }
+  .hero-btn--primary:hover .hero-btn-text {
+    letter-spacing: 0.18em;
+  }
   .hero-btn--ghost {
     background: rgb(255 255 255 / 0.06);
-    color: rgb(255 220 190 / 0.9);
     border: 1px solid rgb(255 160 120 / 0.3);
     backdrop-filter: blur(12px);
+  }
+  .hero-btn--ghost .hero-btn-text {
+    background-image: linear-gradient(120deg, #ffe3c4 0%, #ffab7a 55%, #ff8a5c 100%);
+    filter: drop-shadow(0 0 8px rgb(255 150 100 / 0.35));
+  }
+  .hero-btn--ghost .hero-btn-icon {
+    color: #ffb088;
+    filter: drop-shadow(0 0 6px rgb(255 150 100 / 0.4));
   }
   .hero-btn--ghost:hover {
     background: rgb(255 140 102 / 0.12);
     border-color: rgb(255 140 102 / 0.5);
     transform: translateY(-2px);
+  }
+  .hero-btn--ghost:hover .hero-btn-text {
+    letter-spacing: 0.18em;
   }
 
   /* ---------- 右侧：引言卡片 ---------- */
@@ -616,9 +666,10 @@ const meteors = Array.from({ length: 5 }, (_, i) => {
 
 <script>
   // 职业标签打字机轮播效果
-  const roles = ["技术开发者", "全栈工程师", "内容创作者", "终身学习者"];
-  const el = document.getElementById("hero-role-text");
-  if (el) {
+  const roles = ["AI学习者", "西格玛男人", "内容创作者", "终身学习者"];
+  const found = document.getElementById("hero-role-text");
+  if (found) {
+    const el: HTMLElement = found;
     let roleIdx = 0;
     let charIdx = 0;
     let deleting = false;
