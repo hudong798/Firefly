@@ -1,277 +1,651 @@
 ---
-// 首页舞台：黑蓝深海液态玻璃背景（已下架壁纸）
-// 背景由 glass-theme.css 中的 wb-shell 液态玻璃渐变 + 动态光斑提供，
-// 这里叠加 ASCII 原子像素装饰与中央弹出文字。
+// 首页舞台：暖色星夜个人名片（Personal Card · Warm Night）
+// 左侧个人信息 + 右侧引言卡片，全屏铺满，暖色星空粒子背景
 import { profileConfig } from "@/config";
+import SiteNav from "@/components/workbench/SiteNav.astro";
 
-// ASCII 星点装饰（前景点缀）：以星星 / 光点类符号为主，仅留 1 个 ⚛ 作“原子”焦点
-// dur: 每颗闪烁节奏（错开即像夜空眨眼）；big: 视觉焦点符号
-const asciiStars = [
-	{ glyph: "⚛", x: "10%", y: "22%", size: "3rem",   delay: "0s",   dur: "4.8s", big: true },
-	{ glyph: "✦", x: "88%", y: "15%", size: "2rem",   delay: "0.6s", dur: "3.4s" },
-	{ glyph: "★", x: "84%", y: "73%", size: "2.6rem", delay: "1.4s", dur: "4.2s", big: true },
-	{ glyph: "✧", x: "16%", y: "80%", size: "2rem",   delay: "1.0s", dur: "3.8s" },
-	{ glyph: "✶", x: "86%", y: "54%", size: "1.6rem", delay: "2.0s", dur: "3.2s" },
-	{ glyph: "✷", x: "43%", y: "9%",  size: "1.7rem", delay: "2.6s", dur: "4.0s" },
-	{ glyph: "·", x: "6%",  y: "52%", size: "1.4rem", delay: "0.9s", dur: "3.6s" },
-	{ glyph: "⋆", x: "93%", y: "44%", size: "1.7rem", delay: "2.3s", dur: "3.5s" },
-	{ glyph: "⊹", x: "34%", y: "66%", size: "1.6rem", delay: "2.9s", dur: "4.1s" },
-	{ glyph: "◦", x: "4%",  y: "85%", size: "1.5rem", delay: "1.7s", dur: "4.4s" },
-	{ glyph: "*", x: "95%", y: "63%", size: "1.4rem", delay: "0.8s", dur: "3.0s" },
-	{ glyph: "✺", x: "60%", y: "19%", size: "1.6rem", delay: "1.2s", dur: "3.7s" },
-	{ glyph: "❋", x: "28%", y: "38%", size: "1.5rem", delay: "3.1s", dur: "4.3s" },
-	{ glyph: "◌", x: "68%", y: "89%", size: "1.8rem", delay: "1.5s", dur: "4.6s" },
-];
+// 职业标签（打字机轮播效果）
+const roles = ["技术开发者", "全栈工程师", "内容创作者", "终身学习者"];
 
-// 史铁生名句：拆成“手电筒”依次照亮的词 / 字
-// 中文逐字、英文 / 数字按词（自带尾随空格，避免词粘连）；纯空格段跳过
-function tokenize(text: string) {
-	const out: { type: string; ch: string; i?: number }[] = [];
-	const segs = text.split(/(\s+)/);
-	for (let k = 0; k < segs.length; k++) {
-		const seg = segs[k];
-		if (seg === "" || /^\s+$/.test(seg)) continue; // 空段 / 纯空格段跳过
-		const nextIsSpace = k + 1 < segs.length && /^\s+$/.test(segs[k + 1]);
-		if (/[一-鿿]/.test(seg)) {
-			for (const ch of seg) out.push({ type: "char", ch });
-		} else {
-			out.push({ type: "word", ch: seg + (nextIsSpace ? " " : "") });
-		}
-	}
-	// 给可见字符分配连续序号，让手电筒顺序扫过
-	let vi = 0;
-	for (const t of out) t.i = vi++;
-	return out;
-}
-const quoteTokens = tokenize(profileConfig.bio || "");
-const quoteCount = quoteTokens.filter((t) => t.type !== "space").length;
+// 首页引言（右侧大卡片）
+const quote = "代码是诗，键盘是笔，屏幕是画布，让我们一起书写数字世界的篇章。";
+
+// 动态星空：随机位置、大小、颜色、闪烁节奏、缓慢漂移
+// 用确定性的伪随机数组，避免 SSR/CSR 不一致
+// 类型：dot（普通圆点）、cross（十字星芒）
+// 颜色：warm（暖白）、peach（桃橙）、green（绿色）、white（纯白）、blue（蓝白）、gold（金色）
+const starTypes = ["dot", "dot", "dot", "dot", "dot", "dot", "dot", "cross", "cross", "cross"];
+const starColors = ["warm", "warm", "warm", "peach", "peach", "green", "green", "white", "white", "blue", "blue", "gold"];
+const stars = Array.from({ length: 100 }, (_, i) => {
+  const seed = (i * 9301 + 49297) % 233280;
+  const rand = seed / 233280;
+  const seed2 = ((i + 1) * 9301 + 49297) % 233280;
+  const rand2 = seed2 / 233280;
+  const seed3 = ((i + 2) * 9301 + 49297) % 233280;
+  const rand3 = seed3 / 233280;
+  const type = starTypes[Math.floor(rand * starTypes.length)];
+  const color = starColors[Math.floor(rand2 * starColors.length)];
+  const isCross = type === "cross";
+  return {
+    x: `${(rand * 100).toFixed(1)}%`,
+    y: `${(rand2 * 100).toFixed(1)}%`,
+    size: isCross ? `${(3 + rand3 * 4).toFixed(1)}px` : `${(1 + rand * 2).toFixed(1)}px`,
+    delay: `${(rand * 6).toFixed(1)}s`,
+    dur: `${(2 + rand2 * 4).toFixed(1)}s`,
+    driftDur: `${(15 + rand3 * 20).toFixed(1)}s`,
+    driftX: `${((rand3 - 0.5) * 30).toFixed(0)}px`,
+    driftY: `${((rand - 0.5) * 20).toFixed(0)}px`,
+    type,
+    color,
+    crossSize: isCross ? `${(24 + rand3 * 30).toFixed(0)}px` : "0px",
+  };
+});
+
+// 流星：从左上/左下向右下划过，带渐变尾巴
+const meteors = Array.from({ length: 5 }, (_, i) => {
+  const seed = (i * 12345 + 67890) % 233280;
+  const rand = seed / 233280;
+  const seed2 = ((i + 3) * 12345 + 67890) % 233280;
+  const rand2 = seed2 / 233280;
+  return {
+    // 起始位置：左上区域
+    startX: `${(-10 + rand * 40).toFixed(0)}%`,
+    startY: `${(5 + rand2 * 40).toFixed(0)}%`,
+    // 划过距离和角度
+    length: `${(120 + rand * 100).toFixed(0)}px`,
+    angle: `${(25 + rand2 * 20).toFixed(0)}deg`,
+    // 动画
+    delay: `${(rand * 12).toFixed(1)}s`,
+    dur: `${(3 + rand2 * 2).toFixed(1)}s`,
+    // 颜色
+    color: ["white", "blue", "warm"][Math.floor(rand * 3)],
+  };
+});
 ---
 
-<!-- 全屏首页舞台：液态玻璃背景 + ASCII 星点闪烁 + 中央弹出文字 -->
-<div class="wb-home-stage">
-	<!-- 像素点阵 + 网格（科技基底） -->
-	<div class="wb-pixel-dots" aria-hidden="true"></div>
-	<div class="wb-pixel-grid" aria-hidden="true"></div>
+<!-- 全屏首页舞台：暖色星夜背景 + 星空粒子 + 个人名片 -->
+<div class="hero-stage">
+  <!-- 深棕径向渐变背景 -->
+  <div class="hero-bg" aria-hidden="true"></div>
 
-	<!-- ASCII 星点闪烁层（星星为主，⚛ 为原子焦点） -->
-	<div class="wb-ascii-layer" aria-hidden="true">
-		{asciiStars.map((a) => (
-			<span
-				class={`wb-ascii-atom${a.big ? " is-big" : ""}`}
-				style={`left:${a.x}; top:${a.y}; font-size:${a.size}; animation-delay:${a.delay}; animation-duration:${a.dur};`}
-			>
-				{a.glyph}
-			</span>
-		))}
-	</div>
+  <!-- 噪点颗粒纹理 -->
+  <div class="hero-noise" aria-hidden="true"></div>
 
-	<!-- 中央艺术字：史铁生名句（手电筒逐词照亮） + 署名 -->
-	<div class="wb-home-hero">
-		<p class="quote-light" style={`--n:${quoteCount}; --cycle:7s;`}>
-			{quoteTokens.map((t) => (
-				<span class="q-word" style={`--i:${t.i}`}>{t.ch}</span>
-			))}
-		</p>
-		<div class="quote-author">———史铁生</div>
-	</div>
+  <!-- 星空粒子层 -->
+  <div class="hero-stars" aria-hidden="true">
+    {stars.map((s) => (
+      <span
+        class={`hero-star hero-star--${s.type} hero-star--${s.color}`}
+        style={`left:${s.x}; top:${s.y}; width:${s.size}; height:${s.size}; --twinkle-dur:${s.dur}; --twinkle-delay:${s.delay}; --drift-dur:${s.driftDur}; --drift-x:${s.driftX}; --drift-y:${s.driftY}; --cross-size:${s.crossSize};`}
+      >
+        {s.type === "cross" && (
+          <>
+            <span class="hero-star__ray hero-star__ray--h"></span>
+            <span class="hero-star__ray hero-star__ray--v"></span>
+            <span class="hero-star__core"></span>
+          </>
+        )}
+      </span>
+    ))}
+  </div>
+
+  <!-- 流星层 -->
+  <div class="hero-meteors" aria-hidden="true">
+    {meteors.map((m) => (
+      <span
+        class={`hero-meteor hero-meteor--${m.color}`}
+        style={`left:${m.startX}; top:${m.startY}; --meteor-length:${m.length}; --meteor-angle:${m.angle}; animation-delay:${m.delay}; animation-duration:${m.dur};`}
+      ></span>
+    ))}
+  </div>
+
+  <!-- 暖色光晕层 -->
+  <div class="hero-glow" aria-hidden="true"></div>
+
+  <!-- 主内容：左右两栏 -->
+  <div class="hero-content">
+    <!-- 左侧：个人名片 -->
+    <div class="hero-profile">
+      <p class="hero-greeting">你好，我是</p>
+      <h1 class="hero-name">{profileConfig.name}</h1>
+      <div class="hero-tagline">
+        <span class="hero-tag">欢迎来到我的世界</span>
+      </div>
+      <div class="hero-role">
+        <span class="hero-role-prefix">{">}_"}</span>
+        <span class="hero-role-text" id="hero-role-text">{roles[0]}</span>
+        <span class="hero-role-cursor">|</span>
+      </div>
+      <p class="hero-bio">{profileConfig.bio}</p>
+      <div class="hero-actions">
+        <a href="/works/" class="hero-btn hero-btn--primary">
+          <span class="hero-btn-icon">📖</span>
+          阅读文章
+        </a>
+        <a href="/about/" class="hero-btn hero-btn--ghost">
+          <span class="hero-btn-icon">💫</span>
+          关于我
+        </a>
+      </div>
+    </div>
+
+    <!-- 右侧：引言卡片 -->
+    <div class="hero-quote-card">
+      <div class="hero-quote-mark">"</div>
+      <blockquote class="hero-quote-text">{quote}</blockquote>
+      <div class="hero-quote-author">— {profileConfig.name}</div>
+    </div>
+  </div>
 </div>
 
 <style>
-	/* 首页：聊天容器全宽无内边距，并消除移动端硬件加速 transform/动画 */
-	:global(.wb-chat:has(.wb-home-stage)) {
-		max-width: none;
-		margin: 0;
-		padding: 0;
-		height: 100%;
-		opacity: 1 !important;
-		transform: none !important;
-		will-change: auto !important;
-		animation: none !important;
-	}
+  /* 首页：聊天容器全宽无内边距 */
+  :global(.wb-chat:has(.hero-stage)) {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    opacity: 1 !important;
+    transform: none !important;
+    will-change: auto !important;
+    animation: none !important;
+  }
 
-	/* 外壳作为背景的定位基准（铺满整个界面，含侧边栏与顶栏区域） */
-	:global(.wb-shell:has(.wb-home-stage)) {
-		position: relative;
-	}
+  :global(.wb-shell:has(.hero-stage)) {
+    position: relative;
+  }
 
-	/* 主区域中和移动端硬件加速 transform */
-	:global(.wb-main:has(.wb-home-stage)) {
-		overflow: hidden;
-		transform: none !important;
-		will-change: auto !important;
-	}
+  :global(.wb-main:has(.hero-stage)) {
+    overflow: hidden;
+    transform: none !important;
+    will-change: auto !important;
+  }
 
-	/* 首页隐藏底部状态栏，让背景真正占满整屏 */
-	:global(.wb-shell:has(.wb-home-stage) .wb-statusbar) {
-		display: none;
-	}
+  /* 首页隐藏底部状态栏 */
+  :global(.wb-shell:has(.hero-stage) .wb-statusbar) {
+    display: none;
+  }
 
-	/* 首页禁止页面级滚动，避免滚动条挤压右侧产生间隙 */
-	:global(html:has(.wb-home-stage)),
-	:global(body:has(.wb-home-stage)) {
-		overflow: hidden;
-	}
+  /* 首页禁止页面级滚动 */
+  :global(html:has(.hero-stage)),
+  :global(body:has(.hero-stage)) {
+    overflow: hidden;
+  }
 
-	/* 首页舞台：铺满整个工作台外壳，液态玻璃背景在最底层 */
-	.wb-home-stage {
-		position: absolute;
-		inset: 0;
-		width: 100%;
-		height: 100%;
-		z-index: 0;
-		background: transparent;
-		overflow: hidden;
-	}
+  /* ---------- 全屏舞台 ---------- */
+  .hero-stage {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    background: transparent;
+    overflow: hidden;
+  }
 
-	/* ---------- 像素点阵（颗粒感基底） ---------- */
-	.wb-pixel-dots {
-		position: absolute;
-		inset: 0;
-		z-index: 1;
-		pointer-events: none;
-		background-image: radial-gradient(rgb(120 190 255 / 0.08) 1px, transparent 1.6px);
-		background-size: 24px 24px;
-		mask-image: radial-gradient(ellipse at center, black 22%, transparent 82%);
-		-webkit-mask-image: radial-gradient(ellipse at center, black 22%, transparent 82%);
-		animation: wb-dot-pulse 6.5s ease-in-out infinite;
-	}
+  /* ---------- 深棕径向渐变背景 ---------- */
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 40%, rgb(42 24 18 / 1) 0%, rgb(26 16 12 / 1) 40%, rgb(12 8 6 / 1) 80%, rgb(8 5 4 / 1) 100%);
+  }
 
-	/* ---------- 像素网格纹理（科技感，收敛） ---------- */
-	.wb-pixel-grid {
-		position: absolute;
-		inset: 0;
-		z-index: 1;
-		pointer-events: none;
-		background-image:
-			linear-gradient(rgb(120 180 255 / 0.05) 1px, transparent 1px),
-			linear-gradient(90deg, rgb(120 180 255 / 0.05) 1px, transparent 1px);
-		background-size: 38px 38px;
-		mask-image: radial-gradient(ellipse at center, black 26%, transparent 80%);
-		-webkit-mask-image: radial-gradient(ellipse at center, black 26%, transparent 80%);
-		animation: wb-pixel-scan 11s linear infinite;
-	}
-	@keyframes wb-pixel-scan {
-		0%   { background-position: 0 0; }
-		100% { background-position: 0 38px; }
-	}
-	@keyframes wb-dot-pulse {
-		0%, 100% { opacity: 0.3; }
-		50%      { opacity: 0.5; }
-	}
+  /* ---------- 噪点颗粒纹理 ---------- */
+  .hero-noise {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.04;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-size: 256px 256px;
+  }
 
-	/* ---------- ASCII 星点闪烁层（星星为主，⚛ 为原子焦点） ---------- */
-	.wb-ascii-layer {
-		position: absolute;
-		inset: 0;
-		z-index: 2;
-		pointer-events: none;
-	}
-	.wb-ascii-atom {
-		position: absolute;
-		font-family: var(--wb-mono, ui-monospace, monospace);
-		color: rgb(165 210 255 / 0.6);
-		text-shadow: 0 0 8px rgb(90 180 255 / 0.4);
-		animation-name: wb-twinkle;
-		animation-timing-function: ease-in-out;
-		animation-iteration-count: infinite;
-		-webkit-user-select: none;
-		user-select: none;
-	}
-	/* 视觉焦点符号（⚛ 原子 + ★ 星）：稍亮、闪烁幅度更大 */
-	.wb-ascii-atom.is-big {
-		color: rgb(200 232 255 / 0.78);
-		text-shadow: 0 0 14px rgb(120 200 255 / 0.55);
-	}
-	@keyframes wb-twinkle {
-		0%, 100% { opacity: 0.22; transform: scale(0.9); }
-		50%      { opacity: 0.9;  transform: scale(1.06); }
-	}
+  /* ---------- 星空粒子层 ---------- */
+  .hero-stars {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .hero-star {
+    position: absolute;
+    border-radius: 50%;
+    animation-name: hero-twinkle, hero-drift;
+    animation-timing-function: ease-in-out, ease-in-out;
+    animation-iteration-count: infinite, infinite;
+    animation-direction: normal, alternate;
+    animation-duration: var(--twinkle-dur, 3s), var(--drift-dur, 18s);
+    animation-delay: var(--twinkle-delay, 0s), 0s;
+    will-change: transform, opacity;
+  }
 
-	/* ---------- 中央艺术字：史铁生名句（手电筒逐词照亮） ---------- */
-	.wb-home-hero {
-		position: absolute;
-		inset: 0;
-		z-index: 3;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		text-align: center;
-		pointer-events: none;
-		padding: 0 1.5rem;
-	}
+  /* 普通圆点星星 */
+  .hero-star--dot {
+    background: currentColor;
+    box-shadow: 0 0 4px currentColor;
+  }
 
-	.quote-light {
-		margin: 0;
-		max-width: 20em;
-		font-family: "Georgia", "Songti SC", "STSong", serif;
-		font-size: clamp(1.25rem, 3.2vw, 2.5rem);
-		font-weight: 700;
-		font-style: italic;
-		letter-spacing: 0.02em;
-		line-height: 1.9;
-		/* 整句上浮入场，不再用流动渐变（改用逐词手电筒） */
-		animation: quote-rise 1.2s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
-	}
+  /* 十字星芒星星 */
+  .hero-star--cross {
+    background: transparent;
+    box-shadow: none;
+  }
+  .hero-star__ray {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    background: currentColor;
+    border-radius: 2px;
+    transform-origin: center;
+    opacity: 0.9;
+  }
+  .hero-star__ray--h {
+    width: var(--cross-size, 24px);
+    height: 1.5px;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(90deg, transparent, currentColor 20%, currentColor 80%, transparent);
+  }
+  .hero-star__ray--v {
+    width: 1.5px;
+    height: var(--cross-size, 24px);
+    transform: translate(-50%, -50%);
+    background: linear-gradient(180deg, transparent, currentColor 20%, currentColor 80%, transparent);
+  }
+  .hero-star__core {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 8px currentColor, 0 0 16px currentColor;
+  }
 
-	/* 每个词 / 字默认暗蓝，被“手电筒”扫到时点亮发光 */
-	/* 用 inline 保留正常文字流与空格，避免词与词粘连 */
-	.q-word {
-		display: inline;
-		color: rgb(150 195 245 / 0.30);
-		animation: wb-flashlight var(--cycle, 7s) linear infinite;
-		animation-delay: calc(var(--i) * (var(--cycle, 7s) / var(--n, 10)));
-	}
-	/* 手电筒：光斑经过该词时由暗转亮再转暗，配合 delay 形成横向扫过 */
-	@keyframes wb-flashlight {
-		0%   { color: rgb(150 195 245 / 0.30); text-shadow: none; }
-		7%   {
-			color: rgb(255 255 255 / 1);
-			text-shadow: 0 0 10px rgb(185 222 255 / 0.9),
-			             0 0 26px rgb(120 190 255 / 0.5);
-		}
-		30%  { color: rgb(150 195 245 / 0.30); text-shadow: none; }
-		100% { color: rgb(150 195 245 / 0.30); text-shadow: none; }
-	}
+  /* 星星颜色 */
+  .hero-star--warm {
+    color: rgb(255 235 210 / 0.95);
+  }
+  .hero-star--peach {
+    color: rgb(255 170 120 / 0.9);
+  }
+  .hero-star--green {
+    color: rgb(140 220 160 / 0.8);
+  }
+  .hero-star--white {
+    color: rgb(255 255 255 / 0.95);
+  }
+  .hero-star--blue {
+    color: rgb(180 210 255 / 0.9);
+  }
+  .hero-star--gold {
+    color: rgb(255 210 130 / 0.9);
+  }
 
-	/* 署名：史铁生（低调收尾，带微光） */
-	.quote-author {
-		margin-top: 1.8rem;
-		font-family: "Songti SC", "STSong", serif;
-		font-size: clamp(0.95rem, 2vw, 1.25rem);
-		font-weight: 500;
-		letter-spacing: 0.35em;
-		text-indent: 0.35em;
-		color: rgb(205 230 255 / 0.92);
-		text-shadow: 0 0 14px rgb(120 190 255 / 0.55);
-		animation: quote-rise 1.1s cubic-bezier(0.22, 1, 0.36, 1) 0.9s both;
-	}
+  /* ---------- 流星层 ---------- */
+  .hero-meteors {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .hero-meteor {
+    position: absolute;
+    width: var(--meteor-length, 150px);
+    height: 2px;
+    transform: rotate(var(--meteor-angle, 30deg));
+    transform-origin: left center;
+    border-radius: 2px;
+    opacity: 0;
+    animation-name: meteor-fly;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+  .hero-meteor::before {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 10px currentColor, 0 0 20px currentColor;
+  }
+  .hero-meteor--white {
+    color: rgb(255 255 255 / 0.9);
+    background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.1), rgb(255 255 255 / 0.8));
+  }
+  .hero-meteor--blue {
+    color: rgb(180 210 255 / 0.9);
+    background: linear-gradient(90deg, transparent, rgb(180 210 255 / 0.1), rgb(180 210 255 / 0.8));
+  }
+  .hero-meteor--warm {
+    color: rgb(255 220 180 / 0.9);
+    background: linear-gradient(90deg, transparent, rgb(255 220 180 / 0.1), rgb(255 220 180 / 0.8));
+  }
 
-	/* 文字上浮入场 */
-	@keyframes quote-rise {
-		0%   { opacity: 0; transform: translateY(2.4rem); }
-		100% { opacity: 1; transform: translateY(0); }
-	}
+  @keyframes meteor-fly {
+    0% {
+      opacity: 0;
+      transform: rotate(var(--meteor-angle, 30deg)) translateX(0);
+    }
+    5% {
+      opacity: 1;
+    }
+    60% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      transform: rotate(var(--meteor-angle, 30deg)) translateX(calc(100vw + var(--meteor-length, 150px)));
+    }
+  }
 
-	/* 移动端：简化装饰，避免干扰中央文字 */
-	@media (max-width: 860px) {
-		.wb-ascii-atom.is-big { font-size: 2.2rem !important; }
-		.wb-pixel-dots { opacity: 0.6; }
-	}
+  /* 闪烁动画 */
+  @keyframes hero-twinkle {
+    0%, 100% { opacity: 0.15; }
+    25% { opacity: 0.6; }
+    50% { opacity: 1; }
+    75% { opacity: 0.4; }
+  }
 
-	@media (prefers-reduced-motion: reduce) {
-		.quote-light { animation: quote-rise 0.6s ease both; }
-		.quote-author { animation: quote-rise 0.6s ease both; }
-		/* 降级：静态显示全部文字，不再闪烁 */
-		.q-word {
-			animation: none;
-			color: rgb(205 230 255 / 0.92);
-			text-shadow: 0 0 12px rgb(120 190 255 / 0.4);
-		}
-		.wb-ascii-atom,
-		.wb-pixel-grid,
-		.wb-pixel-dots {
-			animation: none;
-		}
-	}
+  /* 缓慢漂移动画 */
+  @keyframes hero-drift {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(var(--drift-x, 10px), var(--drift-y, -8px)); }
+  }
+
+  /* ---------- 暖色光晕层 ---------- */
+  .hero-glow {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 60% 50% at 20% 30%, rgb(232 115 74 / 0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 80% 70%, rgb(255 153 102 / 0.08) 0%, transparent 55%);
+  }
+
+  /* ---------- 主内容：左右两栏 ---------- */
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3rem;
+    padding: 5rem 3rem 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* ---------- 左侧：个人名片 ---------- */
+  .hero-profile {
+    flex: 1;
+    min-width: 0;
+    animation: hero-rise 1s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
+  }
+  .hero-greeting {
+    font-size: 1.1rem;
+    color: rgb(255 200 170 / 0.7);
+    margin: 0 0 0.5rem;
+    letter-spacing: 0.05em;
+  }
+  .hero-name {
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    font-weight: 800;
+    margin: 0 0 1rem;
+    background: linear-gradient(135deg, #ffb088 0%, #ff8c66 50%, #e8734a 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1.1;
+    position: relative;
+    display: inline-block;
+  }
+  .hero-name::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -0.3rem;
+    width: 60%;
+    height: 3px;
+    background: linear-gradient(90deg, #ff8c66, transparent);
+    border-radius: 2px;
+  }
+  .hero-tagline {
+    margin: 0 0 1.2rem;
+  }
+  .hero-tag {
+    display: inline-block;
+    padding: 0.35rem 1rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    color: rgb(255 200 170 / 0.85);
+    background: rgb(255 140 102 / 0.1);
+    border: 1px solid rgb(255 140 102 / 0.25);
+    backdrop-filter: blur(8px);
+  }
+  .hero-role {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: rgb(255 210 180 / 0.9);
+    margin: 0 0 1.2rem;
+    font-family: "JetBrains Mono Variable", ui-monospace, monospace;
+  }
+  .hero-role-prefix {
+    color: #ff8c66;
+  }
+  .hero-role-text {
+    color: rgb(255 220 190 / 0.95);
+  }
+  .hero-role-cursor {
+    color: #ff8c66;
+    animation: hero-blink 1s step-end infinite;
+  }
+  @keyframes hero-blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+  .hero-bio {
+    font-size: 1rem;
+    line-height: 1.8;
+    color: rgb(255 200 170 / 0.65);
+    margin: 0 0 1.8rem;
+    max-width: 32rem;
+  }
+  .hero-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .hero-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.6rem;
+    border-radius: 999px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.25s ease;
+    cursor: pointer;
+  }
+  .hero-btn-icon {
+    font-size: 1rem;
+  }
+  .hero-btn--primary {
+    background: linear-gradient(135deg, #ff9966 0%, #e8734a 100%);
+    color: #fff;
+    box-shadow: 0 4px 20px rgb(232 115 74 / 0.35);
+  }
+  .hero-btn--primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 28px rgb(232 115 74 / 0.5);
+  }
+  .hero-btn--ghost {
+    background: rgb(255 255 255 / 0.06);
+    color: rgb(255 220 190 / 0.9);
+    border: 1px solid rgb(255 160 120 / 0.3);
+    backdrop-filter: blur(12px);
+  }
+  .hero-btn--ghost:hover {
+    background: rgb(255 140 102 / 0.12);
+    border-color: rgb(255 140 102 / 0.5);
+    transform: translateY(-2px);
+  }
+
+  /* ---------- 右侧：引言卡片 ---------- */
+  .hero-quote-card {
+    flex: 0 0 auto;
+    width: min(26rem, 42vw);
+    position: relative;
+    padding: 2.5rem 2rem;
+    border-radius: 1.8rem;
+    background: rgb(40 22 16 / 0.35);
+    backdrop-filter: blur(24px) saturate(150%);
+    -webkit-backdrop-filter: blur(24px) saturate(150%);
+    border: 1px solid rgb(255 160 120 / 0.2);
+    box-shadow:
+      inset 0 1px 0 rgb(255 200 170 / 0.15),
+      0 20px 60px rgb(0 0 0 / 0.3);
+    animation: hero-rise 1s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
+  }
+  .hero-quote-mark {
+    position: absolute;
+    top: 0.5rem;
+    left: 1.5rem;
+    font-size: 5rem;
+    font-weight: 900;
+    line-height: 1;
+    color: rgb(255 140 102 / 0.15);
+    font-family: Georgia, serif;
+    user-select: none;
+  }
+  .hero-quote-text {
+    position: relative;
+    z-index: 1;
+    margin: 1.5rem 0 1.5rem;
+    font-size: clamp(1.1rem, 2.2vw, 1.45rem);
+    font-weight: 500;
+    line-height: 2;
+    color: rgb(255 225 200 / 0.92);
+    text-align: center;
+    letter-spacing: 0.02em;
+  }
+  .hero-quote-author {
+    text-align: center;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #ff9966;
+    letter-spacing: 0.1em;
+  }
+
+  /* ---------- 入场动画 ---------- */
+  @keyframes hero-rise {
+    0% { opacity: 0; transform: translateY(2rem); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ---------- 响应式 ---------- */
+  @media (max-width: 900px) {
+    .hero-content {
+      flex-direction: column;
+      gap: 2rem;
+      padding: 2rem 1.5rem;
+      overflow-y: auto;
+    }
+    .hero-profile {
+      text-align: center;
+    }
+    .hero-name::after {
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .hero-tagline,
+    .hero-role,
+    .hero-actions {
+      justify-content: center;
+    }
+    .hero-bio {
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .hero-quote-card {
+      width: 100%;
+      max-width: 28rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .hero-content {
+      padding: 1.5rem 1rem;
+    }
+    .hero-actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .hero-btn {
+      justify-content: center;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-profile,
+    .hero-quote-card {
+      animation: none;
+    }
+    .hero-star {
+      animation: none;
+      opacity: 0.7;
+    }
+    .hero-role-cursor {
+      animation: none;
+    }
+  }
 </style>
+
+<script>
+  // 职业标签打字机轮播效果
+  const roles = ["技术开发者", "全栈工程师", "内容创作者", "终身学习者"];
+  const el = document.getElementById("hero-role-text");
+  if (el) {
+    let roleIdx = 0;
+    let charIdx = 0;
+    let deleting = false;
+
+    function tick() {
+      const current = roles[roleIdx];
+      if (!deleting) {
+        charIdx++;
+        el.textContent = current.slice(0, charIdx);
+        if (charIdx >= current.length) {
+          deleting = true;
+          setTimeout(tick, 1800);
+          return;
+        }
+        setTimeout(tick, 120);
+      } else {
+        charIdx--;
+        el.textContent = current.slice(0, charIdx);
+        if (charIdx <= 0) {
+          deleting = false;
+          roleIdx = (roleIdx + 1) % roles.length;
+          setTimeout(tick, 400);
+          return;
+        }
+        setTimeout(tick, 60);
+      }
+    }
+    setTimeout(tick, 1500);
+  }
+</script>

@@ -5,25 +5,75 @@ export interface AiTool {
 	url: string;
 }
 
-// 已有本地高清 logo 的工具（优先复用）
+// 国内 AI
 const deepseek = { name: "DeepSeek", logo: "/assets/ai-logos/deepseek.png", url: "https://chat.deepseek.com" };
-const chatgpt = { name: "ChatGPT", logo: "/assets/ai-logos/chatgpt.png", url: "https://chatgpt.com" };
-const claude = { name: "Claude", logo: "/assets/ai-logos/claude.png", url: "https://claude.ai" };
 const kimi = { name: "Kimi", logo: "/assets/ai-logos/kimi.png", url: "https://kimi.moonshot.cn" };
 const doubao = { name: "豆包", logo: "/assets/ai-logos/doubao.png", url: "https://www.doubao.com" };
 const qwen = { name: "通义千问", logo: "/assets/ai-logos/qwen.png", url: "https://tongyi.aliyun.com" };
-const jimeng = { name: "即梦 AI", logo: "/assets/ai-logos/jimeng.png", url: "https://jimeng.jianying.com" };
 const minimax = { name: "MiniMax", logo: "/assets/ai-logos/minimax.png", url: "https://www.minimaxi.com" };
-const ollama = { name: "Ollama", logo: "/assets/ai-logos/ollama.png", url: "https://ollama.com" };
+const coze = { name: "Coze", logo: "/assets/ai-logos/coze.png", url: "https://www.coze.com" };
+const wenxin = { name: "文心一言", logo: "/assets/ai-logos/wenxin.png", url: "https://yiyan.baidu.com" };
+const chatglm = { name: "智谱清言", logo: "/assets/ai-logos/chatglm.png", url: "https://chatglm.cn" };
+const xfyun = { name: "讯飞星火", logo: "/assets/ai-logos/xfyun.png", url: "https://www.xfyun.cn" };
+const baichuan = { name: "百川智能", logo: "/assets/ai-logos/baichuan.png", url: "https://www.baichuan-ai.com" };
+const yuanbao = { name: "腾讯元宝", logo: "/assets/ai-logos/yuanbao.png", url: "https://yuanbao.tencent.com" };
+const hunyuan = { name: "腾讯混元", logo: "/assets/ai-logos/hunyuan.png", url: "https://hunyuan.tencent.com" };
+const stepfun = { name: "阶跃星辰", logo: "/assets/ai-logos/stepfun.png", url: "https://www.stepfun.com" };
+const tiangong = { name: "天工 AI", logo: "/assets/ai-logos/tiangong.png", url: "https://tiangong.cn" };
+const metaso = { name: "秘塔 AI", logo: "/assets/ai-logos/metaso.png", url: "https://metaso.cn" };
+const nanobot = { name: "纳米 AI", logo: "/assets/ai-logos/nanobot.png", url: "https://nanobot.cn" };
+const sensechat = { name: "商汤商量", logo: "/assets/ai-logos/sensechat.png", url: "https://sensechat.sensetime.com" };
+
+// 国外 AI
+const chatgpt = { name: "ChatGPT", logo: "/assets/ai-logos/chatgpt.png", url: "https://chatgpt.com" };
+const claude = { name: "Claude", logo: "/assets/ai-logos/claude.png", url: "https://claude.ai" };
 const openclaw = { name: "OpenClaw", logo: "/assets/ai-logos/openclaw.png", url: "https://openclaw.ai" };
 const aiStudio = { name: "AI Studio", logo: "/assets/ai-logos/ai-studio.png", url: "https://aistudio.google.com" };
-const openrouter = { name: "OpenRouter", logo: "/assets/ai-logos/openrouter.png", url: "https://openrouter.ai" };
-const coze = { name: "Coze", logo: "/assets/ai-logos/coze.png", url: "https://www.coze.com" };
-const huggingface = { name: "Hugging Face", logo: "/assets/ai-logos/huggingface.png", url: "https://huggingface.co" };
+const gemini = { name: "Gemini", logo: "/assets/ai-logos/gemini.png", url: "https://gemini.google.com" };
+const perplexity = { name: "Perplexity", logo: "/assets/ai-logos/perplexity.png", url: "https://www.perplexity.ai" };
+const mistral = { name: "Mistral", logo: "/assets/ai-logos/mistral.png", url: "https://mistral.ai" };
+const poe = { name: "Poe", logo: "/assets/ai-logos/poe.png", url: "https://poe.com" };
+const metaAi = { name: "Meta AI", logo: "/assets/ai-logos/meta-ai.png", url: "https://meta.ai" };
+const copilot = { name: "Copilot", logo: "/assets/ai-logos/copilot.png", url: "https://copilot.microsoft.com" };
+const grok = { name: "Grok", logo: "/assets/ai-logos/grok.png", url: "https://grok.com" };
+const you = { name: "You.com", logo: "/assets/ai-logos/you.png", url: "https://you.com" };
+const pi = { name: "Pi", logo: "/assets/ai-logos/pi.png", url: "https://pi.ai" };
+const characterAi = { name: "Character.AI", logo: "/assets/ai-logos/character-ai.png", url: "https://character.ai" };
+const phind = { name: "Phind", logo: "/assets/ai-logos/phind.png", url: "https://www.phind.com" };
+const writesonic = { name: "Writesonic", logo: "/assets/ai-logos/writesonic.png", url: "https://writesonic.com" };
 
-// 其余工具使用各官网真实 favicon（Google favicon 服务，浏览器加载时拉取）
-const fav = (domain: string) =>
-	`https://www.google.com/s2/favicons?sz=128&domain=${domain}`;
+// 绘画
+const jimeng = { name: "即梦 AI", logo: "/assets/ai-logos/jimeng.png", url: "https://jimeng.jianying.com" };
+const midjourney = { name: "Midjourney", logo: "/assets/ai-logos/midjourney.png", url: "https://www.midjourney.com" };
+const stability = { name: "Stable Diffusion", logo: "/assets/ai-logos/stability.png", url: "https://stability.ai" };
+const kling = { name: "可灵", logo: "/assets/ai-logos/kling.png", url: "https://klingai.com" };
+const wanx = { name: "通义万相", logo: "/assets/ai-logos/wanx.png", url: "https://wanx.aliyun.com" };
+const yige = { name: "文心一格", logo: "/assets/ai-logos/yige.png", url: "https://yige.baidu.com" };
+const leonardo = { name: "Leonardo.AI", logo: "/assets/ai-logos/leonardo.png", url: "https://leonardo.ai" };
+const adobeFirefly = { name: "Adobe Firefly", logo: "/assets/ai-logos/adobe-firefly.png", url: "https://www.firefly.adobe.com" };
+const seaart = { name: "海艺 AI", logo: "/assets/ai-logos/seaart.png", url: "https://www.seaart.ai" };
+const ideogram = { name: "Ideogram", logo: "/assets/ai-logos/ideogram.png", url: "https://ideogram.ai" };
+const playground = { name: "Playground", logo: "/assets/ai-logos/playground.png", url: "https://playground.ai" };
+const nightcafe = { name: "NightCafe", logo: "/assets/ai-logos/nightcafe.png", url: "https://nightcafe.studio" };
+const wujieai = { name: "无界 AI", logo: "/assets/ai-logos/wujieai.png", url: "https://www.wujieai.com" };
+const dalle = { name: "DALL·E", logo: "/assets/ai-logos/dalle.png", url: "https://openai.com/dall-e" };
+
+// 模型
+const ollama = { name: "Ollama", logo: "/assets/ai-logos/ollama.png", url: "https://ollama.com" };
+const openrouter = { name: "OpenRouter", logo: "/assets/ai-logos/openrouter.png", url: "https://openrouter.ai" };
+const huggingface = { name: "Hugging Face", logo: "/assets/ai-logos/huggingface.png", url: "https://huggingface.co" };
+const replicate = { name: "Replicate", logo: "/assets/ai-logos/replicate.png", url: "https://replicate.com" };
+const together = { name: "Together AI", logo: "/assets/ai-logos/together.png", url: "https://www.together.ai" };
+const groqModel = { name: "Groq", logo: "/assets/ai-logos/groq.png", url: "https://groq.com" };
+const siliconflow = { name: "硅基流动", logo: "/assets/ai-logos/siliconflow.png", url: "https://siliconflow.cn" };
+const modelscope = { name: "魔搭 ModelScope", logo: "/assets/ai-logos/modelscope.png", url: "https://modelscope.cn" };
+const fireworks = { name: "Fireworks", logo: "/assets/ai-logos/fireworks.png", url: "https://fireworks.ai" };
+const deepinfra = { name: "DeepInfra", logo: "/assets/ai-logos/deepinfra.png", url: "https://deepinfra.com" };
+const qianfan = { name: "百度千帆", logo: "/assets/ai-logos/qianfan.png", url: "https://qianfan.cloud.baidu.com" };
+const bailian = { name: "阿里百炼", logo: "/assets/ai-logos/bailian.png", url: "https://bailian.console.aliyun.com" };
+const nvidia = { name: "NVIDIA NIM", logo: "/assets/ai-logos/nvidia.png", url: "https://build.nvidia.com" };
+const cerebras = { name: "Cerebras", logo: "/assets/ai-logos/cerebras.png", url: "https://www.cerebras.ai" };
+const anyscale = { name: "Anyscale", logo: "/assets/ai-logos/anyscale.png", url: "https://www.anyscale.com" };
 
 // 按板块分组（AI 页渲染使用）
 export interface AiGroup {
@@ -41,17 +91,17 @@ export const aiGroups: AiGroup[] = [
 			qwen,
 			minimax,
 			coze,
-			{ name: "文心一言", logo: fav("yiyan.baidu.com"), url: "https://yiyan.baidu.com" },
-			{ name: "智谱清言", logo: fav("chatglm.cn"), url: "https://chatglm.cn" },
-			{ name: "讯飞星火", logo: fav("xfyun.cn"), url: "https://www.xfyun.cn" },
-			{ name: "百川智能", logo: fav("baichuan-ai.com"), url: "https://www.baichuan-ai.com" },
-			{ name: "腾讯元宝", logo: fav("yuanbao.tencent.com"), url: "https://yuanbao.tencent.com" },
-			{ name: "腾讯混元", logo: fav("hunyuan.tencent.com"), url: "https://hunyuan.tencent.com" },
-			{ name: "阶跃星辰", logo: fav("stepfun.com"), url: "https://www.stepfun.com" },
-			{ name: "天工 AI", logo: fav("tiangong.cn"), url: "https://tiangong.cn" },
-			{ name: "秘塔 AI", logo: fav("metaso.cn"), url: "https://metaso.cn" },
-			{ name: "纳米 AI", logo: fav("nanabot.cn"), url: "https://nanabot.cn" },
-			{ name: "商汤商量", logo: fav("sensechat.sensetime.com"), url: "https://sensechat.sensetime.com" },
+			wenxin,
+			chatglm,
+			xfyun,
+			baichuan,
+			yuanbao,
+			hunyuan,
+			stepfun,
+			tiangong,
+			metaso,
+			nanobot,
+			sensechat,
 		],
 	},
 	{
@@ -61,37 +111,37 @@ export const aiGroups: AiGroup[] = [
 			claude,
 			openclaw,
 			aiStudio,
-			{ name: "Gemini", logo: fav("gemini.google.com"), url: "https://gemini.google.com" },
-			{ name: "Perplexity", logo: fav("perplexity.ai"), url: "https://www.perplexity.ai" },
-			{ name: "Mistral", logo: fav("mistral.ai"), url: "https://mistral.ai" },
-			{ name: "Poe", logo: fav("poe.com"), url: "https://poe.com" },
-			{ name: "Meta AI", logo: fav("meta.ai"), url: "https://meta.ai" },
-			{ name: "Copilot", logo: fav("copilot.microsoft.com"), url: "https://copilot.microsoft.com" },
-			{ name: "Grok", logo: fav("grok.com"), url: "https://grok.com" },
-			{ name: "You.com", logo: fav("you.com"), url: "https://you.com" },
-			{ name: "Pi", logo: fav("pi.ai"), url: "https://pi.ai" },
-			{ name: "Character.AI", logo: fav("character.ai"), url: "https://character.ai" },
-			{ name: "Phind", logo: fav("phind.com"), url: "https://www.phind.com" },
-			{ name: "Writesonic", logo: fav("writesonic.com"), url: "https://writesonic.com" },
+			gemini,
+			perplexity,
+			mistral,
+			poe,
+			metaAi,
+			copilot,
+			grok,
+			you,
+			pi,
+			characterAi,
+			phind,
+			writesonic,
 		],
 	},
 	{
 		title: "绘画",
 		items: [
 			jimeng,
-			{ name: "Midjourney", logo: fav("midjourney.com"), url: "https://www.midjourney.com" },
-			{ name: "Stable Diffusion", logo: fav("stability.ai"), url: "https://stability.ai" },
-			{ name: "可灵", logo: fav("klingai.com"), url: "https://klingai.com" },
-			{ name: "通义万相", logo: fav("wanx.aliyun.com"), url: "https://wanx.aliyun.com" },
-			{ name: "文心一格", logo: fav("yige.baidu.com"), url: "https://yige.baidu.com" },
-			{ name: "Leonardo.AI", logo: fav("leonardo.ai"), url: "https://leonardo.ai" },
-			{ name: "Adobe Firefly", logo: fav("adobe.com"), url: "https://www.firefly.adobe.com" },
-			{ name: "海艺 AI", logo: fav("seaart.ai"), url: "https://www.seaart.ai" },
-			{ name: "Ideogram", logo: fav("ideogram.ai"), url: "https://ideogram.ai" },
-			{ name: "Playground", logo: fav("playground.ai"), url: "https://playground.ai" },
-			{ name: "NightCafe", logo: fav("nightcafe.studio"), url: "https://nightcafe.studio" },
-			{ name: "无界 AI", logo: fav("wujieai.com"), url: "https://www.wujieai.com" },
-			{ name: "DALL·E", logo: fav("openai.com"), url: "https://openai.com/dall-e" },
+			midjourney,
+			stability,
+			kling,
+			wanx,
+			yige,
+			leonardo,
+			adobeFirefly,
+			seaart,
+			ideogram,
+			playground,
+			nightcafe,
+			wujieai,
+			dalle,
 		],
 	},
 	{
@@ -100,18 +150,18 @@ export const aiGroups: AiGroup[] = [
 			ollama,
 			openrouter,
 			huggingface,
-			{ name: "Replicate", logo: fav("replicate.com"), url: "https://replicate.com" },
-			{ name: "Together AI", logo: fav("together.ai"), url: "https://www.together.ai" },
-			{ name: "Groq", logo: fav("groq.com"), url: "https://groq.com" },
-			{ name: "硅基流动", logo: fav("siliconflow.cn"), url: "https://siliconflow.cn" },
-			{ name: "魔搭 ModelScope", logo: fav("modelscope.cn"), url: "https://modelscope.cn" },
-			{ name: "Fireworks", logo: fav("fireworks.ai"), url: "https://fireworks.ai" },
-			{ name: "DeepInfra", logo: fav("deepinfra.com"), url: "https://deepinfra.com" },
-			{ name: "百度千帆", logo: fav("qianfan.cloud.baidu.com"), url: "https://qianfan.cloud.baidu.com" },
-			{ name: "阿里百炼", logo: fav("bailian.aliyun.com"), url: "https://bailian.console.aliyun.com" },
-			{ name: "NVIDIA NIM", logo: fav("nvidia.com"), url: "https://build.nvidia.com" },
-			{ name: "Cerebras", logo: fav("cerebras.ai"), url: "https://www.cerebras.ai" },
-			{ name: "Anyscale", logo: fav("anyscale.com"), url: "https://www.anyscale.com" },
+			replicate,
+			together,
+			groqModel,
+			siliconflow,
+			modelscope,
+			fireworks,
+			deepinfra,
+			qianfan,
+			bailian,
+			nvidia,
+			cerebras,
+			anyscale,
 		],
 	},
 ];

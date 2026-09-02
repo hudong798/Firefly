@@ -1,7 +1,7 @@
 ---
 import FloatingControls from "@/components/common/controls/FloatingControls.astro";
 import StatusBar from "@/components/workbench/StatusBar.astro";
-import WbNavMenu from "@/components/workbench/WbNavMenu.astro";
+import SiteNav from "@/components/workbench/SiteNav.astro";
 import { profileConfig, siteConfig } from "@/config";
 import { Icon } from "astro-icon/components";
 import type { MarkdownHeading } from "astro";
@@ -56,41 +56,8 @@ const { title, description, lang, setOGTypeArticle, postSlug, headings = [] } =
 			<span class="scene-ascii-char" style="left:66%; top:86%; font-size:1.1rem; --dur:11s">+</span>
 		</div>
 
-		{/* 标题栏 */}
-		<header class="wb-titlebar">
-			<div class="wb-titlebar-left">
-				<a href="/" class="wb-brand">
-					<img
-						src={profileConfig.avatar}
-						alt=""
-						class="wb-brand-avatar"
-						loading="lazy"
-					/>
-					<span class="wb-brand-name">{siteConfig.title}</span>
-				</a>
-			</div>
-			{/* 站内文章搜索（顶栏，与品牌同一水平线） */}
-			<div class="wb-titlebar-search" id="wb-site-search">
-				<div class="wb-composer wb-composer--search wb-composer--bar">
-					<Icon name="material-symbols:search" class="wb-composer-ic" />
-					<input
-						id="wb-search-input"
-						class="wb-composer-input"
-						type="text"
-						placeholder="搜索文章…"
-						autocomplete="off"
-						maxlength="50"
-					/>
-					<span class="wb-composer-btn" aria-hidden="true"
-						><Icon name="material-symbols:search" /></span
-					>
-				</div>
-				<div class="wb-search-results" id="wb-search-results" hidden></div>
-			</div>
-			<div class="wb-titlebar-right">
-				<WbNavMenu />
-			</div>
-		</header>
+		{/* 全站统一导航栏 */}
+		<SiteNav />
 
 		{/* 主体：聊天区（左侧会话栏已移除） */}
 		<div class="wb-body">
