@@ -15,16 +15,28 @@ const description = "影视、漫画、社区、工具等资源导航";
 	<!-- 液态玻璃横排导航 -->
 	<div class="res-tabs" role="tablist" aria-label="资源分类">
 		<button class="res-tab is-active" data-tab="tv" role="tab" aria-selected="true">
-			🎬 影视
+			<span class="res-tab-icon" aria-hidden="true">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 4v16M17 4v16M2 9h5M2 15h5M17 9h5M17 15h5"/></svg>
+			</span>
+			影视
 		</button>
 		<button class="res-tab" data-tab="comic" role="tab" aria-selected="false">
-			🎨 漫画资源
+			<span class="res-tab-icon" aria-hidden="true">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+			</span>
+			漫画资源
 		</button>
 		<button class="res-tab" data-tab="community" role="tab" aria-selected="false">
-			🌐 社区
+			<span class="res-tab-icon" aria-hidden="true">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+			</span>
+			社区
 		</button>
 		<button class="res-tab" data-tab="tool" role="tab" aria-selected="false">
-			🛠️ 工具
+			<span class="res-tab-icon" aria-hidden="true">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+			</span>
+			工具
 		</button>
 	</div>
 
@@ -116,6 +128,19 @@ const description = "影视、漫画、社区、工具等资源导航";
 		white-space: nowrap;
 		transition: all 0.18s ease;
 	}
+	.res-tab-icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 1.05em;
+		height: 1.05em;
+		flex-shrink: 0;
+	}
+	.res-tab-icon svg {
+		width: 100%;
+		height: 100%;
+		display: block;
+	}
 	.res-tab:hover {
 		background: var(--glass-surface-soft, var(--wb-hover));
 		color: var(--deep-text);
@@ -125,6 +150,27 @@ const description = "影视、漫画、社区、工具等资源导航";
 		border-color: color-mix(in oklch, var(--primary) 50%, transparent);
 		color: var(--primary);
 		font-weight: 600;
+	}
+
+	/* 移动端：4 个 tab 强制一行等宽，避免换行 */
+	@media (max-width: 640px) {
+		.res-tabs {
+			flex-wrap: nowrap;
+			width: 100%;
+			padding: 0.3rem;
+			gap: 0.2rem;
+		}
+		.res-tab {
+			flex: 1;
+			justify-content: center;
+			padding: 0.45rem 0.3rem;
+			font-size: 0.78rem;
+			gap: 0.25rem;
+		}
+		.res-tab-icon {
+			width: 1em;
+			height: 1em;
+		}
 	}
 
 	/* ---------- 面板切换 ---------- */
@@ -294,36 +340,27 @@ const description = "影视、漫画、社区、工具等资源导航";
 </style>
 
 <script>
-	// 资源页 tab 切换（swup 容器内，每次导航重新绑定）
-	function initResTabs() {
-		const root = document.querySelector<HTMLElement>(".res-tabs");
+	// 资源页 tab 切换：事件委托，一次绑定永久有效（兼容 swup 无刷新切换）
+	function handleResTabClick(e) {
+		const tab = e.target.closest(".res-tab");
+		if (!tab) return;
+		const name = tab.dataset.tab;
+		if (!name) return;
+		const root = tab.closest(".res-tabs");
 		if (!root) return;
-		const tabs = root.querySelectorAll<HTMLButtonElement>(".res-tab");
-		const panels = document.querySelectorAll<HTMLElement>(".res-panel");
-		if (tabs.length === 0) return;
-
-		tabs.forEach((tab) => {
-			if (tab.dataset.bind) return;
-			tab.dataset.bind = "1";
-			tab.addEventListener("click", () => {
-				const name = tab.dataset.tab;
-				if (!name) return;
-				tabs.forEach((t) => {
-					const active = t === tab;
-					t.classList.toggle("is-active", active);
-					t.setAttribute("aria-selected", String(active));
-				});
-				panels.forEach((p) =>
-					p.classList.toggle("is-active", p.dataset.panel === name),
-				);
-			});
+		const tabs = root.querySelectorAll(".res-tab");
+		const panels = document.querySelectorAll(".res-panel");
+		tabs.forEach((t) => {
+			const active = t === tab;
+			t.classList.toggle("is-active", active);
+			t.setAttribute("aria-selected", String(active));
 		});
+		panels.forEach((p) =>
+			p.classList.toggle("is-active", p.dataset.panel === name),
+		);
 	}
-
-	if (document.readyState === "loading") {
-		document.addEventListener("DOMContentLoaded", initResTabs);
-	} else {
-		initResTabs();
+	if (!window.__resTabsBound) {
+		document.addEventListener("click", handleResTabClick);
+		window.__resTabsBound = true;
 	}
-	document.addEventListener("swup:page:view", initResTabs);
 </script>
