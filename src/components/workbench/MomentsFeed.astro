@@ -451,18 +451,10 @@ function previewOf(content: string) {
 	.moment-user-footer {
 		display: flex;
 		align-items: center;
-		justify-content: space-between;
+		justify-content: flex-end;
 		margin-top: 0.5rem;
 		padding-top: 0.5rem;
 		border-top: 1px dashed var(--line-divider, rgba(255,255,255,0.08));
-	}
-	.moment-user-badge {
-		font-size: 0.7rem;
-		color: var(--primary);
-		background: color-mix(in oklch, var(--primary) 12%, transparent);
-		padding: 0.15rem 0.5rem;
-		border-radius: 999px;
-		font-weight: 500;
 	}
 	/* 删除按钮：hover 变红 */
 	.moment-delete-btn {
@@ -554,16 +546,12 @@ function previewOf(content: string) {
 
 		const footer = document.createElement("footer");
 		footer.className = "moment-footer moment-user-footer";
-		const badge = document.createElement("span");
-		badge.className = "moment-user-badge";
-		badge.textContent = "本地说说";
 		const delBtn = document.createElement("button");
 		delBtn.type = "button";
 		delBtn.className = "moment-action moment-delete-btn";
 		delBtn.setAttribute("data-delete", m.id);
 		delBtn.title = "删除此说说";
 		delBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
-		footer.appendChild(badge);
 		footer.appendChild(delBtn);
 
 		article.appendChild(head);
@@ -841,13 +829,18 @@ function previewOf(content: string) {
 			list.unshift(moment);
 			saveUserMoments(list);
 			renderUserMoments();
+			bindDeleteButtons();
 			// 异步同步到 GitHub
 			syncToGitHub(moment);
-			// 重置表单
+			// 重置表单并自动折叠
 			input.value = "";
 			if (countEl) countEl.textContent = "0/500";
 			selectedMood = "";
 			moodBtns.forEach((b) => b.classList.remove("is-active"));
+			if (body && toggle) {
+				body.hidden = true;
+				toggle.classList.remove("is-open");
+			}
 		});
 	}
 
