@@ -36,13 +36,6 @@ export const moments: ThoughtMoment[] = [
 		tags: ["建站", "日常"],
 	},
 	{
-		id: "new-tv-sites",
-		date: "2026-08-23 22:10",
-		content: "影视板块又收录了几个新站点，再也不怕剧荒了。",
-		mood: "🎬",
-		tags: ["资源"],
-	},
-	{
 		id: "tree-hole",
 		date: "2026-08-20 21:05",
 		content:
