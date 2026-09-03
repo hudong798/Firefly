@@ -25,6 +25,33 @@ function previewOf(content: string) {
 ---
 
 <div class="moments">
+	<!-- 发表说说 -->
+	<div class="moment-publisher card-base rounded-[var(--radius-large)]">
+		<textarea
+			class="moment-publisher-input"
+			placeholder="说点什么吧..."
+			rows="3"
+			maxlength="500"
+		></textarea>
+		<div class="moment-publisher-bar">
+			<div class="moment-publisher-moods">
+				<button type="button" class="moment-mood-btn" data-mood="😊" title="开心">😊</button>
+				<button type="button" class="moment-mood-btn" data-mood="🌙" title="深夜">🌙</button>
+				<button type="button" class="moment-mood-btn" data-mood="✨" title="兴奋">✨</button>
+				<button type="button" class="moment-mood-btn" data-mood="😆" title="大笑">😆</button>
+				<button type="button" class="moment-mood-btn" data-mood="🌱" title="随笔">🌱</button>
+			</div>
+			<div class="moment-publisher-actions">
+				<span class="moment-publisher-count">0/500</span>
+				<span class="moment-github-status" id="gh-status" title="点击配置 GitHub Token">☁️ 未同步</span>
+				<button type="button" class="moment-publisher-submit">发表</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- 用户发表的说说（JS 动态插入到这里） -->
+	<div class="moments-user-list"></div>
+
 	{
 		moments.map((m) => {
 			const p = previewOf(m.content);
@@ -226,15 +253,428 @@ function previewOf(content: string) {
 			padding: 0.9rem 1rem 0.4rem;
 		}
 	}
+
+	/* ---------- 发表说说 ---------- */
+	.moment-publisher {
+		padding: 1rem 1.2rem;
+		margin-bottom: 0.2rem;
+	}
+	.moment-publisher-input {
+		width: 100%;
+		min-height: 70px;
+		padding: 0.7rem 0.9rem;
+		border-radius: 0.7rem;
+		border: 1px solid var(--line-divider, rgba(255,255,255,0.1));
+		background: var(--card-bg, rgba(255,255,255,0.03));
+		color: var(--deep-text, #e6edf3);
+		font-size: 0.92rem;
+		line-height: 1.6;
+		resize: vertical;
+		outline: none;
+		transition: border-color 0.2s, box-shadow 0.2s;
+		font-family: inherit;
+	}
+	.moment-publisher-input::placeholder {
+		color: var(--content-meta, #8b949e);
+	}
+	.moment-publisher-input:focus {
+		border-color: var(--primary);
+		box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 15%, transparent);
+	}
+	.moment-publisher-bar {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-top: 0.7rem;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+	}
+	.moment-publisher-moods {
+		display: flex;
+		gap: 0.3rem;
+	}
+	.moment-mood-btn {
+		width: 32px;
+		height: 32px;
+		border-radius: 8px;
+		border: 1px solid transparent;
+		background: transparent;
+		font-size: 1.1rem;
+		cursor: pointer;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		transition: all 0.15s ease;
+		line-height: 1;
+	}
+	.moment-mood-btn:hover {
+		background: var(--btn-plain-bg-hover, rgba(255,255,255,0.06));
+		transform: scale(1.1);
+	}
+	.moment-mood-btn.is-active {
+		background: color-mix(in oklch, var(--primary) 18%, transparent);
+		border-color: color-mix(in oklch, var(--primary) 40%, transparent);
+	}
+	.moment-publisher-actions {
+		display: flex;
+		align-items: center;
+		gap: 0.7rem;
+	}
+	.moment-publisher-count {
+		font-size: 0.75rem;
+		color: var(--content-meta, #8b949e);
+		font-variant-numeric: tabular-nums;
+	}
+	.moment-github-status {
+		font-size: 0.72rem;
+		color: var(--content-meta, #8b949e);
+		cursor: pointer;
+		padding: 0.2rem 0.5rem;
+		border-radius: 6px;
+		border: 1px solid var(--line-divider, rgba(255,255,255,0.1));
+		transition: all 0.15s ease;
+		user-select: none;
+		white-space: nowrap;
+	}
+	.moment-github-status:hover {
+		color: var(--primary);
+		border-color: var(--primary);
+	}
+	.moment-github-status.is-configured {
+		color: #3fb950;
+		border-color: rgba(63, 185, 80, 0.4);
+	}
+	.moment-github-status.is-syncing {
+		color: #d29922;
+		border-color: rgba(210, 153, 34, 0.4);
+	}
+	.moment-github-status.is-success {
+		color: #3fb950;
+		border-color: rgba(63, 185, 80, 0.5);
+	}
+	.moment-github-status.is-error {
+		color: #f85149;
+		border-color: rgba(248, 81, 73, 0.5);
+	}
+	.moment-publisher-submit {
+		padding: 0.45rem 1.3rem;
+		border-radius: 0.6rem;
+		border: none;
+		background: var(--primary);
+		color: #fff;
+		font-size: 0.85rem;
+		font-weight: 600;
+		cursor: pointer;
+		transition: all 0.15s ease;
+		font-family: inherit;
+	}
+	.moment-publisher-submit:hover {
+		filter: brightness(1.1);
+		transform: translateY(-1px);
+		box-shadow: 0 4px 12px color-mix(in oklch, var(--primary) 35%, transparent);
+	}
+	.moment-publisher-submit:active {
+		transform: translateY(0);
+	}
+
+	/* 用户发表的说说标记 */
+	.moment-user-footer {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-top: 0.5rem;
+		padding-top: 0.5rem;
+		border-top: 1px dashed var(--line-divider, rgba(255,255,255,0.08));
+	}
+	.moment-user-badge {
+		font-size: 0.7rem;
+		color: var(--primary);
+		background: color-mix(in oklch, var(--primary) 12%, transparent);
+		padding: 0.15rem 0.5rem;
+		border-radius: 999px;
+		font-weight: 500;
+	}
+	.moment-user-delete {
+		font-size: 0.72rem;
+		color: var(--content-meta, #8b949e);
+		background: transparent;
+		border: 1px solid var(--line-divider, rgba(255,255,255,0.1));
+		padding: 0.15rem 0.6rem;
+		border-radius: 6px;
+		cursor: pointer;
+		transition: all 0.15s ease;
+		font-family: inherit;
+	}
+	.moment-user-delete:hover {
+		color: #f85149;
+		border-color: #f85149;
+	}
+
+	@media (max-width: 640px) {
+		.moment-publisher {
+			padding: 0.85rem 1rem;
+		}
+		.moment-publisher-bar {
+			flex-direction: column;
+			align-items: stretch;
+		}
+		.moment-publisher-actions {
+			justify-content: space-between;
+		}
+		.moment-publisher-submit {
+			flex: 1;
+			text-align: center;
+		}
+	}
 </style>
 
 <script>
-	// 说说列表交互：点赞（本地持久）+ 评论（接入 Twikoo 真实后端，多实例）
+	// 说说列表交互：点赞（本地持久）+ 评论（接入 Twikoo 真实后端，多实例）+ 发表说说（本地存储）
 	const LS_LIKE = "moments-likes";
+	const LS_USER_MOMENTS = "user-moments";
 	const getLikes = () => {
 		try { return JSON.parse(localStorage.getItem(LS_LIKE) || "{}"); } catch { return {}; }
 	};
 	const saveLikes = (o: Record<string, boolean>) => localStorage.setItem(LS_LIKE, JSON.stringify(o));
+	const getUserMoments = (): Array<{ id: string; date: string; content: string; mood?: string }> => {
+		try { return JSON.parse(localStorage.getItem(LS_USER_MOMENTS) || "[]"); } catch { return []; }
+	};
+	const saveUserMoments = (arr: unknown[]) => localStorage.setItem(LS_USER_MOMENTS, JSON.stringify(arr));
+
+	// 格式化当前时间
+	function nowStr() {
+		const d = new Date();
+		const pad = (n: number) => String(n).padStart(2, "0");
+		return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+	}
+
+	// 创建用户说说卡片元素
+	function createUserMomentEl(m: { id: string; date: string; content: string; mood?: string }) {
+		const article = document.createElement("article");
+		article.className = "moment card-base rounded-[var(--radius-large)] moment-user";
+		article.dataset.userMomentId = m.id;
+
+		const head = document.createElement("header");
+		head.className = "moment-head";
+		const who = document.createElement("div");
+		who.className = "moment-who";
+		const name = document.createElement("span");
+		name.className = "moment-name";
+		name.textContent = "Idong";
+		const time = document.createElement("span");
+		time.className = "moment-time";
+		if (m.mood) {
+			const mood = document.createElement("span");
+			mood.className = "moment-mood";
+			mood.textContent = m.mood;
+			time.appendChild(mood);
+		}
+		time.appendChild(document.createTextNode(m.date));
+		who.appendChild(name);
+		who.appendChild(time);
+		head.appendChild(who);
+
+		const content = document.createElement("p");
+		content.className = "moment-content";
+		content.textContent = m.content;
+
+		const footer = document.createElement("footer");
+		footer.className = "moment-footer moment-user-footer";
+		const badge = document.createElement("span");
+		badge.className = "moment-user-badge";
+		badge.textContent = "本地说说";
+		const delBtn = document.createElement("button");
+		delBtn.type = "button";
+		delBtn.className = "moment-user-delete";
+		delBtn.textContent = "删除";
+		delBtn.addEventListener("click", () => {
+			const list = getUserMoments().filter((x) => x.id !== m.id);
+			saveUserMoments(list);
+			article.remove();
+		});
+		footer.appendChild(badge);
+		footer.appendChild(delBtn);
+
+		article.appendChild(head);
+		article.appendChild(content);
+		article.appendChild(footer);
+		return article;
+	}
+
+	// 渲染用户发表的说说到列表顶部
+	function renderUserMoments() {
+		const container = document.querySelector<HTMLElement>(".moments-user-list");
+		if (!container) return;
+		container.innerHTML = "";
+		const list = getUserMoments();
+		list.forEach((m) => {
+			container.appendChild(createUserMomentEl(m));
+		});
+	}
+
+	// 初始化发表说说表单
+	function initPublisher() {
+		const input = document.querySelector<HTMLTextAreaElement>(".moment-publisher-input");
+		const submit = document.querySelector<HTMLButtonElement>(".moment-publisher-submit");
+		const countEl = document.querySelector<HTMLElement>(".moment-publisher-count");
+		const moodBtns = document.querySelectorAll<HTMLButtonElement>(".moment-mood-btn");
+		const ghStatus = document.getElementById("gh-status");
+		if (!input || !submit) return;
+
+		let selectedMood = "";
+
+		// 更新 GitHub 同步状态显示
+		function updateGhStatus() {
+			if (!ghStatus) return;
+			const token = localStorage.getItem("github-token");
+			if (token) {
+				ghStatus.textContent = "☁️ 已配置";
+				ghStatus.classList.add("is-configured");
+			} else {
+				ghStatus.textContent = "☁️ 未同步";
+				ghStatus.classList.remove("is-configured");
+			}
+		}
+		updateGhStatus();
+
+		// 点击状态图标配置/修改 GitHub Token
+		if (ghStatus) {
+			ghStatus.addEventListener("click", () => {
+				const current = localStorage.getItem("github-token") || "";
+				const token = prompt(
+					"请输入 GitHub Personal Access Token（需要 repo 权限，用于自动提交说说到仓库）：\n\n" +
+					"获取方式：GitHub → Settings → Developer settings → Personal access tokens → Generate new token，勾选 repo 权限。\n\n" +
+					"Token 仅存储在当前浏览器 localStorage 中，不会上传到其他地方。",
+					current,
+				);
+				if (token !== null) {
+					const t = token.trim();
+					if (t) {
+						localStorage.setItem("github-token", t);
+					} else {
+						localStorage.removeItem("github-token");
+					}
+					updateGhStatus();
+				}
+			});
+		}
+
+		// 同步说说到 GitHub（修改 src/data/thoughts.ts 并 commit）
+		async function syncToGitHub(moment: { id: string; date: string; content: string; mood?: string }) {
+			const token = localStorage.getItem("github-token");
+			if (!token || !ghStatus) return;
+			ghStatus.textContent = "⏳ 同步中...";
+			ghStatus.classList.add("is-syncing");
+
+			const owner = "hudong798";
+			const repo = "Firefly";
+			const branch = "master";
+			const filePath = "src/data/thoughts.ts";
+			const apiBase = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
+
+			try {
+				// 1. 获取当前文件内容和 SHA
+				const getRes = await fetch(`${apiBase}?ref=${branch}`, {
+					headers: {
+						Authorization: `token ${token}`,
+						Accept: "application/vnd.github.v3+json",
+					},
+				});
+				if (!getRes.ok) throw new Error(`获取文件失败: ${getRes.status}`);
+				const getJson = await getRes.json();
+				const sha = getJson.sha;
+				const currentContent = decodeURIComponent(
+					escape(atob(getJson.content.replace(/\n/g, ""))),
+				);
+
+				// 2. 在 moments 数组开头插入新说说
+				const moodStr = moment.mood ? `\n\t\tmood: "${moment.mood}",` : "";
+				const newEntry = `\t{\n\t\tid: "${moment.id}",\n\t\tdate: "${moment.date}",\n\t\tcontent: "${moment.content.replace(/"/g, '\\"')}",${moodStr}\n\t},\n`;
+				const marker = "export const moments: ThoughtMoment[] = [\n";
+				const insertPos = currentContent.indexOf(marker);
+				if (insertPos === -1) throw new Error("未找到 moments 数组位置");
+				const newContent =
+					currentContent.slice(0, insertPos + marker.length) +
+					newEntry +
+					currentContent.slice(insertPos + marker.length);
+
+				// 3. 提交更新
+				const putRes = await fetch(apiBase, {
+					method: "PUT",
+					headers: {
+						Authorization: `token ${token}`,
+						Accept: "application/vnd.github.v3+json",
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({
+						message: `feat: 发表说说 - ${moment.content.slice(0, 30)}${moment.content.length > 30 ? "..." : ""}`,
+						content: btoa(unescape(encodeURIComponent(newContent))),
+						sha,
+						branch,
+					}),
+				});
+				if (!putRes.ok) {
+					const errText = await putRes.text();
+					throw new Error(`提交失败: ${putRes.status} ${errText.slice(0, 100)}`);
+				}
+
+				ghStatus.textContent = "✅ 已同步";
+				ghStatus.classList.remove("is-syncing");
+				ghStatus.classList.add("is-success");
+				setTimeout(updateGhStatus, 3000);
+			} catch (err) {
+				console.error("[GitHub Sync] 失败:", err);
+				ghStatus.textContent = "❌ 同步失败";
+				ghStatus.classList.remove("is-syncing");
+				ghStatus.classList.add("is-error");
+				setTimeout(updateGhStatus, 3000);
+			}
+		}
+
+		// 字数统计
+		input.addEventListener("input", () => {
+			if (countEl) countEl.textContent = `${input.value.length}/500`;
+		});
+
+		// 心情选择
+		moodBtns.forEach((btn) => {
+			btn.addEventListener("click", () => {
+				moodBtns.forEach((b) => b.classList.remove("is-active"));
+				if (selectedMood === btn.dataset.mood) {
+					selectedMood = "";
+				} else {
+					selectedMood = btn.dataset.mood || "";
+					btn.classList.add("is-active");
+				}
+			});
+		});
+
+		// 发表
+		submit.addEventListener("click", () => {
+			const content = input.value.trim();
+			if (!content) {
+				input.focus();
+				return;
+			}
+			const moment = {
+				id: `user-${Date.now()}`,
+				date: nowStr(),
+				content,
+				mood: selectedMood || undefined,
+			};
+			const list = getUserMoments();
+			list.unshift(moment);
+			saveUserMoments(list);
+			renderUserMoments();
+			// 异步同步到 GitHub
+			syncToGitHub(moment);
+			// 重置表单
+			input.value = "";
+			if (countEl) countEl.textContent = "0/500";
+			selectedMood = "";
+			moodBtns.forEach((b) => b.classList.remove("is-active"));
+		});
+	}
 
 	// 等待 twikoo 全局对象加载完成
 	function whenTwikoo(cb: () => void) {
@@ -243,6 +683,10 @@ function previewOf(content: string) {
 	}
 
 	function initMomentInteractions() {
+		// ---- 发表说说（本地存储）----
+		initPublisher();
+		renderUserMoments();
+
 		// ---- 点赞（localStorage 持久可切换）----
 		document.querySelectorAll<HTMLButtonElement>("button[data-like]").forEach((btn) => {
 			if (btn.dataset.init) return;

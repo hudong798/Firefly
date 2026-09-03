@@ -38,18 +38,8 @@ const description = i18n(I18nKey.guestbookDescription);
 		</div>
 	</header>
 
-	<!-- 介绍卡片 -->
-	<div class="guestbook-card card-base rounded-[var(--radius-large)]">
-		<Markdown>
-			<Content />
-		</Markdown>
-	</div>
-
 	<!-- 留言区 -->
 	<section class="gb-comments">
-		<h2 class="gb-comments-h2">
-			<span class="gb-comments-ic">📝</span> 留言区
-		</h2>
 		{
 			isCommentEnabled ? (
 				<Comment post={guestbookPost} customPath="/guestbook/" hideHeader />

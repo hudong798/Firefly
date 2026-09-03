@@ -389,6 +389,15 @@ Make the emoji component display correctly when there are too many emoji packs
 
 /* ========== QQ 动态评论风格 ========== */
 
+/* 强制覆盖：评论区内所有文字用亮色，解决深色背景下看不见的问题 */
+.tk-comments,
+.tk-comment,
+.tk-comment *,
+.tk-comment *::before,
+.tk-comment *::after {
+  color: #e6edf3 !important;
+}
+
 /* 去掉卡片边框/背景/圆角/hover特效，简洁排列 */
 .tk-comment {
   display: flex !important;
@@ -463,7 +472,7 @@ Make the emoji component display correctly when there are too many emoji packs
 .tk-comment .tk-meta time,
 .tk-comment .tk-meta > span {
   font-size: 0.75rem !important;
-  color: var(--content-meta) !important;
+  color: #8b949e !important;
   font-weight: 400 !important;
 }
 
@@ -471,7 +480,7 @@ Make the emoji component display correctly when there are too many emoji packs
 .tk-comment .tk-content {
   font-size: 0.9rem !important;
   line-height: 1.6 !important;
-  color: var(--deep-text, var(--tk-text)) !important;
+  color: #e6edf3 !important;
   margin: 0.2rem 0 0.4rem !important;
   word-break: break-word;
 }
@@ -481,48 +490,118 @@ Make the emoji component display correctly when there are too many emoji packs
 .tk-comment .tk-os,
 .tk-comment .tk-browser {
   font-size: 0.7rem !important;
-  color: var(--content-meta) !important;
-  opacity: 0.7 !important;
+  color: #6e7681 !important;
+  opacity: 1 !important;
   margin-top: 0.15rem !important;
 }
 
-/* 点赞/回复按钮：右下角小字 */
+/* 点赞/回复/管理员操作按钮：高对比度，确保可见 */
 .tk-comment .tk-action,
 .tk-comment .tk-actions {
-  display: flex !important;
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
   align-items: center !important;
-  gap: 1rem !important;
-  margin-top: 0.4rem !important;
-  justify-content: flex-end !important;
+  gap: 0.4rem !important;
+  margin-left: 0.5rem !important;
 }
-.tk-comment .tk-action-icon,
-.tk-comment .tk-action button,
+/* 强制覆盖 Twikoo 默认的 hover 才显示逻辑，确保移动端也可见 */
+html body .tk-actions,
+html body .tk-comment .tk-actions,
+html body .tk-comment:hover .tk-actions {
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+/* 强制所有操作按钮显示，防止被 Twikoo 默认隐藏 */
+.tk-comment .tk-reply,
 .tk-comment .tk-like,
-.tk-comment .tk-reply {
+.tk-comment .tk-action-icon,
+.tk-comment .tk-action-icon-solid,
+.tk-comment .tk-action-link,
+.tk-comment .tk-action > * {
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+/* Twikoo 默认只在 hover 显示实心图标，这里强制始终显示 */
+.tk-comment .tk-action-icon-solid {
+  display: inline-block !important;
+}
+/* 覆盖评论区内所有操作按钮/链接/图标颜色 */
+.tk-comment .tk-action *,
+.tk-comment .tk-action-icon,
+.tk-comment .tk-action-icon-solid,
+.tk-comment .tk-action-link,
+.tk-comment .tk-action button,
+.tk-comment .tk-action a,
+.tk-comment .tk-like,
+.tk-comment .tk-reply,
+.tk-comment .tk-admin,
+.tk-comment .tk-hide,
+.tk-comment .tk-top,
+.tk-comment button[class*="tk-"],
+.tk-comment a[class*="tk-"] {
+  color: #c9d1d9 !important;
+  font-size: 0.8rem !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 0.25rem 0.5rem !important;
+  cursor: pointer !important;
+  opacity: 1 !important;
+  transition: all 0.15s ease !important;
   display: inline-flex !important;
   align-items: center !important;
   gap: 0.25rem !important;
-  font-size: 0.75rem !important;
-  color: var(--content-meta) !important;
-  background: transparent !important;
-  border: none !important;
-  padding: 0.15rem 0.3rem !important;
-  cursor: pointer !important;
-  transition: color 0.15s ease !important;
 }
+/* 操作图标强制亮色，覆盖 Twikoo 默认蓝色 */
+.tk-comment .tk-action-icon,
+.tk-comment .tk-action-icon-solid,
+.tk-comment .tk-action-link svg {
+  color: #c9d1d9 !important;
+  fill: #c9d1d9 !important;
+  stroke: #c9d1d9 !important;
+  width: 15px !important;
+  height: 15px !important;
+  display: inline-block !important;
+}
+.tk-comment .tk-action *:hover,
 .tk-comment .tk-action-icon:hover,
 .tk-comment .tk-action button:hover,
+.tk-comment .tk-action a:hover,
 .tk-comment .tk-like:hover,
-.tk-comment .tk-reply:hover {
+.tk-comment .tk-reply:hover,
+.tk-comment .tk-admin:hover,
+.tk-comment .tk-hide:hover,
+.tk-comment .tk-top:hover {
   color: var(--primary) !important;
-  background: transparent !important;
+  background: color-mix(in oklch, var(--primary) 12%, transparent) !important;
+  border-radius: 6px !important;
+  opacity: 1 !important;
 }
 .tk-comment .tk-action-icon svg,
 .tk-comment .tk-like svg,
-.tk-comment .tk-reply svg {
-  width: 14px !important;
-  height: 14px !important;
+.tk-comment .tk-reply svg,
+.tk-comment .tk-action svg {
+  width: 15px !important;
+  height: 15px !important;
   fill: currentColor !important;
+  stroke: currentColor !important;
+  opacity: 1 !important;
+}
+
+/* 评论数标题右上角的刷新/设置图标 */
+.tk-comments-title .tk-action,
+.tk-comments-title button,
+.tk-comments-title a {
+  color: #c9d1d9 !important;
+  opacity: 0.7 !important;
+}
+.tk-comments-title .tk-action:hover,
+.tk-comments-title button:hover,
+.tk-comments-title a:hover {
+  color: var(--primary) !important;
+  opacity: 1 !important;
 }
 
 /* 回复评论：缩进 + 左边细线 */
