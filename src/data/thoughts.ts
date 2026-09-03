@@ -20,12 +20,6 @@ export const MOMENT_PREVIEW_LIMIT = 200;
 
 export const moments: ThoughtMoment[] = [
 	{
-		id: "user-1788429785979",
-		date: "2026-09-03 18:03",
-		content: "测试11",
-		mood: "😆",
-	},
-	{
 		id: "long-demo",
 		date: "2026-08-25 02:05",
 		content:
