@@ -207,4 +207,22 @@ const currentPath = Astro.url.pathname;
       display: none;
     }
   }
+  /* 手机端：导航项只显示图标，避免文字太宽溢出盖住头像 */
+  @media (max-width: 768px) {
+    .site-nav__center {
+      min-width: 0;
+      gap: 0.1rem;
+      justify-content: flex-end;
+    }
+    .site-nav__text {
+      display: none;
+    }
+    .site-nav__item {
+      padding: 0.4rem 0.5rem;
+    }
+    .site-nav__icon {
+      width: 18px;
+      height: 18px;
+    }
+  }
 </style>
