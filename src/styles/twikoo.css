@@ -387,4 +387,175 @@ Make the emoji component display correctly when there are too many emoji packs
   }
 }
 
+/* ========== QQ 动态评论风格 ========== */
+
+/* 去掉卡片边框/背景/圆角/hover特效，简洁排列 */
+.tk-comment {
+  display: flex !important;
+  align-items: flex-start !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  padding: 0.9rem 0 !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+  transition: none !important;
+  position: relative;
+}
+.tk-comment:hover {
+  transform: none !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
+}
+.tk-comment::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 52px;
+  right: 0;
+  height: 1px;
+  background: var(--line-divider, rgba(255,255,255,0.08));
+  opacity: 0.6;
+}
+.tk-comment:last-child::after {
+  display: none;
+}
+
+/* 头像：小尺寸圆形，左对齐 */
+.tk-comment .tk-avatar {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+  margin-right: 12px !important;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.tk-comment .tk-avatar img {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 50% !important;
+  object-fit: cover;
+}
+
+/* 评论主体布局 */
+.tk-comment .tk-main {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 昵称+时间同行 */
+.tk-comment .tk-meta {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  flex-wrap: wrap !important;
+  margin-bottom: 0.25rem !important;
+}
+.tk-comment .tk-nick,
+.tk-comment .tk-meta > a:first-child,
+.tk-comment .tk-meta .tk-tag {
+  font-size: 0.88rem !important;
+  font-weight: 600 !important;
+  color: var(--primary) !important;
+  text-decoration: none !important;
+}
+.tk-comment .tk-time,
+.tk-comment .tk-meta time,
+.tk-comment .tk-meta > span {
+  font-size: 0.75rem !important;
+  color: var(--content-meta) !important;
+  font-weight: 400 !important;
+}
+
+/* 评论内容 */
+.tk-comment .tk-content {
+  font-size: 0.9rem !important;
+  line-height: 1.6 !important;
+  color: var(--deep-text, var(--tk-text)) !important;
+  margin: 0.2rem 0 0.4rem !important;
+  word-break: break-word;
+}
+
+/* 设备/系统信息：小字灰色 */
+.tk-comment .tk-meta:nth-of-type(2),
+.tk-comment .tk-os,
+.tk-comment .tk-browser {
+  font-size: 0.7rem !important;
+  color: var(--content-meta) !important;
+  opacity: 0.7 !important;
+  margin-top: 0.15rem !important;
+}
+
+/* 点赞/回复按钮：右下角小字 */
+.tk-comment .tk-action,
+.tk-comment .tk-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 1rem !important;
+  margin-top: 0.4rem !important;
+  justify-content: flex-end !important;
+}
+.tk-comment .tk-action-icon,
+.tk-comment .tk-action button,
+.tk-comment .tk-like,
+.tk-comment .tk-reply {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.25rem !important;
+  font-size: 0.75rem !important;
+  color: var(--content-meta) !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 0.15rem 0.3rem !important;
+  cursor: pointer !important;
+  transition: color 0.15s ease !important;
+}
+.tk-comment .tk-action-icon:hover,
+.tk-comment .tk-action button:hover,
+.tk-comment .tk-like:hover,
+.tk-comment .tk-reply:hover {
+  color: var(--primary) !important;
+  background: transparent !important;
+}
+.tk-comment .tk-action-icon svg,
+.tk-comment .tk-like svg,
+.tk-comment .tk-reply svg {
+  width: 14px !important;
+  height: 14px !important;
+  fill: currentColor !important;
+}
+
+/* 回复评论：缩进 + 左边细线 */
+.tk-replies .tk-comment {
+  padding-left: 1rem !important;
+  margin-left: 52px !important;
+}
+.tk-replies .tk-comment::after {
+  left: 0 !important;
+}
+.tk-replies .tk-avatar {
+  width: 32px !important;
+  height: 32px !important;
+}
+
+/* 评论数标题 */
+.tk-comments-title,
+.gb-comments-h2 {
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+  margin-bottom: 0.5rem !important;
+}
+
+/* 加载更多按钮 */
+.tk-expand-wrap,
+.tk-collapse-wrap {
+  text-align: center !important;
+  margin: 1rem 0 !important;
+}
+.tk-expand {
+  font-size: 0.8rem !important;
+  padding: 0.4rem 1.2rem !important;
+  border-radius: 999px !important;
+}
+
 
