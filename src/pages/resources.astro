@@ -339,28 +339,4 @@ const description = "影视、漫画、社区、工具等资源导航";
 	}
 </style>
 
-<script>
-	// 资源页 tab 切换：事件委托，一次绑定永久有效（兼容 swup 无刷新切换）
-	function handleResTabClick(e) {
-		const tab = e.target.closest(".res-tab");
-		if (!tab) return;
-		const name = tab.dataset.tab;
-		if (!name) return;
-		const root = tab.closest(".res-tabs");
-		if (!root) return;
-		const tabs = root.querySelectorAll(".res-tab");
-		const panels = document.querySelectorAll(".res-panel");
-		tabs.forEach((t) => {
-			const active = t === tab;
-			t.classList.toggle("is-active", active);
-			t.setAttribute("aria-selected", String(active));
-		});
-		panels.forEach((p) =>
-			p.classList.toggle("is-active", p.dataset.panel === name),
-		);
-	}
-	if (!window.__resTabsBound) {
-		document.addEventListener("click", handleResTabClick);
-		window.__resTabsBound = true;
-	}
-</script>
+

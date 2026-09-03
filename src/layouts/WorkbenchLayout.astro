@@ -298,4 +298,24 @@ const { title, description, lang, setOGTypeArticle, postSlug, headings = [] } =
 	} else {
 		setupTitlebarSearch();
 	}
+
+	// 资源页 tab 切换：事件委托，在 swup 容器外绑定一次，跨页面持久有效
+	document.addEventListener("click", (e) => {
+		const tab = e.target.closest(".res-tab");
+		if (!tab) return;
+		const name = tab.dataset.tab;
+		if (!name) return;
+		const root = tab.closest(".res-tabs");
+		if (!root) return;
+		const tabs = root.querySelectorAll(".res-tab");
+		const panels = document.querySelectorAll(".res-panel");
+		tabs.forEach((t) => {
+			const active = t === tab;
+			t.classList.toggle("is-active", active);
+			t.setAttribute("aria-selected", String(active));
+		});
+		panels.forEach((p) =>
+			p.classList.toggle("is-active", p.dataset.panel === name),
+		);
+	});
 </script>
