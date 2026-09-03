@@ -295,3 +295,96 @@ Make the emoji component display correctly when there are too many emoji packs
 }
 
 
+/* ========== 留言区排版优化 ========== */
+
+/* 昵称/邮箱/网址 三个输入框等宽排列 */
+.tk-meta-input {
+  display: flex !important;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem !important;
+}
+.tk-meta-input > div {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 输入框标签宽度统一 */
+.tk-meta-input .el-input-group__prepend {
+  min-width: 60px !important;
+  padding: 0 0.75rem !important;
+  font-size: 0.82rem !important;
+  justify-content: center !important;
+}
+
+/* 隐藏 Markdown 切换和预览按钮 */
+.tk-markdown,
+.tk-preview,
+.tk-row.actions button[class*="markdown"],
+.tk-row.actions button[class*="preview"] {
+  display: none !important;
+}
+
+/* 发送按钮行：左表情图片，右发送 */
+.tk-row.actions {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-top: 0.75rem !important;
+  gap: 0.5rem !important;
+}
+
+/* 发送按钮主色突出 */
+.tk-send {
+  background: var(--primary) !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 0.6rem !important;
+  padding: 0.5rem 1.5rem !important;
+  font-weight: 600 !important;
+  height: auto !important;
+  transition: all 0.2s ease !important;
+}
+.tk-send:hover {
+  background: color-mix(in oklch, var(--primary) 85%, #000) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 14px color-mix(in oklch, var(--primary) 40%, transparent) !important;
+}
+.tk-send:active {
+  transform: translateY(0) !important;
+}
+
+/* 表情/图片按钮与发送按钮对齐 */
+.tk-row .tk-col .tk-actions {
+  margin: 0 !important;
+  order: 0 !important;
+}
+
+/* 评论列表卡片间距 */
+.tk-comments > .tk-comment {
+  margin-bottom: 1rem;
+}
+
+/* 评论头部对齐 */
+.tk-comment .tk-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* 移动端：三个输入框垂直排列避免太挤 */
+@media (max-width: 640px) {
+  .tk-meta-input {
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .tk-meta-input > div {
+    width: 100%;
+  }
+  .tk-row.actions {
+    flex-wrap: wrap;
+  }
+}
+
+
