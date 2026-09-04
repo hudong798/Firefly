@@ -29,106 +29,175 @@ const description = i18n(I18nKey.guestbookDescription);
 ---
 
 <MainGridLayout title={title} description={description}>
-	<!-- 头部 -->
-	<header class="gb-header">
-		<span class="gb-header-ic">💬</span>
-		<div class="gb-header-text">
-			<h1 class="gb-title">{title}</h1>
-			<p class="gb-sub">{description}</p>
-		</div>
-	</header>
+	<!-- Reading Quiet Zone：评论区局部暗层，降低星星密度 -->
+	<div class="gb-reading-vignette" aria-hidden="true"></div>
 
-	<!-- 留言区 -->
-	<section class="gb-comments">
-		{
-			isCommentEnabled ? (
-				<Comment post={guestbookPost} customPath="/guestbook/" hideHeader />
-			) : (
-				<div class="card-base p-8 mb-6 relative overflow-hidden">
-					<div class="text-center py-8 text-[var(--content-meta)]">
-						<div class="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--btn-regular-bg)] flex items-center justify-center">
-							<svg
-								class="w-8 h-8 text-[var(--primary)]"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-								></path>
-							</svg>
-						</div>
-						<p class="text-base mb-2">{i18n(I18nKey.commentNotConfigured)}</p>
-						<p class="text-sm text-[var(--content-meta)] opacity-75">
-							{i18n(I18nKey.guestbookCommentHint)}
-						</p>
+	<!-- 统一内容容器：确保标题和评论对齐 -->
+	<div class="gb-container">
+		<!-- 头部：Digital Observatory 风格 -->
+		<header class="gb-header">
+			<div class="gb-header-label">
+				<span class="gb-header-label-text">VISITOR SIGNALS</span>
+				<span class="gb-header-label-line"></span>
+			</div>
+			<h1 class="gb-title">{title}</h1>
+			<p class="gb-sub">欢迎在这里留下你的足迹，分享你的想法和建议。</p>
+		</header>
+
+		<!-- 留言区 -->
+		<section class="gb-comments">
+			{
+				isCommentEnabled ? (
+					<Comment post={guestbookPost} customPath="/guestbook/" hideHeader />
+				) : (
+					<div class="gb-empty">
+						<div class="gb-empty-dot"></div>
+						<p class="gb-empty-title">NO SIGNALS YET</p>
+						<p class="gb-empty-sub">还没有来自这个宇宙的信号。</p>
 					</div>
-				</div>
-			)
-		}
-	</section>
+				)
+			}
+		</section>
+	</div>
 </MainGridLayout>
 
 <style>
-	/* 头部 */
-	.gb-header {
-		display: flex;
-		align-items: center;
-		gap: 0.9rem;
-		margin-bottom: 1.2rem;
-	}
-	.gb-header-ic {
-		width: 3rem;
-		height: 3rem;
-		flex-shrink: 0;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-size: 1.6rem;
-		border-radius: 0.9rem;
-		background: color-mix(in oklch, var(--primary) 16%, transparent);
-	}
-	.gb-title {
-		margin: 0;
-		font-size: 1.5rem;
-		font-weight: 800;
-		line-height: 1.2;
-	}
-	.gb-sub {
-		margin: 0.2rem 0 0;
-		font-size: 0.85rem;
-		color: var(--content-meta);
+	/* Reading Quiet Zone：评论区局部暗层，自然降低星星可见度 */
+	.gb-reading-vignette {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		z-index: 1;
+		pointer-events: none;
+		background:
+			radial-gradient(ellipse 70% 60% at 50% 45%, rgba(3, 5, 10, 0.55) 0%, rgba(3, 5, 10, 0.3) 50%, transparent 80%),
+			linear-gradient(180deg, rgba(3, 5, 10, 0.2) 0%, transparent 15%, transparent 85%, rgba(3, 5, 10, 0.25) 100%);
 	}
 
-	/* 介绍卡片 */
-	.guestbook-card {
-		padding: 1.5rem 1.8rem;
+	/* 统一内容容器：确保标题和评论对齐 */
+	.gb-container {
+		position: relative;
+		z-index: 2;
+		max-width: 960px;
+		margin: 0 auto;
+		padding: 0 1.5rem;
+	}
+
+	/* 确保内容在遮罩层之上 */
+	.gb-header,
+	.gb-comments {
+		position: relative;
+		z-index: 2;
+		width: 100%;
+	}
+
+	/* 头部 */
+	.gb-header {
+		margin-bottom: 2.5rem;
+		padding-top: 1rem;
+	}
+
+	.gb-header-label {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		margin-bottom: 1rem;
+	}
+
+	.gb-header-label-text {
+		font-family: "JetBrains Mono", "Fira Code", "Space Mono", ui-monospace, monospace;
+		font-size: 0.65rem;
+		font-weight: 500;
+		letter-spacing: 0.18em;
+		color: rgba(155, 140, 255, 0.5);
+		text-transform: uppercase;
+	}
+
+	.gb-header-label-line {
+		flex: 1;
+		max-width: 120px;
+		height: 1px;
+		background: linear-gradient(90deg, rgba(155, 140, 255, 0.15), transparent);
+	}
+
+	.gb-title {
+		margin: 0 0 0.75rem;
+		font-size: 2rem;
+		font-weight: 600;
+		line-height: 1.2;
+		color: #F4F5FA;
+		letter-spacing: -0.01em;
+	}
+
+	.gb-sub {
+		margin: 0;
+		font-size: 0.9rem;
+		color: #7F8799;
+		line-height: 1.7;
+		max-width: 520px;
 	}
 
 	/* 留言区 */
 	.gb-comments {
-		margin-top: 1.6rem;
+		position: relative;
 	}
-	.gb-comments-h2 {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		font-size: 1.15rem;
-		font-weight: 700;
-		margin: 0 0 0.9rem;
-		padding-bottom: 0.6rem;
-		border-bottom: 1px solid var(--line-divider);
+
+	/* 空状态 */
+	.gb-empty {
+		text-align: center;
+		padding: 4rem 1rem;
 	}
-	.gb-comments-ic {
-		font-size: 1.2rem;
+
+	.gb-empty-dot {
+		width: 6px;
+		height: 6px;
+		border-radius: 50%;
+		background: rgba(155, 140, 255, 0.4);
+		margin: 0 auto 1.5rem;
+		box-shadow: 0 0 12px rgba(155, 140, 255, 0.2);
+		animation: gb-empty-pulse 4s ease-in-out infinite;
+	}
+
+	@keyframes gb-empty-pulse {
+		0%, 100% { opacity: 0.4; transform: scale(1); }
+		50% { opacity: 0.8; transform: scale(1.2); }
+	}
+
+	.gb-empty-title {
+		font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+		font-size: 0.7rem;
+		letter-spacing: 0.15em;
+		color: rgba(255, 255, 255, 0.3);
+		margin: 0 0 0.5rem;
+	}
+
+	.gb-empty-sub {
+		font-size: 0.85rem;
+		color: rgba(255, 255, 255, 0.25);
+		margin: 0;
 	}
 
 	@media (max-width: 768px) {
-		.guestbook-card {
-			padding: 1.1rem 1rem;
+		.gb-container {
+			padding: 0 1.25rem;
+		}
+		.gb-header {
+			margin-bottom: 2rem;
+		}
+		.gb-title {
+			font-size: 1.6rem;
+		}
+		.gb-sub {
+			font-size: 0.85rem;
+		}
+	}
+
+	/* Reduced Motion */
+	@media (prefers-reduced-motion: reduce) {
+		.gb-empty-dot {
+			animation: none;
 		}
 	}
 </style>

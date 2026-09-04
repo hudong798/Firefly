@@ -2,6 +2,7 @@
 import FloatingControls from "@/components/common/controls/FloatingControls.astro";
 import StatusBar from "@/components/workbench/StatusBar.astro";
 import SiteNav from "@/components/workbench/SiteNav.astro";
+import StarField from "@/components/workbench/StarField.astro";
 import { profileConfig, siteConfig } from "@/config";
 import { Icon } from "astro-icon/components";
 import type { MarkdownHeading } from "astro";
@@ -31,30 +32,8 @@ const { title, description, lang, setOGTypeArticle, postSlug, headings = [] } =
 	postSlug={postSlug}
 >
 	<div class="wb-shell" id="wb-shell">
-		{/* 黑蓝深海：ASCII 原子像素场景装饰层（非首页；首页有专属层） */}
-		<div class="wb-scene-atoms" aria-hidden="true">
-			<div class="scene-pixels"></div>
-			<div class="scene-atom" style="--rot:20deg; width:120px; height:120px; left:7%; top:22%;">
-				<div class="scene-atom-core"></div>
-				<span class="scene-atom-ring" style="--rot:0deg"></span>
-				<span class="scene-atom-ring" style="--rot:60deg"></span>
-				<span class="scene-atom-ring" style="--rot:-60deg"></span>
-				<span class="scene-atom-e" style="--r:56px; --dur:7s"></span>
-			</div>
-			<div class="scene-atom" style="--rot:-15deg; width:200px; height:200px; right:12%; top:64%; opacity:0.3;">
-				<div class="scene-atom-core"></div>
-				<span class="scene-atom-ring" style="--rot:0deg"></span>
-				<span class="scene-atom-ring" style="--rot:45deg"></span>
-				<span class="scene-atom-ring" style="--rot:-45deg"></span>
-				<span class="scene-atom-e" style="--r:92px; --dur:11s"></span>
-			</div>
-			<span class="scene-ascii-char" style="left:16%; top:70%; font-size:1.1rem; --dur:8s">⚛</span>
-			<span class="scene-ascii-char" style="left:22%; top:30%; font-size:1.4rem; --dur:10s">◌</span>
-			<span class="scene-ascii-char" style="left:80%; top:28%; font-size:1.2rem; --dur:9s">✦</span>
-			<span class="scene-ascii-char" style="left:88%; top:76%; font-size:1.5rem; --dur:12s">◍</span>
-			<span class="scene-ascii-char" style="left:44%; top:14%; font-size:1rem; --dur:7s">▚</span>
-			<span class="scene-ascii-char" style="left:66%; top:86%; font-size:1.1rem; --dur:11s">+</span>
-		</div>
+		{/* Digital Observatory - Canvas 动态星空背景 */}
+		<StarField />
 
 		{/* 全站统一导航栏 */}
 		<SiteNav />

@@ -1,0 +1,621 @@
+---
+// Digital Observatory - Canvas 动态星空背景 v2
+// 多层深空环境系统：远景/中景/近景/焦点亮星
+// 密度梯度 + Quiet Zone + Radial Vignette + 极淡星云 + 银河结构
+// 极慢动画 + 极克制闪烁 + Film Grain + 坐标系统 + 极细轨道线
+---
+
+<canvas id="starfield-canvas" aria-hidden="true"></canvas>
+
+<script>
+(function () {
+	const canvas = document.getElementById("starfield-canvas");
+	if (!canvas) return;
+	const ctx = canvas.getContext("2d");
+	if (!ctx) return;
+
+	// 检测 Reduced Motion
+	const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+	// 根据设备确定粒子数量（大幅减少，追求质量而非数量）
+	function getParticleCount() {
+		const w = window.innerWidth;
+		if (w < 640) return 250;
+		if (w < 1024) return 500;
+		return 900;
+	}
+
+	let dpr = Math.min(window.devicePixelRatio || 1, 2);
+	let width = 0, height = 0;
+	let stars = [];       // 远景+中景+近景星点
+	let brightStars = []; // 焦点亮星（5-15颗）
+	let nebulae = [];     // 极淡星云
+	let meteors = [];     // 流星
+	let orbitLines = [];  // 极细轨道线
+	let coordLabels = []; // 坐标系统标签
+
+	// 鼠标视差
+	let mouseX = 0, mouseY = 0;
+	let targetMouseX = 0, targetMouseY = 0;
+
+	// 时间
+	let startTime = performance.now();
+	let lastMeteorTime = 0;
+	let nextMeteorDelay = 35000 + Math.random() * 25000; // 35-60秒
+
+	// 伪随机数生成器（确定性，避免 SSR/CSR 不一致）
+	function mulberry32(seed) {
+		return function() {
+			seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+			let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+			t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+			return ((t ^ t >>> 14) >>> 0) / 4294967296;
+		};
+	}
+
+	// 简化的 2D noise（用于密度场）
+	function noise2D(x, y, seed) {
+		const n = Math.sin(x * 12.9898 + y * 78.233 + seed * 37.719) * 43758.5453;
+		return n - Math.floor(n);
+	}
+
+	// 密度场：决定星星分布的不均匀性
+	// 返回 0-1，越高表示该区域星星越密集
+	function densityField(x, y, w, h) {
+		const nx = x / w;
+		const ny = y / h;
+
+		// 基础密度
+		let d = 0.55;
+
+		// 银河带：从左下到右上的略微密集区域
+		const galaxyAngle = -0.35;
+		const galaxyDist = Math.abs(
+			(nx - 0.5) * Math.cos(galaxyAngle) + (ny - 0.5) * Math.sin(galaxyAngle)
+		);
+		const galaxyWidth = 0.18;
+		const galaxyIntensity = Math.max(0, 1 - galaxyDist / galaxyWidth);
+		d += galaxyIntensity * 0.35;
+
+		// 右侧 Observatory 区域略微增加
+		if (nx > 0.55) {
+			d += 0.1 * (1 - Math.abs(ny - 0.5) * 2);
+		}
+
+		// Quiet Zone：左侧文字区域降低密度（Hero 左侧约 0-45% 宽度，中央垂直区域）
+		const quietX = nx < 0.48;
+		const quietY = ny > 0.25 && ny < 0.75;
+		if (quietX && quietY) {
+			const quietStrength = 1 - Math.abs(nx - 0.24) / 0.24; // 中心最强
+			d *= 1 - quietStrength * 0.65;
+		}
+
+		// 边缘略微降低
+		const edgeFade = Math.min(nx, 1 - nx, ny, 1 - ny) * 4;
+		d *= 0.7 + Math.min(1, edgeFade) * 0.3;
+
+		// 加入 noise 扰动，避免过于规则
+		const n = noise2D(Math.floor(nx * 8), Math.floor(ny * 8), 42);
+		d *= 0.85 + n * 0.3;
+
+		return Math.max(0.05, Math.min(1, d));
+	}
+
+	// 星星颜色池（接近白色，略微偏蓝/紫，极少量暖白）
+	const starColors = [
+		{r: 245, g: 247, b: 255}, // 近白
+		{r: 240, g: 244, b: 255}, // 淡蓝白
+		{r: 235, g: 238, b: 252}, // 淡蓝
+		{r: 238, g: 235, b: 255}, // 淡紫白
+		{r: 250, g: 248, b: 245}, // 暖白（极少量）
+	];
+
+	// 初始化星空
+	function initStars() {
+		stars = [];
+		brightStars = [];
+		const rand = mulberry32(20260904);
+		const count = getParticleCount();
+
+		for (let i = 0; i < count; i++) {
+			// 使用拒绝采样实现密度梯度
+			let x, y, d;
+			let attempts = 0;
+			do {
+				x = rand() * width;
+				y = rand() * height;
+				d = densityField(x, y, width, height);
+				attempts++;
+			} while (rand() > d && attempts < 8);
+
+			// 深度层级：0=远景, 1=中景, 2=近景
+			const depthRand = rand();
+			let depth, size, baseOpacity, speed, parallaxFactor;
+
+			if (depthRand < 0.65) {
+				// 远景：65%
+				depth = 0;
+				size = 0.3 + rand() * 0.5;       // 0.3-0.8px
+				baseOpacity = 0.15 + rand() * 0.3; // 0.15-0.45
+				speed = 0.02 + rand() * 0.03;     // 极慢
+				parallaxFactor = 0.15;             // 几乎不动
+			} else if (depthRand < 0.92) {
+				// 中景：27%
+				depth = 1;
+				size = 0.8 + rand() * 0.7;         // 0.8-1.5px
+				baseOpacity = 0.3 + rand() * 0.4;  // 0.3-0.7
+				speed = 0.05 + rand() * 0.05;      // 非常慢
+				parallaxFactor = 0.4;               // 轻微
+			} else {
+				// 近景：8%
+				depth = 2;
+				size = 1.2 + rand() * 0.8;          // 1.2-2.0px
+				baseOpacity = 0.45 + rand() * 0.35; // 0.45-0.8
+				speed = 0.08 + rand() * 0.06;       // 稍快
+				parallaxFactor = 0.7;                // 较明显
+			}
+
+			const color = starColors[Math.floor(rand() * starColors.length)];
+
+			stars.push({
+				x, y,
+				baseX: x, baseY: y,
+				size,
+				baseOpacity,
+				depth,
+				speed,
+				parallaxFactor,
+				color,
+				// 闪烁参数：极慢、极克制
+				twinklePhase: rand() * Math.PI * 2,
+				twinkleFreq: 0.0008 + rand() * 0.0015, // 周期约 7-12 分钟
+				twinkleAmp: 0.08 + rand() * 0.12,       // 变化范围 0.08-0.20（极克制）
+				// 漂移方向
+				driftAngle: rand() * Math.PI * 2,
+			});
+		}
+
+		// 焦点亮星：5-12颗，只有2-4颗有 Bloom
+		const brightCount = width < 640 ? 4 : (width < 1024 ? 7 : 10);
+		for (let i = 0; i < brightCount; i++) {
+			let x, y, d;
+			let attempts = 0;
+			do {
+				x = rand() * width;
+				y = rand() * height;
+				d = densityField(x, y, width, height);
+				attempts++;
+			} while (rand() > d * 0.8 && attempts < 10);
+
+			const hasBloom = i < (width < 640 ? 1 : (width < 1024 ? 2 : 3)); // 只有前2-3颗有 Bloom
+			const color = starColors[Math.floor(rand() * 3)]; // 只用前3种（偏蓝白）
+
+			brightStars.push({
+				x, y,
+				baseX: x, baseY: y,
+				size: 2 + rand() * 2,          // 2-4px
+				baseOpacity: 0.6 + rand() * 0.3,
+				hasBloom,
+				bloomSize: hasBloom ? 12 + rand() * 16 : 0,
+				color,
+				parallaxFactor: 0.85,
+				twinklePhase: rand() * Math.PI * 2,
+				twinkleFreq: 0.0006 + rand() * 0.001,
+				twinkleAmp: 0.1 + rand() * 0.15,
+				driftAngle: rand() * Math.PI * 2,
+				speed: 0.06 + rand() * 0.04,
+			});
+		}
+	}
+
+	// 初始化极淡星云
+	function initNebulae() {
+		nebulae = [];
+		const rand = mulberry32(777);
+
+		// 3-4 个极淡星云，透明度 0.02-0.06
+		const nebulaCount = 4;
+		const positions = [
+			{x: 0.85, y: 0.15}, // 右上
+			{x: 0.15, y: 0.8},  // 左下
+			{x: 0.7, y: 0.7},   // 右下
+			{x: 0.5, y: 0.3},   // 中央远处
+		];
+		const colors = [
+			{r: 80, g: 100, b: 180},   // 深蓝
+			{r: 100, g: 90, b: 170},   // 靛青
+			{r: 120, g: 100, b: 190},  // 紫灰
+			{r: 70, g: 110, b: 170},   // 淡蓝
+		];
+
+		for (let i = 0; i < nebulaCount; i++) {
+			nebulae.push({
+				x: positions[i].x * width,
+				y: positions[i].y * height,
+				radius: (0.25 + rand() * 0.2) * Math.max(width, height),
+				color: colors[i],
+				baseOpacity: 0.02 + rand() * 0.04, // 0.02-0.06
+				driftSpeed: 0.005 + rand() * 0.008,
+				driftAngle: rand() * Math.PI * 2,
+				breathPhase: rand() * Math.PI * 2,
+				breathFreq: 0.0002 + rand() * 0.0003, // 周期约 5-8 分钟
+			});
+		}
+	}
+
+	// 初始化极细轨道线
+	function initOrbitLines() {
+		orbitLines = [];
+		const rand = mulberry32(999);
+
+		// 2-3 条极淡轨道线，opacity 0.04-0.08
+		const count = width < 640 ? 1 : 3;
+		for (let i = 0; i < count; i++) {
+			const cx = (0.55 + rand() * 0.35) * width; // 偏右侧
+			const cy = (0.3 + rand() * 0.4) * height;
+			orbitLines.push({
+				cx, cy,
+				rx: (80 + rand() * 120) * (width / 1440),
+				ry: (40 + rand() * 60) * (width / 1440),
+				rotation: rand() * Math.PI,
+				opacity: 0.04 + rand() * 0.04,
+				startAngle: rand() * Math.PI * 2,
+				arcLength: Math.PI * (0.6 + rand() * 0.8), // 不完整的弧
+				driftSpeed: 0.0003 + rand() * 0.0005,
+			});
+		}
+	}
+
+	// 初始化坐标系统标签
+	function initCoordLabels() {
+		coordLabels = [];
+		if (width < 640) return; // 移动端不显示
+
+		const labels = [
+			{text: "RA 05h 35m", x: 0.06, y: 0.12},
+			{text: "DEC +22°", x: 0.06, y: 0.16},
+			{text: "OBS-01", x: 0.88, y: 0.88},
+			{text: "SIGNAL", x: 0.88, y: 0.92},
+			{text: "IDONG / 2026", x: 0.5, y: 0.96},
+		];
+
+		for (const l of labels) {
+			coordLabels.push({
+				text: l.text,
+				x: l.x * width,
+				y: l.y * height,
+				opacity: 0.18 + Math.random() * 0.1,
+			});
+		}
+	}
+
+	// 创建流星
+	function createMeteor() {
+		const rand = Math.random;
+		const fromTop = rand() > 0.5;
+		const startX = fromTop ? rand() * width : (rand() > 0.5 ? width * 0.8 : width * 0.2);
+		const startY = fromTop ? -20 : rand() * height * 0.3;
+		const angle = fromTop ? (Math.PI * 0.25 + rand() * Math.PI * 0.15) : (Math.PI * 0.75 + rand() * Math.PI * 0.15);
+		const speed = 6 + rand() * 4; // 像素/帧
+
+		meteors.push({
+			x: startX,
+			y: startY,
+			vx: Math.cos(angle) * speed,
+			vy: Math.sin(angle) * speed,
+			length: 60 + rand() * 80,
+			opacity: 0,
+			maxOpacity: 0.35 + rand() * 0.2, // 低亮度
+			life: 0,
+			maxLife: 70 + rand() * 50, // 约 1.2-2 秒
+			width: 0.8 + rand() * 0.6, // 细
+		});
+	}
+
+	// 绘制背景渐变（深空黑+深蓝，不同区域略微变化）
+	function drawBackground(t) {
+		// 基础渐变
+		const grad = ctx.createLinearGradient(0, 0, width, height);
+		grad.addColorStop(0, "#05070D");    // 左上
+		grad.addColorStop(0.4, "#070A14");  // 中央
+		grad.addColorStop(0.7, "#060B18");  // 右侧
+		grad.addColorStop(1, "#050812");    // 底部
+		ctx.fillStyle = grad;
+		ctx.fillRect(0, 0, width, height);
+
+		// Radial Vignette：四周逐渐变暗，中央稍微有空间感
+		const vignette = ctx.createRadialGradient(
+			width * 0.5, height * 0.45, width * 0.15,
+			width * 0.5, height * 0.5, width * 0.75
+		);
+		vignette.addColorStop(0, "rgba(0,0,0,0)");
+		vignette.addColorStop(0.6, "rgba(0,0,0,0.15)");
+		vignette.addColorStop(1, "rgba(0,0,0,0.45)");
+		ctx.fillStyle = vignette;
+		ctx.fillRect(0, 0, width, height);
+
+		// 左侧额外加深（Quiet Zone 的暗部）
+		const leftDark = ctx.createLinearGradient(0, 0, width * 0.5, 0);
+		leftDark.addColorStop(0, "rgba(3,5,10,0.35)");
+		leftDark.addColorStop(1, "rgba(3,5,10,0)");
+		ctx.fillStyle = leftDark;
+		ctx.fillRect(0, 0, width * 0.5, height);
+	}
+
+	// 绘制极淡星云
+	function drawNebulae(t) {
+		for (const n of nebulae) {
+			const breath = 1 + Math.sin(t * n.breathFreq + n.breathPhase) * 0.15;
+			const opacity = n.baseOpacity * breath;
+
+			const grad = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.radius);
+			grad.addColorStop(0, `rgba(${n.color.r},${n.color.g},${n.color.b},${opacity})`);
+			grad.addColorStop(0.5, `rgba(${n.color.r},${n.color.g},${n.color.b},${opacity * 0.4})`);
+			grad.addColorStop(1, "rgba(0,0,0,0)");
+
+			ctx.fillStyle = grad;
+			ctx.fillRect(n.x - n.radius, n.y - n.radius, n.radius * 2, n.radius * 2);
+		}
+	}
+
+	// 绘制极细轨道线
+	function drawOrbitLines(t) {
+		for (const o of orbitLines) {
+			ctx.save();
+			ctx.translate(o.cx, o.cy);
+			ctx.rotate(o.rotation + t * o.driftSpeed);
+			ctx.beginPath();
+			ctx.ellipse(0, 0, o.rx, o.ry, 0, o.startAngle, o.startAngle + o.arcLength);
+			ctx.strokeStyle = `rgba(155,170,220,${o.opacity})`;
+			ctx.lineWidth = 0.6;
+			ctx.stroke();
+			ctx.restore();
+		}
+	}
+
+	// 绘制星星（远景+中景+近景）
+	function drawStars(t) {
+		for (const s of stars) {
+			// 极慢漂移
+			if (!prefersReduced) {
+				s.x += Math.cos(s.driftAngle) * s.speed * 0.016;
+				s.y += Math.sin(s.driftAngle) * s.speed * 0.016;
+				// 边界环绕
+				if (s.x < -5) s.x = width + 5;
+				if (s.x > width + 5) s.x = -5;
+				if (s.y < -5) s.y = height + 5;
+				if (s.y > height + 5) s.y = -5;
+			}
+
+			// 鼠标视差
+			const px = s.x + mouseX * s.parallaxFactor * 0.01 * width;
+			const py = s.y + mouseY * s.parallaxFactor * 0.01 * height;
+
+			// 极克制闪烁：0.8 → 1.0 → 0.8
+			const twinkle = 1 - s.twinkleAmp + Math.sin(t * s.twinkleFreq + s.twinklePhase) * s.twinkleAmp;
+			const opacity = s.baseOpacity * twinkle;
+
+			if (opacity < 0.02) continue;
+
+			ctx.beginPath();
+			ctx.arc(px, py, s.size, 0, Math.PI * 2);
+			ctx.fillStyle = `rgba(${s.color.r},${s.color.g},${s.color.b},${opacity})`;
+			ctx.fill();
+		}
+	}
+
+	// 绘制焦点亮星
+	function drawBrightStars(t) {
+		for (const s of brightStars) {
+			// 极慢漂移
+			if (!prefersReduced) {
+				s.x += Math.cos(s.driftAngle) * s.speed * 0.016;
+				s.y += Math.sin(s.driftAngle) * s.speed * 0.016;
+				if (s.x < -10) s.x = width + 10;
+				if (s.x > width + 10) s.x = -10;
+				if (s.y < -10) s.y = height + 10;
+				if (s.y > height + 10) s.y = -10;
+			}
+
+			const px = s.x + mouseX * s.parallaxFactor * 0.01 * width;
+			const py = s.y + mouseY * s.parallaxFactor * 0.01 * height;
+
+			const twinkle = 1 - s.twinkleAmp + Math.sin(t * s.twinkleFreq + s.twinklePhase) * s.twinkleAmp;
+			const opacity = s.baseOpacity * twinkle;
+
+			// Bloom：只有极少数亮星有，非常柔和
+			if (s.hasBloom && s.bloomSize > 0) {
+				const bloomGrad = ctx.createRadialGradient(px, py, 0, px, py, s.bloomSize);
+				bloomGrad.addColorStop(0, `rgba(${s.color.r},${s.color.g},${s.color.b},${opacity * 0.25})`);
+				bloomGrad.addColorStop(0.4, `rgba(${s.color.r},${s.color.g},${s.color.b},${opacity * 0.08})`);
+				bloomGrad.addColorStop(1, "rgba(0,0,0,0)");
+				ctx.fillStyle = bloomGrad;
+				ctx.fillRect(px - s.bloomSize, py - s.bloomSize, s.bloomSize * 2, s.bloomSize * 2);
+			}
+
+			// 星点本体
+			ctx.beginPath();
+			ctx.arc(px, py, s.size, 0, Math.PI * 2);
+			ctx.fillStyle = `rgba(${s.color.r},${s.color.g},${s.color.b},${opacity})`;
+			ctx.fill();
+		}
+	}
+
+	// 绘制流星
+	function drawMeteors() {
+		for (let i = meteors.length - 1; i >= 0; i--) {
+			const m = meteors[i];
+			m.life++;
+			m.x += m.vx;
+			m.y += m.vy;
+
+			// 淡入淡出
+			const lifeRatio = m.life / m.maxLife;
+			if (lifeRatio < 0.15) {
+				m.opacity = m.maxOpacity * (lifeRatio / 0.15);
+			} else if (lifeRatio > 0.7) {
+				m.opacity = m.maxOpacity * (1 - (lifeRatio - 0.7) / 0.3);
+			} else {
+				m.opacity = m.maxOpacity;
+			}
+
+			if (m.life >= m.maxLife || m.x < -100 || m.x > width + 100 || m.y > height + 100) {
+				meteors.splice(i, 1);
+				continue;
+			}
+
+			// 尾迹
+			const tailX = m.x - m.vx * (m.length / Math.sqrt(m.vx * m.vx + m.vy * m.vy));
+			const tailY = m.y - m.vy * (m.length / Math.sqrt(m.vx * m.vx + m.vy * m.vy));
+
+			const tailGrad = ctx.createLinearGradient(m.x, m.y, tailX, tailY);
+			tailGrad.addColorStop(0, `rgba(240,245,255,${m.opacity})`);
+			tailGrad.addColorStop(0.3, `rgba(200,210,240,${m.opacity * 0.5})`);
+			tailGrad.addColorStop(1, "rgba(200,210,240,0)");
+
+			ctx.beginPath();
+			ctx.moveTo(m.x, m.y);
+			ctx.lineTo(tailX, tailY);
+			ctx.strokeStyle = tailGrad;
+			ctx.lineWidth = m.width;
+			ctx.lineCap = "round";
+			ctx.stroke();
+
+			// 头部光点
+			ctx.beginPath();
+			ctx.arc(m.x, m.y, m.width * 1.2, 0, Math.PI * 2);
+			ctx.fillStyle = `rgba(245,248,255,${m.opacity})`;
+			ctx.fill();
+		}
+	}
+
+	// 绘制坐标系统标签
+	function drawCoordLabels() {
+		if (coordLabels.length === 0) return;
+		ctx.font = '10px "JetBrains Mono", "Fira Code", "Space Mono", ui-monospace, monospace';
+		ctx.textAlign = "left";
+		for (const l of coordLabels) {
+			ctx.fillStyle = `rgba(180,190,220,${l.opacity})`;
+			ctx.fillText(l.text, l.x, l.y);
+		}
+	}
+
+	// 绘制 Film Grain（极轻微噪点）
+	function drawFilmGrain() {
+		// 使用离屏 canvas 预生成噪点图案，避免每帧生成
+		if (!drawFilmGrain.pattern) {
+			const grainCanvas = document.createElement("canvas");
+			grainCanvas.width = 128;
+			grainCanvas.height = 128;
+			const gctx = grainCanvas.getContext("2d");
+			const imageData = gctx.createImageData(128, 128);
+			const data = imageData.data;
+			for (let i = 0; i < data.length; i += 4) {
+				const v = Math.random() * 255;
+				data[i] = v;
+				data[i + 1] = v;
+				data[i + 2] = v;
+				data[i + 3] = 255;
+			}
+			gctx.putImageData(imageData, 0, 0);
+			drawFilmGrain.pattern = ctx.createPattern(grainCanvas, "repeat");
+		}
+
+		if (drawFilmGrain.pattern) {
+			ctx.globalAlpha = 0.02; // 极轻微
+			ctx.fillStyle = drawFilmGrain.pattern;
+			ctx.fillRect(0, 0, width, height);
+			ctx.globalAlpha = 1;
+		}
+	}
+
+	// 主渲染循环
+	function render() {
+		const t = performance.now() - startTime;
+
+		// 平滑鼠标视差
+		mouseX += (targetMouseX - mouseX) * 0.05;
+		mouseY += (targetMouseY - mouseY) * 0.05;
+
+		// 流星生成（35-60秒一次）
+		if (!prefersReduced && t - lastMeteorTime > nextMeteorDelay) {
+			createMeteor();
+			lastMeteorTime = t;
+			nextMeteorDelay = 35000 + Math.random() * 25000;
+		}
+
+		// 绘制顺序：背景 → 星云 → 轨道线 → 远景星 → 中景星 → 近景星 → 亮星 → 流星 → 坐标 → 噪点
+		drawBackground(t);
+		drawNebulae(t);
+		drawOrbitLines(t);
+		drawStars(t);
+		drawBrightStars(t);
+		drawMeteors();
+		drawCoordLabels();
+		drawFilmGrain();
+
+		requestAnimationFrame(render);
+	}
+
+	// 调整大小
+	function resize() {
+		width = window.innerWidth;
+		height = window.innerHeight;
+		canvas.width = width * dpr;
+		canvas.height = height * dpr;
+		canvas.style.width = width + "px";
+		canvas.style.height = height + "px";
+		ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+		// 重置噪点 pattern（尺寸变化后需要重新生成）
+		drawFilmGrain.pattern = null;
+
+		initStars();
+		initNebulae();
+		initOrbitLines();
+		initCoordLabels();
+	}
+
+	// 鼠标移动
+	function onMouseMove(e) {
+		targetMouseX = (e.clientX / width - 0.5) * 2;  // -1 到 1
+		targetMouseY = (e.clientY / height - 0.5) * 2;
+	}
+
+	// 页面可见性
+	let isVisible = true;
+	document.addEventListener("visibilitychange", () => {
+		isVisible = !document.hidden;
+		if (isVisible) {
+			startTime = performance.now() - (startTime ? (performance.now() - startTime) : 0);
+			requestAnimationFrame(render);
+		}
+	});
+
+	// 初始化
+	let resizeTimer;
+	window.addEventListener("resize", () => {
+		clearTimeout(resizeTimer);
+		resizeTimer = setTimeout(resize, 200);
+	});
+
+	if (!prefersReduced) {
+		window.addEventListener("mousemove", onMouseMove, { passive: true });
+	}
+
+	resize();
+	requestAnimationFrame(render);
+})();
+</script>
+
+<style>
+	#starfield-canvas {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		z-index: 0;
+		pointer-events: none;
+	}
+</style>
