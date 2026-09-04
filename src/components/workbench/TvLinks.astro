@@ -1,6 +1,5 @@
 ---
-// 影视板块：分类卡片墙。影视网站按类型分组，每张卡片含站名/类型标签/评分/跳转；
-// 其余为其他推荐、解析接口（代码块）、18+ 专区（警示卡）。
+// 影视档案：两列 Archive Grid，大而克制，资源名称为第一视觉
 import {
 	tvSites,
 	tvOthers,
@@ -10,44 +9,54 @@ import {
 	type TvType,
 } from "@/data/tv";
 
-const typeClass: Record<TvType, string> = {
-	综合: "all",
-	动漫: "anime",
-	短剧: "drama",
-	网盘: "netdisk",
-	其他: "other",
+const typeLabel: Record<TvType, string> = {
+	综合: "ALL",
+	动漫: "ANIME",
+	短剧: "DRAMA",
+	网盘: "NETDISK",
+	其他: "OTHER",
 };
 
 const grouped = tvTypeOrder
 	.map((type) => ({ type, sites: tvSites.filter((s) => s.type === type) }))
 	.filter((g) => g.sites.length > 0);
 
-const stars = (rating: number) => "★".repeat(rating) + "☆".repeat(5 - rating);
+// 全局编号计数器
+let globalIndex = 0;
+const totalEntries = tvSites.length + tvOthers.length;
 ---
 
-<div class="tv-links">
+<div class="tv-archive">
 	{
 		grouped.map((g) => (
 			<section class="tv-group">
-				<h3 class="tv-group-h">
-					<span class="tv-group-bar" />
-					{g.type}
-					<span class="tv-group-count">{g.sites.length}</span>
-				</h3>
+				<div class="tv-group-header">
+					<div class="tv-group-title">
+						<span class="tv-group-label">{typeLabel[g.type]}</span>
+						<span class="tv-group-name">{g.type === "综合" ? "全部" : g.type}</span>
+					</div>
+					<span class="tv-group-count">{g.sites.length} ENTRIES</span>
+				</div>
+
 				<div class="tv-grid">
-					{g.sites.map((s) => (
-						<a class="tv-card" href={s.url} target="_blank" rel="noopener">
-							<div class="tv-card-top">
-								<span class="tv-card-name">{s.name}</span>
-								<span class="tv-card-arrow">↗</span>
-							</div>
-							<span class={`tv-tag tv-tag--${typeClass[s.type]}`}>{s.type}</span>
-							<span class="tv-rating" aria-label={`评分 ${s.rating} 星`}>
-								<span class="tv-stars-filled">{stars(s.rating)}</span>
-								<em class="tv-rating-num">{s.rating.toFixed(1)}</em>
-							</span>
-						</a>
-					))}
+					{g.sites.map((s) => {
+						globalIndex++;
+						const archiveNum = String(globalIndex).padStart(3, "0");
+						return (
+							<a class="tv-card" href={s.url} target="_blank" rel="noopener" style={`--tv-index: ${globalIndex};`}>
+								<div class="tv-card-top">
+									<span class="tv-card-id">ARCHIVE / {archiveNum}</span>
+									<span class="tv-card-type">{typeLabel[s.type]}</span>
+								</div>
+								<h4 class="tv-card-name">{s.name}</h4>
+								<div class="tv-card-spacer"></div>
+								<div class="tv-card-bottom">
+									<span class="tv-card-rating">RATING {s.rating.toFixed(1)}</span>
+									<span class="tv-card-arrow">↗</span>
+								</div>
+							</a>
+						);
+					})}
 				</div>
 			</section>
 		))
@@ -55,37 +64,57 @@ const stars = (rating: number) => "★".repeat(rating) + "☆".repeat(5 - rating
 
 	<!-- 其他推荐 -->
 	<section class="tv-group">
-		<h3 class="tv-group-h">
-			<span class="tv-group-bar" />
-			其他推荐
-		</h3>
-		<div class="tv-grid tv-grid--simple">
+		<div class="tv-group-header">
+			<div class="tv-group-title">
+				<span class="tv-group-label">REFERENCE</span>
+				<span class="tv-group-name">其他推荐</span>
+			</div>
+			<span class="tv-group-count">{tvOthers.length} ENTRIES</span>
+		</div>
+		<div class="tv-grid">
 			{
-				tvOthers.map((o) => (
-					<a class="tv-card tv-card--simple" href={o.url} target="_blank" rel="noopener">
-						<span class="tv-card-name">{o.name}</span>
-						<span class="tv-card-arrow">↗</span>
-					</a>
-				))
+				tvOthers.map((o) => {
+					globalIndex++;
+					const archiveNum = String(globalIndex).padStart(3, "0");
+					return (
+						<a class="tv-card tv-card--simple" href={o.url} target="_blank" rel="noopener" style={`--tv-index: ${globalIndex};`}>
+							<div class="tv-card-top">
+								<span class="tv-card-id">ARCHIVE / {archiveNum}</span>
+								<span class="tv-card-type">REF</span>
+							</div>
+							<h4 class="tv-card-name">{o.name}</h4>
+							<div class="tv-card-spacer"></div>
+							<div class="tv-card-bottom">
+								<span></span>
+								<span class="tv-card-arrow">↗</span>
+							</div>
+						</a>
+					);
+				})
 			}
 		</div>
 	</section>
 
 	<!-- 解析接口 -->
 	<section class="tv-group">
-		<h3 class="tv-group-h">
-			<span class="tv-group-bar" />
-			解析接口
-		</h3>
+		<div class="tv-group-header">
+			<div class="tv-group-title">
+				<span class="tv-group-label">PARSER</span>
+				<span class="tv-group-name">解析接口</span>
+			</div>
+		</div>
 		<p class="tv-parser-note">
 			通用解析接口，复制后在影视地址前拼接 <code>?url=</code> 即可使用。
 		</p>
 		<div class="tv-parsers">
 			{
-				tvParsers.map((p) => (
-					<div class="tv-parser">
-						<span class="tv-parser-name">{p.name}</span>
-						<code class="tv-parser-url">{p.url}</code>
+				tvParsers.map((p, i) => (
+					<div class="tv-parser" style={`--tv-index: ${i};`}>
+						<span class="tv-parser-id">{String(i + 1).padStart(2, "0")}</span>
+						<div class="tv-parser-info">
+							<span class="tv-parser-name">{p.name}</span>
+							<code class="tv-parser-url">{p.url}</code>
+						</div>
 					</div>
 				))
 			}
@@ -94,7 +123,10 @@ const stars = (rating: number) => "★".repeat(rating) + "☆".repeat(5 - rating
 
 	<!-- 18+ 专区 -->
 	<section class="tv-adult">
-		<h3 class="tv-adult-h">⚠ 18+ 专区</h3>
+		<h3 class="tv-adult-title">
+			<span class="tv-adult-label">RESTRICTED</span>
+			18+ 专区
+		</h3>
 		<p class="tv-adult-warn">
 			以下网址需<strong>手动输入</strong>，请勿直接复制，注意甄别网络安全。
 		</p>
@@ -102,8 +134,8 @@ const stars = (rating: number) => "★".repeat(rating) + "☆".repeat(5 - rating
 			{
 				tvAdult.map((a) => (
 					<li>
-						<span class="tv-adult-no">{a.no}</span>
-						{a.site}
+						<span class="tv-adult-no">{String(a.no).padStart(2, "0")}</span>
+						<span class="tv-adult-site">{a.site}</span>
 					</li>
 				))
 			}
@@ -112,213 +144,367 @@ const stars = (rating: number) => "★".repeat(rating) + "☆".repeat(5 - rating
 </div>
 
 <style>
-	.tv-links {
-		margin-top: 1.4rem;
+	.tv-archive {
+		margin-top: 0.25rem;
 	}
 
 	/* 分组 */
 	.tv-group {
-		margin-top: 1.6rem;
+		margin-bottom: 3rem;
 	}
-	.tv-group-h {
+
+	.tv-group-header {
 		display: flex;
 		align-items: center;
-		gap: 0.5rem;
-		font-size: 1.1rem;
-		font-weight: 700;
-		margin: 0 0 0.8rem;
-	}
-	.tv-group-bar {
-		width: 4px;
-		height: 18px;
-		border-radius: 2px;
-		background: var(--primary);
-		display: inline-block;
-		flex-shrink: 0;
-	}
-	.tv-group-count {
-		font-size: 0.75rem;
-		font-weight: 500;
-		color: var(--content-meta);
-		background: var(--btn-regular-bg);
-		border-radius: 999px;
-		padding: 0.05rem 0.5rem;
+		justify-content: space-between;
+		gap: 1rem;
+		margin-bottom: 1.25rem;
+		padding-bottom: 0.85rem;
+		border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 	}
 
-	/* 卡片网格 */
+	.tv-group-title {
+		display: flex;
+		align-items: baseline;
+		gap: 0.85rem;
+	}
+
+	.tv-group-label {
+		font-family: "JetBrains Mono", "Fira Code", "Space Mono", ui-monospace, monospace;
+		font-size: 0.6rem;
+		letter-spacing: 0.14em;
+		color: rgba(155, 140, 255, 0.55);
+		text-transform: uppercase;
+	}
+
+	.tv-group-name {
+		font-size: 1rem;
+		font-weight: 600;
+		color: #D8DCE7;
+	}
+
+	.tv-group-count {
+		font-family: "JetBrains Mono", "Fira Code", "Space Mono", ui-monospace, monospace;
+		font-size: 0.6rem;
+		letter-spacing: 0.1em;
+		color: rgba(255, 255, 255, 0.3);
+		text-transform: uppercase;
+		white-space: nowrap;
+	}
+
+	/* 三列 Archive Grid：宽屏三列 */
 	.tv-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-		gap: 0.8rem;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 1.1rem;
 	}
 
+	/* Archive Card：轻量档案容器，大而克制 */
 	.tv-card {
 		display: flex;
 		flex-direction: column;
-		gap: 0.55rem;
-		padding: 0.85rem 0.95rem;
-		border-radius: var(--radius-large, 14px);
-		background: var(--card-bg, rgba(255, 255, 255, 0.04));
-		border: 1px solid var(--line-divider, rgba(255, 255, 255, 0.08));
+		min-height: 185px;
+		padding: 1.5rem 1.6rem;
+		border-radius: 16px;
+		background: rgba(255, 255, 255, 0.015);
+		border: 1px solid rgba(255, 255, 255, 0.07);
 		text-decoration: none;
 		color: inherit;
-		transition:
-			transform 0.18s ease,
-			border-color 0.18s ease,
-			background 0.18s ease;
+		cursor: pointer;
+		position: relative;
+		overflow: hidden;
+		animation: tv-card-in 0.4s ease-out both;
+		animation-delay: calc(min(var(--tv-index), 10) * 40ms);
+		transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease;
 	}
+
+	@keyframes tv-card-in {
+		from {
+			opacity: 0;
+			transform: translateY(12px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	.tv-card::before {
+		content: "";
+		position: absolute;
+		left: 0;
+		top: 0;
+		bottom: 0;
+		width: 2px;
+		background: linear-gradient(to bottom, rgba(155, 140, 255, 0.5), rgba(155, 140, 255, 0.05));
+		opacity: 0;
+		transition: opacity 0.25s ease;
+	}
+
 	.tv-card:hover {
 		transform: translateY(-3px);
-		border-color: var(--primary);
-		background: var(--card-bg-hover, rgba(255, 255, 255, 0.08));
+		border-color: rgba(155, 140, 255, 0.22);
+		background: rgba(255, 255, 255, 0.025);
 	}
+
+	.tv-card:hover::before {
+		opacity: 1;
+	}
+
 	.tv-card-top {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		gap: 0.5rem;
+		gap: 1rem;
+		margin-bottom: 1.1rem;
 	}
+
+	.tv-card-id {
+		font-family: "JetBrains Mono", "Fira Code", "Space Mono", ui-monospace, monospace;
+		font-size: 0.6rem;
+		letter-spacing: 0.12em;
+		color: rgba(255, 255, 255, 0.28);
+		text-transform: uppercase;
+	}
+
+	.tv-card-type {
+		font-family: "JetBrains Mono", "Fira Code", "Space Mono", ui-monospace, monospace;
+		font-size: 0.55rem;
+		letter-spacing: 0.1em;
+		color: rgba(255, 255, 255, 0.32);
+		text-transform: uppercase;
+		padding: 0.12rem 0.5rem;
+		border: 1px solid rgba(255, 255, 255, 0.07);
+		border-radius: 3px;
+	}
+
 	.tv-card-name {
-		font-size: 0.95rem;
+		margin: 0;
+		font-size: 1.4rem;
 		font-weight: 600;
-		color: var(--text-90, #e6edf3);
+		color: #F1F3F8;
+		line-height: 1.3;
+		transition: color 0.2s ease;
 	}
-	.tv-card-arrow {
-		color: var(--content-meta);
-		font-size: 0.85rem;
-		transition: color 0.18s ease;
+
+	.tv-card:hover .tv-card-name {
+		color: #FFFFFF;
 	}
-	.tv-card:hover .tv-card-arrow {
-		color: var(--primary);
-	}
+
 	.tv-card--simple .tv-card-name {
-		font-size: 0.9rem;
+		font-size: 1.2rem;
 	}
 
-	/* 类型标签 */
-	.tv-tag {
-		align-self: flex-start;
-		font-size: 0.72rem;
-		padding: 0.1rem 0.5rem;
-		border-radius: 999px;
-		color: #fff;
-		font-weight: 500;
-		line-height: 1.4;
-	}
-	.tv-tag--all {
-		background: #1d9e75;
-	}
-	.tv-tag--anime {
-		background: #7f77dd;
-	}
-	.tv-tag--drama {
-		background: #d85a30;
-	}
-	.tv-tag--netdisk {
-		background: #378add;
-	}
-	.tv-tag--other {
-		background: #5f5e5a;
+	/* 弹性占位，让底部信息固定在底部 */
+	.tv-card-spacer {
+		flex: 1;
 	}
 
-	/* 评分 */
-	.tv-rating {
-		font-size: 0.8rem;
+	.tv-card-bottom {
 		display: flex;
 		align-items: center;
-		gap: 0.35rem;
+		justify-content: space-between;
+		margin-top: 1rem;
+		padding-top: 0.9rem;
+		border-top: 1px solid rgba(255, 255, 255, 0.04);
 	}
-	.tv-stars-filled {
-		color: #ef9f27;
-		letter-spacing: 1px;
+
+	.tv-card-rating {
+		font-family: "JetBrains Mono", "Fira Code", "Space Mono", ui-monospace, monospace;
+		font-size: 0.62rem;
+		letter-spacing: 0.08em;
+		color: rgba(255, 255, 255, 0.32);
+		text-transform: uppercase;
 	}
-	.tv-rating-num {
-		color: var(--content-meta);
-		font-style: normal;
-		font-size: 0.75rem;
+
+	.tv-card-arrow {
+		color: rgba(255, 255, 255, 0.25);
+		font-size: 0.9rem;
+		transition: color 0.2s ease, transform 0.2s ease;
+	}
+
+	.tv-card:hover .tv-card-arrow {
+		color: rgba(155, 140, 255, 0.75);
+		transform: translate(2px, -2px);
 	}
 
 	/* 解析接口 */
 	.tv-parser-note {
-		color: var(--content-meta);
+		color: #7F8799;
 		font-size: 0.85rem;
-		margin: 0 0 0.6rem;
+		margin: 0 0 1.1rem;
 	}
+
 	.tv-parser-note code {
-		background: var(--inline-code-bg);
+		background: rgba(155, 140, 255, 0.08);
 		padding: 0.1rem 0.4rem;
-		border-radius: 6px;
+		border-radius: 4px;
+		font-size: 0.75rem;
+		color: #9B8CFF;
 	}
+
 	.tv-parsers {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-		gap: 0.6rem;
+		grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+		gap: 0.75rem;
 	}
+
 	.tv-parser {
+		display: flex;
+		align-items: flex-start;
+		gap: 0.85rem;
+		padding: 0.85rem 1rem;
+		border-radius: 12px;
+		background: rgba(255, 255, 255, 0.012);
+		border: 1px solid rgba(255, 255, 255, 0.045);
+		animation: tv-card-in 0.4s ease-out both;
+		animation-delay: calc(var(--tv-index) * 50ms);
+	}
+
+	.tv-parser-id {
+		font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+		font-size: 0.62rem;
+		color: rgba(155, 140, 255, 0.5);
+		flex-shrink: 0;
+		margin-top: 0.1rem;
+	}
+
+	.tv-parser-info {
 		display: flex;
 		flex-direction: column;
 		gap: 0.25rem;
-		padding: 0.6rem 0.85rem;
-		border-radius: 10px;
-		background: var(--card-bg, rgba(255, 255, 255, 0.04));
-		border: 1px solid var(--line-divider, rgba(255, 255, 255, 0.08));
+		min-width: 0;
+		flex: 1;
 	}
+
 	.tv-parser-name {
 		font-weight: 600;
 		font-size: 0.85rem;
-		color: var(--text-90, #e6edf3);
+		color: #D8DCE7;
 	}
+
 	.tv-parser-url {
-		font-family: var(--font-mono, monospace);
-		font-size: 0.78rem;
-		color: var(--primary);
+		font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+		font-size: 0.7rem;
+		color: rgba(155, 140, 255, 0.6);
 		word-break: break-all;
 	}
 
 	/* 18+ 专区 */
 	.tv-adult {
-		margin-top: 1.6rem;
-		border: 1px solid #a32d2d;
-		background: rgba(163, 45, 45, 0.08);
-		border-radius: var(--radius-large, 14px);
-		padding: 1.1rem 1.4rem;
+		margin-top: 2.5rem;
+		padding: 1.5rem 1.75rem;
+		border-radius: 14px;
+		border: 1px solid rgba(163, 45, 45, 0.25);
+		background: rgba(163, 45, 45, 0.04);
 	}
-	.tv-adult-h {
-		color: #f09595;
+
+	.tv-adult-title {
+		display: flex;
+		align-items: baseline;
+		gap: 0.85rem;
+		margin: 0 0 0.6rem;
 		font-size: 1.05rem;
-		font-weight: 700;
-		margin: 0 0 0.4rem;
-	}
-	.tv-adult-warn {
+		font-weight: 600;
 		color: #f09595;
-		font-size: 0.85rem;
-		margin: 0 0 0.8rem;
 	}
+
+	.tv-adult-label {
+		font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+		font-size: 0.58rem;
+		letter-spacing: 0.12em;
+		color: rgba(240, 149, 149, 0.6);
+		text-transform: uppercase;
+	}
+
+	.tv-adult-warn {
+		color: rgba(240, 149, 149, 0.7);
+		font-size: 0.82rem;
+		margin: 0 0 1.1rem;
+	}
+
 	.tv-adult-warn strong {
 		color: #f7c1c1;
 	}
+
 	.tv-adult-list {
 		list-style: none;
 		padding: 0;
 		margin: 0;
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-		gap: 0.4rem 1rem;
+		grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+		gap: 0.5rem 1.25rem;
 	}
+
 	.tv-adult-list li {
-		font-family: var(--font-mono, monospace);
-		font-size: 0.82rem;
-		color: var(--content-meta);
+		display: flex;
+		align-items: baseline;
+		gap: 0.6rem;
 	}
+
 	.tv-adult-no {
-		color: #f09595;
-		margin-right: 0.4rem;
+		font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+		font-size: 0.65rem;
+		color: rgba(240, 149, 149, 0.6);
+		flex-shrink: 0;
+	}
+
+	.tv-adult-site {
+		font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+		font-size: 0.78rem;
+		color: rgba(255, 255, 255, 0.4);
+	}
+
+	/* 响应式 */
+	@media (max-width: 1100px) {
+		.tv-grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
+	@media (max-width: 700px) {
+		.tv-grid {
+			grid-template-columns: 1fr;
+			gap: 1rem;
+		}
+		.tv-card {
+			min-height: 160px;
+			padding: 1.25rem 1.4rem;
+		}
+		.tv-card-name {
+			font-size: 1.25rem;
+		}
 	}
 
 	@media (max-width: 640px) {
-		.tv-grid {
-			grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-			gap: 0.6rem;
+		.tv-group-header {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 0.3rem;
+		}
+		.tv-card {
+			min-height: 150px;
+			padding: 1.1rem 1.2rem;
+		}
+		.tv-card-name {
+			font-size: 1.15rem;
+		}
+		.tv-parsers {
+			grid-template-columns: 1fr;
+		}
+		.tv-adult {
+			padding: 1.1rem 1.25rem;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.tv-card,
+		.tv-parser {
+			animation: none;
+		}
+		.tv-card,
+		.tv-card-arrow {
+			transition: none;
 		}
 	}
 </style>
