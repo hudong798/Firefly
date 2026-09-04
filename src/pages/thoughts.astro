@@ -1,13 +1,146 @@
 ---
-// 说说：QQ 动态一样的随想记录
+// 回声 / ECHOES：思想从这个数字宇宙中发出，经过时间之后留下的回声
 import MomentsFeed from "@/components/workbench/MomentsFeed.astro";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
 import { moments } from "@/data/thoughts";
 
-const title = "说说";
-const description = "我的说说与随笔";
+const title = "回声";
+const description = "一些想法经过时间，最终留下的痕迹。";
 ---
 
 <MainGridLayout title={title} description={description}>
-	<MomentsFeed moments={moments} />
+	<!-- Reading Quiet Zone：回声页面局部暗层，降低星星密度 -->
+	<div class="echo-reading-vignette" aria-hidden="true"></div>
+
+	<!-- 统一内容容器 -->
+	<div class="echo-container">
+		<!-- 页面标题 -->
+		<header class="echo-header">
+			<div class="echo-header-label">
+				<span class="echo-header-observing">
+					<span class="echo-header-dot"></span>
+					OBSERVING
+				</span>
+				<span class="echo-header-text">ECHOES</span>
+				<span class="echo-header-line"></span>
+			</div>
+			<h1 class="echo-title">回声</h1>
+			<p class="echo-sub">一些想法经过时间，最终留下的痕迹。</p>
+		</header>
+
+		<!-- 回声列表 -->
+		<section class="echo-list">
+			<MomentsFeed moments={moments} />
+		</section>
+	</div>
 </MainGridLayout>
+
+<style>
+	/* Reading Quiet Zone：回声页面局部暗层 */
+	.echo-reading-vignette {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		z-index: 1;
+		pointer-events: none;
+		background:
+			radial-gradient(ellipse 65% 55% at 45% 40%, rgba(3, 5, 10, 0.5) 0%, rgba(3, 5, 10, 0.25) 50%, transparent 80%),
+			linear-gradient(180deg, rgba(3, 5, 10, 0.15) 0%, transparent 12%, transparent 88%, rgba(3, 5, 10, 0.2) 100%);
+	}
+
+	/* 统一内容容器 */
+	.echo-container {
+		position: relative;
+		z-index: 2;
+		max-width: 1000px;
+		margin: 0 auto;
+		padding: 0 1.5rem;
+	}
+
+	/* 页面标题 */
+	.echo-header {
+		margin-bottom: 3rem;
+		padding-top: 1rem;
+	}
+
+	.echo-header-label {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		margin-bottom: 1rem;
+	}
+
+	.echo-header-observing {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		font-family: "JetBrains Mono", "Fira Code", "Space Mono", ui-monospace, monospace;
+		font-size: 0.55rem;
+		letter-spacing: 0.15em;
+		color: rgba(255, 255, 255, 0.3);
+		text-transform: uppercase;
+	}
+
+	.echo-header-dot {
+		width: 4px;
+		height: 4px;
+		border-radius: 50%;
+		background: rgba(155, 140, 255, 0.5);
+		box-shadow: 0 0 6px rgba(155, 140, 255, 0.3);
+	}
+
+	.echo-header-text {
+		font-family: "JetBrains Mono", "Fira Code", "Space Mono", ui-monospace, monospace;
+		font-size: 0.65rem;
+		font-weight: 500;
+		letter-spacing: 0.18em;
+		color: rgba(155, 140, 255, 0.5);
+		text-transform: uppercase;
+	}
+
+	.echo-header-line {
+		flex: 1;
+		max-width: 100px;
+		height: 1px;
+		background: linear-gradient(90deg, rgba(155, 140, 255, 0.12), transparent);
+	}
+
+	.echo-title {
+		margin: 0 0 0.75rem;
+		font-size: 2.25rem;
+		font-weight: 600;
+		line-height: 1.2;
+		color: #F4F5FA;
+		letter-spacing: -0.01em;
+	}
+
+	.echo-sub {
+		margin: 0;
+		font-size: 0.9rem;
+		color: #7F8799;
+		line-height: 1.7;
+		max-width: 480px;
+	}
+
+	/* 回声列表 */
+	.echo-list {
+		position: relative;
+	}
+
+	@media (max-width: 768px) {
+		.echo-container {
+			padding: 0 1.25rem;
+		}
+		.echo-header {
+			margin-bottom: 2rem;
+		}
+		.echo-title {
+			font-size: 1.75rem;
+		}
+		.echo-sub {
+			font-size: 0.85rem;
+		}
+	}
+</style>

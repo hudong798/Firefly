@@ -1,5 +1,5 @@
 ---
-// 旅游板块：封面卡片网格（封面图 + 标题 + 时间 + 地点 + 简介）
+// 轨迹 / TRAJECTORIES：个人行走档案 — 照片是记忆，时间是坐标，空间是轨迹
 import type { TravelEntry } from "@/data/travels";
 
 interface Props {
@@ -7,164 +7,366 @@ interface Props {
 }
 
 const { items } = Astro.props;
+
+// 格式化地点：提取城市部分（去掉国家前缀）
+function formatCities(location: string) {
+	const parts = location.split("·");
+	if (parts.length > 1) {
+		return parts[1].trim().replace(/\//g, " · ");
+	}
+	return location.replace(/\//g, " · ");
+}
+
+// 格式化国家
+function formatCountry(location: string) {
+	const parts = location.split("·");
+	return parts[0].trim();
+}
 ---
 
-<div class="travel-grid">
+<div class="traj-grid">
 	{
-		items.map((t) => (
-			<a
-				class="travel-card card-base rounded-[var(--radius-large)]"
-				href={`/travel/${t.slug}/`}
-			>
-				<div class="travel-cover">
-					<img src={t.cover} alt={t.title} loading="lazy" />
-				</div>
-				<div class="travel-body">
-					<h3 class="travel-title">{t.title}</h3>
-					<div class="travel-meta">
-						<span class="travel-meta-item">📅 {t.date}</span>
-						<span class="travel-meta-item">📍 {t.location}</span>
+		items.map((t, index) => {
+			const journeyNum = String(index + 1).padStart(2, "0");
+			return (
+				<a
+					class="traj-card"
+					href={`/travel/${t.slug}/`}
+					style={`--traj-index: ${index};`}
+				>
+					{/* 封面图：3:2 比例，摄影作品感 */}
+					<div class="traj-cover">
+						<img src={t.cover} alt={t.title} loading="lazy" />
+						{/* Hover 时的 VIEW JOURNEY 覆盖层 */}
+						<div class="traj-cover-overlay">
+							<span class="traj-cover-text">VIEW JOURNEY →</span>
+						</div>
 					</div>
-					<p class="travel-summary">{t.summary}</p>
-					{
-						t.tags && t.tags.length > 0 && (
-							<div class="travel-tags">
+
+					{/* 内容区域 */}
+					<div class="traj-body">
+						{/* 顶部：JOURNEY 编号 + 日期 */}
+						<div class="traj-meta-top">
+							<span class="traj-journey">JOURNEY / {journeyNum}</span>
+							<span class="traj-date">{t.date}</span>
+						</div>
+
+						{/* 标题 */}
+						<h3 class="traj-title">{t.title}</h3>
+
+						{/* 地点 */}
+						<div class="traj-location">
+							<svg viewBox="0 0 24 24" class="traj-location-icon" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+							<span class="traj-location-text">{formatCities(t.location)}</span>
+							<span class="traj-country">{formatCountry(t.location)}</span>
+						</div>
+
+						{/* 描述 */}
+						<p class="traj-summary">{t.summary}</p>
+
+						{/* 标签 */}
+						{t.tags && t.tags.length > 0 && (
+							<div class="traj-tags">
 								{t.tags.map((tag) => (
-									<span class="travel-tag">#{tag}</span>
+									<span class="traj-tag">#{tag}</span>
 								))}
 							</div>
-						)
-					}
-					<span class="travel-more">查看游记 →</span>
-				</div>
-			</a>
-		))
+						)}
+
+						{/* 查看轨迹 */}
+						<span class="traj-more">查看轨迹 →</span>
+					</div>
+				</a>
+			);
+		})
 	}
+
+	{items.length === 0 && (
+		<div class="traj-empty">
+			<div class="traj-empty-dot"></div>
+			<p class="traj-empty-title">NO JOURNEYS YET</p>
+			<p class="traj-empty-sub">还没有留下任何轨迹。</p>
+		</div>
+	)}
 </div>
 
 <style>
-	.travel-grid {
+	.traj-grid {
 		display: grid;
 		grid-template-columns: repeat(3, 1fr);
-		gap: 1.1rem;
+		gap: 2.5rem 1.25rem;
 	}
 
-	.travel-card {
-		overflow: hidden;
+	/* 单条轨迹：无 Card 背景，内容自然漂浮 */
+	.traj-card {
 		display: flex;
 		flex-direction: column;
 		text-decoration: none;
 		color: inherit;
 		cursor: pointer;
-		transition:
-			transform 0.2s ease,
-			box-shadow 0.2s ease;
+		animation: traj-in 0.5s ease-out both;
+		animation-delay: calc(var(--traj-index) * 60ms);
+		transition: transform 0.3s ease;
 	}
 
-	.travel-card:hover {
-		transform: translateY(-4px);
-		box-shadow: 0 12px 30px rgb(0 0 0 / 0.28);
+	@keyframes traj-in {
+		from {
+			opacity: 0;
+			transform: translateY(14px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
 	}
 
-	/* 封面图：3:2 比例，占满卡片顶部 */
-	.travel-cover {
+	.traj-card:nth-child(n+7) {
+		animation-delay: 0s;
+	}
+
+	.traj-card:hover {
+		transform: translateY(-3px);
+	}
+
+	/* 封面图：3:2 比例，摄影作品感 */
+	.traj-cover {
 		position: relative;
 		width: 100%;
 		aspect-ratio: 3 / 2;
 		overflow: hidden;
-		background: var(--card-bg, rgba(255, 255, 255, 0.04));
+		border-radius: 14px;
+		background: rgba(255, 255, 255, 0.02);
 	}
 
-	.travel-cover img {
+	.traj-cover img {
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
 		display: block;
-		transition: transform 0.4s ease;
+		filter: brightness(0.92);
+		transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94), filter 0.4s ease;
 	}
 
-	.travel-card:hover .travel-cover img {
-		transform: scale(1.06);
+	.traj-card:hover .traj-cover img {
+		transform: scale(1.025);
+		filter: brightness(1);
 	}
 
-	.travel-body {
-		padding: 0.95rem 1.05rem 1.1rem;
+	/* Hover 覆盖层 */
+	.traj-cover-overlay {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		align-items: flex-end;
+		justify-content: flex-end;
+		padding: 1rem;
+		background: linear-gradient(180deg, transparent 50%, rgba(3, 5, 10, 0.5) 100%);
+		opacity: 0;
+		transition: opacity 0.3s ease;
+		pointer-events: none;
+	}
+
+	.traj-card:hover .traj-cover-overlay {
+		opacity: 1;
+	}
+
+	.traj-cover-text {
+		font-family: "JetBrains Mono", "Fira Code", "Space Mono", ui-monospace, monospace;
+		font-size: 0.6rem;
+		letter-spacing: 0.12em;
+		color: rgba(255, 255, 255, 0.7);
+		text-transform: uppercase;
+	}
+
+	/* 内容区域 */
+	.traj-body {
+		padding: 1rem 0.25rem 0;
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
 	}
 
-	.travel-title {
-		margin: 0;
-		font-size: 1.05rem;
-		font-weight: 700;
-		color: var(--text-90, #e6edf3);
-	}
-
-	.travel-meta {
+	/* 顶部：JOURNEY 编号 + 日期 */
+	.traj-meta-top {
 		display: flex;
-		flex-direction: column;
-		gap: 0.2rem;
-		font-size: 0.78rem;
-		color: var(--content-meta, #9aa7b5);
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
 	}
 
-	.travel-meta-item {
+	.traj-journey {
+		font-family: "JetBrains Mono", "Fira Code", "Space Mono", ui-monospace, monospace;
+		font-size: 0.55rem;
+		letter-spacing: 0.12em;
+		color: rgba(255, 255, 255, 0.3);
+		text-transform: uppercase;
+	}
+
+	.traj-date {
+		font-family: "JetBrains Mono", "Fira Code", "Space Mono", ui-monospace, monospace;
+		font-size: 0.65rem;
+		color: rgba(255, 255, 255, 0.4);
+		letter-spacing: 0.02em;
 		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
 	}
 
-	.travel-summary {
-		margin: 0.1rem 0 0;
+	/* 标题 */
+	.traj-title {
+		margin: 0.15rem 0 0;
+		font-size: 1.2rem;
+		font-weight: 600;
+		color: #F1F3F8;
+		line-height: 1.3;
+		letter-spacing: -0.005em;
+		transition: color 0.2s ease;
+	}
+
+	.traj-card:hover .traj-title {
+		color: #FFFFFF;
+	}
+
+	/* 地点 */
+	.traj-location {
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
+		flex-wrap: wrap;
+	}
+
+	.traj-location-icon {
+		width: 0.7rem;
+		height: 0.7rem;
+		color: rgba(99, 216, 255, 0.4);
+		flex-shrink: 0;
+	}
+
+	.traj-location-text {
+		font-size: 0.75rem;
+		color: rgba(255, 255, 255, 0.5);
+	}
+
+	.traj-country {
+		font-family: "JetBrains Mono", "Fira Code", "Space Mono", ui-monospace, monospace;
+		font-size: 0.55rem;
+		letter-spacing: 0.08em;
+		color: rgba(255, 255, 255, 0.25);
+		text-transform: uppercase;
+		padding: 0.1rem 0.35rem;
+		border: 1px solid rgba(255, 255, 255, 0.06);
+		border-radius: 3px;
+	}
+
+	/* 描述 */
+	.traj-summary {
+		margin: 0.25rem 0 0;
 		font-size: 0.82rem;
-		line-height: 1.6;
-		color: var(--content-meta, #9aa7b5);
+		line-height: 1.75;
+		color: #8D96AA;
 		display: -webkit-box;
 		-webkit-line-clamp: 3;
 		-webkit-box-orient: vertical;
 		overflow: hidden;
 	}
 
-	.travel-tags {
+	/* 标签 */
+	.traj-tags {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 0.4rem;
-		margin-top: 0.1rem;
+		gap: 0.75rem;
+		margin-top: 0.15rem;
 	}
 
-	.travel-tag {
-		font-size: 0.72rem;
-		color: var(--primary, #5aa9ff);
+	.traj-tag {
+		font-size: 0.65rem;
+		color: rgba(255, 255, 255, 0.35);
+		font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+		letter-spacing: 0.02em;
 	}
 
-	.travel-more {
+	/* 查看轨迹 */
+	.traj-more {
 		margin-top: 0.35rem;
-		font-size: 0.8rem;
-		font-weight: 600;
-		color: var(--primary, #5aa9ff);
-		opacity: 0.85;
-		transition:
-			opacity 0.2s ease,
-			transform 0.2s ease;
+		font-size: 0.72rem;
+		color: rgba(255, 255, 255, 0.5);
+		font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+		letter-spacing: 0.02em;
+		transition: color 0.2s ease, transform 0.2s ease;
+		align-self: flex-start;
 	}
 
-	.travel-card:hover .travel-more {
-		opacity: 1;
+	.traj-card:hover .traj-more {
+		color: #AFA4FF;
 		transform: translateX(3px);
 	}
 
-	/* 平板：每行 2 个 */
+	/* 空状态 */
+	.traj-empty {
+		grid-column: 1 / -1;
+		text-align: center;
+		padding: 4rem 1rem;
+	}
+
+	.traj-empty-dot {
+		width: 5px;
+		height: 5px;
+		border-radius: 50%;
+		background: rgba(99, 216, 255, 0.4);
+		margin: 0 auto 1.25rem;
+		box-shadow: 0 0 10px rgba(99, 216, 255, 0.2);
+	}
+
+	.traj-empty-title {
+		font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+		font-size: 0.7rem;
+		letter-spacing: 0.15em;
+		color: rgba(255, 255, 255, 0.3);
+		margin: 0 0 0.5rem;
+	}
+
+	.traj-empty-sub {
+		font-size: 0.85rem;
+		color: rgba(255, 255, 255, 0.25);
+		margin: 0;
+	}
+
+	/* 平板：2列 */
 	@media (max-width: 900px) {
-		.travel-grid {
+		.traj-grid {
 			grid-template-columns: repeat(2, 1fr);
+			gap: 2rem 1rem;
 		}
 	}
 
-	/* 手机：每行 1 个 */
+	/* 手机：1列 */
 	@media (max-width: 560px) {
-		.travel-grid {
+		.traj-grid {
 			grid-template-columns: 1fr;
+			gap: 2rem;
+		}
+
+		.traj-cover {
+			border-radius: 12px;
+		}
+
+		.traj-title {
+			font-size: 1.1rem;
+		}
+
+		.traj-summary {
+			font-size: 0.8rem;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.traj-card {
+			animation: none;
+		}
+
+		.traj-cover img,
+		.traj-cover-overlay,
+		.traj-more,
+		.traj-card {
+			transition: none;
 		}
 	}
 </style>
