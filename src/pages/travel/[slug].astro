@@ -16,278 +16,684 @@ interface Props {
 
 const { entry } = Astro.props;
 
-// 用 marked 把 markdown 正文渲染成 HTML（async:false 保证返回字符串）
+// 用 marked 把 markdown 正文渲染成 HTML
 const mdHtml = marked.parse(entry.content ?? "", { async: false }) as string;
+
+// 当前旅行在数组中的索引，用于上一段/下一段导航
+const currentIndex = travels.findIndex((t) => t.slug === entry.slug);
+const prevJourney = currentIndex > 0 ? travels[currentIndex - 1] : null;
+const nextJourney = currentIndex < travels.length - 1 ? travels[currentIndex + 1] : null;
+
+// 旅行编号（从 001 开始）
+const journeyNum = String(currentIndex + 1).padStart(3, "0");
+
+// 从日期字符串中提取年份
+const yearMatch = entry.date?.match(/(\d{4})/);
+const journeyYear = yearMatch ? yearMatch[1] : "";
+
+// 从地点中提取国家/地区和城市
+const locationParts = entry.location?.split("·") || [];
+const countryRaw = locationParts[0]?.trim() || "";
+const citiesRaw = locationParts[1]?.trim() || entry.location || "";
 ---
 
 <MainGridLayout title={entry.title} description={entry.summary}>
-	<a class="travel-back" href="/travel/">← 返回旅行足迹</a>
+	<!-- Reading Quiet Zone：旅行详情页局部暗层 -->
+	<div class="journey-vignette" aria-hidden="true"></div>
 
-	<article class="travel-detail card-base rounded-[var(--radius-large)]">
-		<div class="travel-detail-cover">
-			<img src={entry.cover} alt={entry.title} />
-		</div>
+	<div class="journey-container">
+		<!-- 顶部返回导航 -->
+		<nav class="journey-topnav">
+			<a class="journey-back" href="/travel/">
+				<span class="journey-back-arrow">←</span>
+				<span class="journey-back-text">JOURNEY ARCHIVE</span>
+			</a>
+			<span class="journey-topnav-id">FIELD NOTE / {journeyNum}</span>
+		</nav>
 
-		<div class="travel-detail-head">
-			<h1 class="travel-detail-title">{entry.title}</h1>
-			<div class="travel-detail-meta">
-				<span>📅 {entry.date}</span>
-				<span>📍 {entry.location}</span>
+		<!-- 标题区域 -->
+		<header class="journey-header">
+			<div class="journey-header-label">
+				<span class="journey-header-dot"></span>
+				<span class="journey-header-eyebrow">TRAVEL FIELD NOTE</span>
+				<span class="journey-header-year">{journeyYear}</span>
 			</div>
-			{
-				entry.tags && entry.tags.length > 0 && (
-					<div class="travel-detail-tags">
-						{entry.tags.map((tag) => (
-							<span class="travel-tag">#{tag}</span>
-						))}
-					</div>
-				)
-			}
-		</div>
+			<h1 class="journey-title">{entry.title}</h1>
+			{entry.summary && <p class="journey-summary">{entry.summary}</p>}
 
-		<div
-			class="travel-detail-content"
-			set:html={mdHtml}
-		/>
-
-		{
-			entry.gallery && entry.gallery.length > 0 && (
-				<div class="travel-detail-gallery">
-					<h2 class="gallery-h2">📷 沿途风景</h2>
-					<div class="gallery-grid">
-						{entry.gallery.map((src) => (
-							<a class="gallery-item" href={src} target="_blank" rel="noopener">
-								<img src={src} alt="沿途风景" loading="lazy" />
-							</a>
-						))}
-					</div>
+			<!-- Metadata：DATE / LOCATION -->
+			<div class="journey-meta">
+				<div class="journey-meta-item">
+					<span class="journey-meta-label">DATE</span>
+					<span class="journey-meta-value">{entry.date}</span>
 				</div>
-			)
-		}
-	</article>
+				<div class="journey-meta-item">
+					<span class="journey-meta-label">LOCATION</span>
+					<span class="journey-meta-value">{citiesRaw}</span>
+				</div>
+				{countryRaw && (
+					<div class="journey-meta-item">
+						<span class="journey-meta-label">REGION</span>
+						<span class="journey-meta-value">{countryRaw}</span>
+					</div>
+				)}
+			</div>
+
+			<!-- Tags -->
+			{entry.tags && entry.tags.length > 0 && (
+				<div class="journey-tags">
+					{entry.tags.map((tag) => (
+						<span class="journey-tag">#{tag}</span>
+					))}
+				</div>
+			)}
+		</header>
+
+		<!-- Hero 图片：摄影作品集式 -->
+		<figure class="journey-hero">
+			<img src={entry.cover} alt={entry.title} loading="eager" />
+			<figcaption class="journey-hero-caption">
+				<span>FIELD NOTE / {journeyNum}</span>
+				<span>{journeyYear}</span>
+			</figcaption>
+		</figure>
+
+		<!-- 正文：Editorial Article -->
+		<article class="journey-article">
+			<div class="journey-content" set:html={mdHtml}></div>
+		</article>
+
+		<!-- 照片画廊：Editorial Gallery -->
+		{entry.gallery && entry.gallery.length > 0 && (
+			<section class="journey-gallery">
+				<div class="journey-gallery-header">
+					<span class="journey-gallery-label">PHOTOGRAPHS</span>
+					<span class="journey-gallery-count">{entry.gallery.length} FRAMES</span>
+				</div>
+				<div class="journey-gallery-grid">
+					{entry.gallery.map((src, i) => (
+						<a
+							class={`journey-gallery-item ${i === 0 ? "is-large" : ""}`}
+							href={src}
+							target="_blank"
+							rel="noopener"
+							style={`--gallery-index: ${i};`}
+						>
+							<img src={src} alt={`${entry.title} - 照片 ${i + 1}`} loading="lazy" />
+						</a>
+					))}
+				</div>
+			</section>
+		)}
+
+		<!-- 页面底部：END OF JOURNEY -->
+		<footer class="journey-footer">
+			<div class="journey-end">
+				<span class="journey-end-line"></span>
+				<span class="journey-end-text">END OF JOURNEY</span>
+				<span class="journey-end-line"></span>
+			</div>
+
+			<!-- 上一段 / 下一段旅程 -->
+			<nav class="journey-pagination">
+				{prevJourney ? (
+					<a class="journey-pagination-item journey-pagination--prev" href={`/travel/${prevJourney.slug}/`}>
+						<span class="journey-pagination-label">← PREVIOUS JOURNEY</span>
+						<span class="journey-pagination-title">{prevJourney.title}</span>
+					</a>
+				) : (
+					<span class="journey-pagination-item journey-pagination--empty"></span>
+				)}
+				{nextJourney ? (
+					<a class="journey-pagination-item journey-pagination--next" href={`/travel/${nextJourney.slug}/`}>
+						<span class="journey-pagination-label">NEXT JOURNEY →</span>
+						<span class="journey-pagination-title">{nextJourney.title}</span>
+					</a>
+				) : (
+					<span class="journey-pagination-item journey-pagination--empty"></span>
+				)}
+			</nav>
+		</footer>
+	</div>
 </MainGridLayout>
 
 <style>
-	.travel-back {
-		display: inline-block;
-		margin-bottom: 0.9rem;
-		font-size: 0.85rem;
-		color: var(--content-meta, #9aa7b5);
+	/* Reading Quiet Zone */
+	.journey-vignette {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		z-index: 1;
+		pointer-events: none;
+		background:
+			radial-gradient(ellipse 75% 60% at 50% 30%, rgba(3, 5, 10, 0.4) 0%, rgba(3, 5, 10, 0.15) 60%, transparent 85%),
+			linear-gradient(180deg, rgba(3, 5, 10, 0.1) 0%, transparent 8%, transparent 92%, rgba(3, 5, 10, 0.15) 100%);
+	}
+
+	/* 主容器：1200px */
+	.journey-container {
+		position: relative;
+		z-index: 2;
+		max-width: 1200px;
+		margin: 0 auto;
+		padding: 0 3rem;
+	}
+
+	/* 顶部返回导航 */
+	.journey-topnav {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 1.5rem 0 2rem;
+	}
+
+	.journey-back {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
 		text-decoration: none;
+		color: rgba(255, 255, 255, 0.45);
 		transition: color 0.2s ease;
 	}
-	.travel-back:hover {
-		color: var(--primary, #5aa9ff);
+
+	.journey-back:hover {
+		color: rgba(155, 140, 255, 0.8);
 	}
 
-	.travel-detail {
-		overflow: hidden;
+	.journey-back-arrow {
+		font-size: 0.85rem;
 	}
 
-	/* 顶部大封面 */
-	.travel-detail-cover {
-		width: 100%;
-		aspect-ratio: 21 / 9;
-		overflow: hidden;
-		background: var(--card-bg, rgba(255, 255, 255, 0.04));
+	.journey-back-text {
+		font-family: "JetBrains Mono", "Fira Code", "Space Mono", ui-monospace, monospace;
+		font-size: 0.65rem;
+		letter-spacing: 0.15em;
+		text-transform: uppercase;
 	}
-	.travel-detail-cover img {
+
+	.journey-topnav-id {
+		font-family: "JetBrains Mono", "Fira Code", "Space Mono", ui-monospace, monospace;
+		font-size: 0.6rem;
+		letter-spacing: 0.12em;
+		color: rgba(255, 255, 255, 0.25);
+		text-transform: uppercase;
+	}
+
+	/* 标题区域 */
+	.journey-header {
+		margin-bottom: 2.5rem;
+	}
+
+	.journey-header-label {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		margin-bottom: 1rem;
+	}
+
+	.journey-header-dot {
+		width: 4px;
+		height: 4px;
+		border-radius: 50%;
+		background: rgba(99, 216, 255, 0.5);
+		box-shadow: 0 0 8px rgba(99, 216, 255, 0.3);
+	}
+
+	.journey-header-eyebrow {
+		font-family: "JetBrains Mono", "Fira Code", "Space Mono", ui-monospace, monospace;
+		font-size: 0.62rem;
+		letter-spacing: 0.18em;
+		color: rgba(255, 255, 255, 0.35);
+		text-transform: uppercase;
+	}
+
+	.journey-header-year {
+		font-family: "JetBrains Mono", "Fira Code", "Space Mono", ui-monospace, monospace;
+		font-size: 0.62rem;
+		letter-spacing: 0.1em;
+		color: rgba(255, 255, 255, 0.25);
+	}
+
+	.journey-title {
+		margin: 0 0 0.85rem;
+		font-size: 2.6rem;
+		font-weight: 600;
+		line-height: 1.15;
+		color: #F4F5FA;
+		letter-spacing: -0.01em;
+	}
+
+	.journey-summary {
+		margin: 0 0 1.75rem;
+		font-size: 0.95rem;
+		line-height: 1.75;
+		color: #8D96AA;
+		max-width: 640px;
+	}
+
+	/* Metadata */
+	.journey-meta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 2.5rem;
+		margin-bottom: 1.5rem;
+		padding: 1.25rem 0;
+		border-top: 1px solid rgba(255, 255, 255, 0.05);
+		border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+	}
+
+	.journey-meta-item {
+		display: flex;
+		flex-direction: column;
+		gap: 0.3rem;
+	}
+
+	.journey-meta-label {
+		font-family: "JetBrains Mono", "Fira Code", "Space Mono", ui-monospace, monospace;
+		font-size: 0.55rem;
+		letter-spacing: 0.15em;
+		color: rgba(255, 255, 255, 0.3);
+		text-transform: uppercase;
+	}
+
+	.journey-meta-value {
+		font-size: 0.88rem;
+		color: #C1C7D4;
+		font-weight: 500;
+	}
+
+	/* Tags */
+	.journey-tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.9rem;
+	}
+
+	.journey-tag {
+		font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+		font-size: 0.7rem;
+		color: rgba(155, 140, 255, 0.65);
+		letter-spacing: 0.02em;
+	}
+
+	/* Hero 图片 */
+	.journey-hero {
+		margin: 0 0 3rem;
+		position: relative;
+	}
+
+	.journey-hero img {
 		width: 100%;
-		height: 100%;
+		aspect-ratio: 16 / 7;
 		object-fit: cover;
+		border-radius: 16px;
 		display: block;
 	}
 
-	.travel-detail-head {
-		padding: 1.2rem 1.6rem 0.4rem;
+	.journey-hero-caption {
+		position: absolute;
+		bottom: 1rem;
+		left: 1.25rem;
+		right: 1.25rem;
 		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-	}
-	.travel-detail-title {
-		margin: 0;
-		font-size: 1.6rem;
-		font-weight: 800;
-		color: var(--text-90, #e6edf3);
-	}
-	.travel-detail-meta {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 1rem;
-		font-size: 0.85rem;
-		color: var(--content-meta, #9aa7b5);
-	}
-	.travel-detail-tags {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.4rem;
-	}
-	.travel-detail-tags .travel-tag {
-		font-size: 0.74rem;
-		color: var(--primary, #5aa9ff);
+		justify-content: space-between;
+		align-items: center;
+		font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+		font-size: 0.55rem;
+		letter-spacing: 0.12em;
+		color: rgba(255, 255, 255, 0.4);
+		text-transform: uppercase;
+		pointer-events: none;
 	}
 
-	/* markdown 正文区域：明确高对比配色，不依赖 prose 主题判定
-	   注意：正文里的 h2/p/li 是 set:html 动态注入的，Astro scoped CSS 不会自动给它们加
-	   data-astro-cid，所以所有子元素选择器都要用 :global() 才能命中。 */
-	.travel-detail-content {
-		padding: 0.6rem 1.6rem 1.2rem;
-		font-size: 1rem;
-		line-height: 1.85;
+	/* 正文：Editorial Article */
+	.journey-article {
+		margin-bottom: 3.5rem;
+	}
+
+	.journey-content {
+		max-width: 740px;
+		font-size: 1.02rem;
+		line-height: 1.95;
+		color: #C1C7D4;
 		word-break: break-word;
+		counter-reset: journey-section;
 	}
 
-	/* 浅色主题：深灰，白底高对比 */
-	.travel-detail-content,
-	.travel-detail-content :global(h1),
-	.travel-detail-content :global(h2),
-	.travel-detail-content :global(h3),
-	.travel-detail-content :global(h4),
-	.travel-detail-content :global(p),
-	.travel-detail-content :global(li),
-	.travel-detail-content :global(strong),
-	.travel-detail-content :global(span) {
-		color: #2a2e35 !important;
-	}
-	/* 深色主题：纯白，深底高对比 */
-	:global(:root.dark) .travel-detail-content,
-	:global(:root.dark) .travel-detail-content :global(h1),
-	:global(:root.dark) .travel-detail-content :global(h2),
-	:global(:root.dark) .travel-detail-content :global(h3),
-	:global(:root.dark) .travel-detail-content :global(h4),
-	:global(:root.dark) .travel-detail-content :global(p),
-	:global(:root.dark) .travel-detail-content :global(li),
-	:global(:root.dark) .travel-detail-content :global(strong),
-	:global(:root.dark) .travel-detail-content :global(span) {
-		color: #ffffff !important;
-	}
-
-	/* 标题单独尺寸 */
-	.travel-detail-content :global(h1),
-	.travel-detail-content :global(h2),
-	.travel-detail-content :global(h3) {
+	/* 正文标题：自动编号 01 / 02 / 03 */
+	.journey-content :global(h2) {
+		counter-increment: journey-section;
+		font-size: 1.35rem;
+		font-weight: 600;
+		color: #F1F3F8;
+		margin: 2.5em 0 0.8em;
 		line-height: 1.4;
-		margin: 1.5em 0 0.6em;
-		font-weight: 700;
-	}
-	.travel-detail-content :global(h1) { font-size: 1.5rem; }
-	.travel-detail-content :global(h2) { font-size: 1.28rem; }
-	.travel-detail-content :global(h3) { font-size: 1.12rem; }
-
-	/* 段落与列表 */
-	.travel-detail-content :global(p) { margin: 0.85em 0; }
-	.travel-detail-content :global(ul),
-	.travel-detail-content :global(ol) {
-		margin: 0.85em 0;
-		padding-left: 1.4em;
-	}
-	.travel-detail-content :global(li) { margin: 0.4em 0; }
-	.travel-detail-content :global(li)::marker {
-		color: var(--primary, #5aa9ff);
+		display: flex;
+		align-items: baseline;
+		gap: 0.85rem;
 	}
 
-	/* 引用块：用独立颜色，避免被上面的 !important 覆盖后没有层次 */
-	.travel-detail-content :global(blockquote) {
-		margin: 1em 0;
-		padding: 0.6em 1em;
-		border-left: 3px solid var(--primary, #5aa9ff);
-		border-radius: 0 0.5rem 0.5rem 0;
-		background: rgba(90, 169, 255, 0.1);
-		color: #4a525c !important;
-	}
-	:global(:root.dark) .travel-detail-content :global(blockquote) {
-		background: rgba(90, 169, 255, 0.12);
-		color: #b7c0ca !important;
+	.journey-content :global(h2)::before {
+		content: counter(journey-section, decimal-leading-zero);
+		font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+		font-size: 0.75rem;
+		font-weight: 400;
+		color: rgba(155, 140, 255, 0.55);
+		letter-spacing: 0.05em;
+		flex-shrink: 0;
 	}
 
-	/* 图片 */
-	.travel-detail-content :global(img) {
+	.journey-content :global(h3) {
+		font-size: 1.15rem;
+		font-weight: 600;
+		color: #E7EAF2;
+		margin: 2em 0 0.6em;
+		line-height: 1.4;
+	}
+
+	.journey-content :global(p) {
+		margin: 0.9em 0;
+	}
+
+	.journey-content :global(ul),
+	.journey-content :global(ol) {
+		margin: 0.9em 0;
+		padding-left: 1.5em;
+	}
+
+	.journey-content :global(li) {
+		margin: 0.4em 0;
+	}
+
+	.journey-content :global(li)::marker {
+		color: rgba(155, 140, 255, 0.6);
+	}
+
+	.journey-content :global(strong) {
+		color: #E7EAF2;
+		font-weight: 600;
+	}
+
+	/* 引用块：Field Note 风格 */
+	.journey-content :global(blockquote) {
+		margin: 1.5em 0;
+		padding: 1.1em 1.4em;
+		border-left: 2px solid rgba(155, 140, 255, 0.4);
+		background: rgba(155, 140, 255, 0.04);
+		border-radius: 0 8px 8px 0;
+		font-size: 1.08rem;
+		line-height: 1.8;
+		color: #D8DCE7;
+		font-style: italic;
+	}
+
+	.journey-content :global(blockquote p) {
+		margin: 0.4em 0;
+	}
+
+	/* 正文图片 */
+	.journey-content :global(img) {
 		max-width: 100%;
-		border-radius: 0.6rem;
-		margin: 0.8em 0;
+		border-radius: 10px;
+		margin: 1.2em 0;
 	}
 
-	/* 行内代码：单独恢复代码色，不被纯白覆盖 */
-	.travel-detail-content :global(code) {
-		font-size: 0.9em;
-		background: rgba(90, 169, 255, 0.12);
-		color: #c0392b !important;
+	/* 行内代码 */
+	.journey-content :global(code) {
+		font-size: 0.88em;
+		background: rgba(155, 140, 255, 0.08);
+		color: #9B8CFF;
 		padding: 0.12em 0.4em;
-		border-radius: 0.4rem;
-	}
-	:global(:root.dark) .travel-detail-content :global(code) {
-		background: rgba(255, 255, 255, 0.1);
-		color: #9B8CFF !important;
+		border-radius: 4px;
+		font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
 	}
 
-	/* 链接：单独恢复主题色 */
-	.travel-detail-content :global(a) {
-		color: var(--primary, #5aa9ff) !important;
+	/* 链接 */
+	.journey-content :global(a) {
+		color: rgba(155, 140, 255, 0.85);
 		text-decoration: underline;
 		text-underline-offset: 3px;
 		text-decoration-thickness: 1px;
+		transition: color 0.2s ease;
 	}
 
-	/* 双重保险：即使 .dark 类没生效，只要系统/浏览器处于暗色模式，正文也强制纯白 */
-	@media (prefers-color-scheme: dark) {
-		.travel-detail-content,
-		.travel-detail-content :global(h1),
-		.travel-detail-content :global(h2),
-		.travel-detail-content :global(h3),
-		.travel-detail-content :global(h4),
-		.travel-detail-content :global(p),
-		.travel-detail-content :global(li),
-		.travel-detail-content :global(strong),
-		.travel-detail-content :global(span) {
-			color: #ffffff !important;
-		}
+	.journey-content :global(a:hover) {
+		color: #9B8CFF;
 	}
 
-	/* 风景照片墙 */
-	.travel-detail-gallery {
-		padding: 0 1.6rem 1.6rem;
+	/* 照片画廊：Editorial Gallery */
+	.journey-gallery {
+		margin-bottom: 3.5rem;
 	}
-	.gallery-h2 {
-		font-size: 1.1rem;
-		font-weight: 700;
-		margin: 0.4rem 0 0.8rem;
-		color: var(--text-90, #e6edf3);
+
+	.journey-gallery-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 1.25rem;
+		padding-bottom: 0.75rem;
+		border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 	}
-	.gallery-grid {
+
+	.journey-gallery-label {
+		font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+		font-size: 0.62rem;
+		letter-spacing: 0.16em;
+		color: rgba(255, 255, 255, 0.35);
+		text-transform: uppercase;
+	}
+
+	.journey-gallery-count {
+		font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+		font-size: 0.6rem;
+		letter-spacing: 0.1em;
+		color: rgba(255, 255, 255, 0.25);
+		text-transform: uppercase;
+	}
+
+	.journey-gallery-grid {
 		display: grid;
 		grid-template-columns: repeat(3, 1fr);
-		gap: 0.6rem;
+		gap: 0.75rem;
 	}
-	.gallery-item {
+
+	.journey-gallery-item {
 		display: block;
 		aspect-ratio: 4 / 3;
 		overflow: hidden;
-		border-radius: var(--radius-medium, 0.6rem);
-		background: var(--card-bg, rgba(255, 255, 255, 0.04));
+		border-radius: 10px;
+		background: rgba(255, 255, 255, 0.02);
+		animation: journey-gallery-in 0.4s ease-out both;
+		animation-delay: calc(min(var(--gallery-index), 6) * 50ms);
+		transition: transform 0.3s ease;
 	}
-	.gallery-item img {
+
+	.journey-gallery-item.is-large {
+		grid-column: span 2;
+		aspect-ratio: 16 / 9;
+	}
+
+	@keyframes journey-gallery-in {
+		from {
+			opacity: 0;
+			transform: translateY(10px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	.journey-gallery-item img {
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
 		display: block;
-		transition: transform 0.4s ease;
-	}
-	.gallery-item:hover img {
-		transform: scale(1.08);
+		transition: transform 0.5s ease;
 	}
 
-	@media (max-width: 700px) {
-		.travel-detail-cover {
-			aspect-ratio: 16 / 9;
+	.journey-gallery-item:hover {
+		transform: translateY(-2px);
+	}
+
+	.journey-gallery-item:hover img {
+		transform: scale(1.04);
+	}
+
+	/* 页面底部 */
+	.journey-footer {
+		padding-top: 1rem;
+	}
+
+	.journey-end {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 1.25rem;
+		margin-bottom: 2.5rem;
+	}
+
+	.journey-end-line {
+		flex: 1;
+		max-width: 120px;
+		height: 1px;
+		background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+	}
+
+	.journey-end-text {
+		font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+		font-size: 0.6rem;
+		letter-spacing: 0.2em;
+		color: rgba(255, 255, 255, 0.3);
+		text-transform: uppercase;
+		white-space: nowrap;
+	}
+
+	/* 上一段 / 下一段旅程 */
+	.journey-pagination {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 1.5rem;
+		padding-bottom: 3rem;
+	}
+
+	.journey-pagination-item {
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+		padding: 1.25rem 1.5rem;
+		border-radius: 12px;
+		background: rgba(255, 255, 255, 0.015);
+		border: 1px solid rgba(255, 255, 255, 0.06);
+		text-decoration: none;
+		transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s ease;
+	}
+
+	.journey-pagination-item:not(.journey-pagination--empty):hover {
+		border-color: rgba(155, 140, 255, 0.2);
+		background: rgba(255, 255, 255, 0.025);
+		transform: translateY(-2px);
+	}
+
+	.journey-pagination--next {
+		text-align: right;
+		align-items: flex-end;
+	}
+
+	.journey-pagination--empty {
+		visibility: hidden;
+	}
+
+	.journey-pagination-label {
+		font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+		font-size: 0.58rem;
+		letter-spacing: 0.14em;
+		color: rgba(255, 255, 255, 0.35);
+		text-transform: uppercase;
+	}
+
+	.journey-pagination-title {
+		font-size: 1rem;
+		font-weight: 600;
+		color: #D8DCE7;
+		transition: color 0.2s ease;
+	}
+
+	.journey-pagination-item:not(.journey-pagination--empty):hover .journey-pagination-title {
+		color: #FFFFFF;
+	}
+
+	/* 响应式 */
+	@media (max-width: 1024px) {
+		.journey-container {
+			padding: 0 2.5rem;
 		}
-		.travel-detail-head,
-		.travel-detail-content,
-		.travel-detail-gallery {
-			padding-left: 1.1rem;
-			padding-right: 1.1rem;
+		.journey-title {
+			font-size: 2.2rem;
 		}
-		.gallery-grid {
+	}
+
+	@media (max-width: 768px) {
+		.journey-container {
+			padding: 0 1.25rem;
+		}
+		.journey-topnav {
+			padding: 1rem 0 1.5rem;
+		}
+		.journey-title {
+			font-size: 1.85rem;
+		}
+		.journey-summary {
+			font-size: 0.88rem;
+		}
+		.journey-meta {
+			gap: 1.5rem;
+		}
+		.journey-hero img {
+			aspect-ratio: 16 / 10;
+			border-radius: 12px;
+		}
+		.journey-content {
+			font-size: 0.95rem;
+			line-height: 1.85;
+		}
+		.journey-content :global(h2) {
+			font-size: 1.2rem;
+		}
+		.journey-gallery-grid {
 			grid-template-columns: repeat(2, 1fr);
+		}
+		.journey-gallery-item.is-large {
+			grid-column: span 2;
+		}
+		.journey-pagination {
+			grid-template-columns: 1fr;
+		}
+		.journey-pagination--next {
+			text-align: left;
+			align-items: flex-start;
+		}
+	}
+
+	@media (max-width: 480px) {
+		.journey-gallery-grid {
+			grid-template-columns: 1fr;
+		}
+		.journey-gallery-item.is-large {
+			grid-column: span 1;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.journey-gallery-item {
+			animation: none;
+		}
+		.journey-gallery-item,
+		.journey-gallery-item img,
+		.journey-pagination-item {
+			transition: none;
 		}
 	}
 </style>
