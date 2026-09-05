@@ -1,62 +1,52 @@
 ---
-// 轨迹 / TRAJECTORIES：一个人曾经经过的地方，最终成为留在数字宇宙里的空间轨迹
+// 轨迹 / JOURNEY：中国旅行星图 + 时间轴 + 精选旅记
 import TravelCards from "@/components/workbench/TravelCards.astro";
+import TravelMap from "@/components/workbench/TravelMap.astro";
+import JourneyTimeline from "@/components/workbench/JourneyTimeline.astro";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
 import { travels } from "@/data/travels";
 
 const title = "轨迹";
-const description = "每一张封面，都是一段出发与抵达。";
+const description = "走过的地方，最终都会成为记忆的一部分。";
 
-// Journey Statistics
-const journeyCount = travels.length;
-// 统计国家数
-const countries = new Set(
-	travels.map((t) => t.location.split("·")[0].trim()).filter(Boolean),
-);
-const countryCount = countries.size;
+// 精选旅记（前3个）
+const selectedJourneys = travels.slice(0, 3);
 ---
 
 <MainGridLayout title={title} description={description}>
-	<!-- Reading Quiet Zone：轨迹页面局部暗层 -->
 	<div class="traj-vignette" aria-hidden="true"></div>
 
-	<!-- 统一内容容器 -->
 	<div class="traj-container">
-		<!-- 页面标题 -->
+		<!-- 页面标题（简洁） -->
 		<header class="traj-header">
 			<div class="traj-header-label">
 				<span class="traj-header-observing">
 					<span class="traj-header-dot"></span>
 					TRAVEL LOG
 				</span>
-				<span class="traj-header-text">TRAJECTORIES</span>
+				<span class="traj-header-text">JOURNEY</span>
 				<span class="traj-header-line"></span>
 			</div>
 			<h1 class="traj-title">轨迹</h1>
-			<p class="traj-sub">每一张封面，都是一段出发与抵达。</p>
-
-			<!-- Journey Statistics -->
-			<div class="traj-stats">
-				<div class="traj-stat">
-					<span class="traj-stat-num">{String(journeyCount).padStart(2, "0")}</span>
-					<span class="traj-stat-label">JOURNEYS</span>
-				</div>
-				<div class="traj-stat-divider"></div>
-				<div class="traj-stat">
-					<span class="traj-stat-num">{String(countryCount).padStart(2, "0")}</span>
-					<span class="traj-stat-label">COUNTRIES</span>
-				</div>
-				<div class="traj-stat-divider"></div>
-				<div class="traj-stat">
-					<span class="traj-stat-num">2022</span>
-					<span class="traj-stat-label">— 2024</span>
-				</div>
-			</div>
 		</header>
 
-		<!-- 旅行卡片列表 -->
-		<section class="traj-list">
-			<TravelCards items={travels} />
+		<!-- 中国旅行星图 -->
+		<section class="traj-map-section">
+			<TravelMap />
+		</section>
+
+		<!-- 旅行时间轴 -->
+		<section class="traj-timeline-section">
+			<JourneyTimeline />
+		</section>
+
+		<!-- 精选旅记 -->
+		<section class="traj-selected-section">
+			<div class="traj-list-label">
+				<span>SELECTED JOURNEYS</span>
+				<span>精选旅记</span>
+			</div>
+			<TravelCards items={selectedJourneys} />
 		</section>
 	</div>
 </MainGridLayout>
@@ -79,14 +69,14 @@ const countryCount = countries.size;
 	.traj-container {
 		position: relative;
 		z-index: 2;
-		max-width: 1140px;
+		max-width: 1400px;
 		margin: 0 auto;
 		padding: 0 1.5rem;
 	}
 
 	/* 页面标题 */
 	.traj-header {
-		margin-bottom: 3rem;
+		margin-bottom: 2rem;
 		padding-top: 1rem;
 	}
 
@@ -94,7 +84,7 @@ const countryCount = countries.size;
 		display: flex;
 		align-items: center;
 		gap: 0.75rem;
-		margin-bottom: 1rem;
+		margin-bottom: 0.75rem;
 	}
 
 	.traj-header-observing {
@@ -127,63 +117,36 @@ const countryCount = countries.size;
 
 	.traj-header-line {
 		flex: 1;
-		max-width: 120px;
+		max-width: 200px;
 		height: 1px;
 		background: linear-gradient(90deg, rgba(99, 216, 255, 0.1), transparent);
 	}
 
 	.traj-title {
-		margin: 0 0 0.75rem;
-		font-size: 2.25rem;
+		margin: 0;
+		font-size: 2rem;
 		font-weight: 600;
 		line-height: 1.2;
 		color: #F4F5FA;
 		letter-spacing: -0.01em;
 	}
 
-	.traj-sub {
-		margin: 0 0 1.75rem;
-		font-size: 0.9rem;
-		color: #7F8799;
-		line-height: 1.7;
-		max-width: 480px;
+	/* 地图区域 */
+	.traj-map-section {
+		margin-bottom: 3rem;
 	}
 
-	/* Journey Statistics */
-	.traj-stats {
-		display: flex;
-		align-items: center;
-		gap: 1.5rem;
-		padding-top: 1.25rem;
-		border-top: 1px solid rgba(255, 255, 255, 0.05);
+	/* 时间轴区域 */
+	.traj-timeline-section {
+		margin-bottom: 3.5rem;
+		padding: 1.5rem 0;
+		border-top: 1px solid rgba(255,255,255,0.04);
+		border-bottom: 1px solid rgba(255,255,255,0.04);
 	}
 
-	.traj-stat {
-		display: flex;
-		align-items: baseline;
-		gap: 0.5rem;
-	}
-
-	.traj-stat-num {
-		font-family: "JetBrains Mono", "Fira Code", "Space Mono", ui-monospace, monospace;
-		font-size: 1rem;
-		font-weight: 500;
-		color: rgba(255, 255, 255, 0.6);
-		letter-spacing: 0.02em;
-	}
-
-	.traj-stat-label {
-		font-family: "JetBrains Mono", "Fira Code", "Space Mono", ui-monospace, monospace;
-		font-size: 0.55rem;
-		letter-spacing: 0.12em;
-		color: rgba(255, 255, 255, 0.25);
-		text-transform: uppercase;
-	}
-
-	.traj-stat-divider {
-		width: 1px;
-		height: 16px;
-		background: rgba(255, 255, 255, 0.06);
+	/* 精选旅记 */
+	.traj-selected-section {
+		margin-bottom: 3rem;
 	}
 
 	/* 旅行列表 */
@@ -191,25 +154,27 @@ const countryCount = countries.size;
 		position: relative;
 	}
 
+	.traj-list-label {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 1.5rem;
+		font-family: "JetBrains Mono", ui-monospace, monospace;
+		font-size: 0.55rem;
+		letter-spacing: 0.12em;
+		color: rgba(255,255,255,0.3);
+		text-transform: uppercase;
+	}
+
 	@media (max-width: 768px) {
 		.traj-container {
 			padding: 0 1.25rem;
 		}
 		.traj-header {
-			margin-bottom: 2rem;
+			margin-bottom: 1.5rem;
 		}
 		.traj-title {
 			font-size: 1.75rem;
-		}
-		.traj-sub {
-			font-size: 0.85rem;
-		}
-		.traj-stats {
-			gap: 1rem;
-			flex-wrap: wrap;
-		}
-		.traj-stat-num {
-			font-size: 0.9rem;
 		}
 	}
 </style>

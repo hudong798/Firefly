@@ -1,130 +1,61 @@
 ---
-// 档案 / ARCHIVE：属于 IDONG 的个人数字档案馆 — 大而克制
+// 档案 / ARCHIVE：个人数字星系 — Personal Archive Galaxy
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
-import TvLinks from "@/components/workbench/TvLinks.astro";
-import LinkRows from "@/components/workbench/LinkRows.astro";
-import { comics } from "@/data/comics";
-import { communities } from "@/data/communities";
-import { toolGroups } from "@/data/tools";
+import ArchiveGalaxy from "@/components/workbench/ArchiveGalaxy.astro";
 
 const title = "档案";
 const description = "收藏那些值得留下的东西。";
 ---
 
 <MainGridLayout title={title} description={description}>
-	<!-- Reading Quiet Zone：档案页面局部暗层 -->
+	<!-- Reading Quiet Zone -->
 	<div class="arch-vignette" aria-hidden="true"></div>
 
-	<!-- 统一内容容器：1180px，大而克制 -->
 	<div class="arch-container">
-		<!-- 页面标题：放大 -->
+		<!-- 页面标题：左右布局 -->
 		<header class="arch-header">
-			<div class="arch-header-label">
-				<span class="arch-header-observing">
-					<span class="arch-header-dot"></span>
-					PERSONAL LIBRARY
-				</span>
-				<span class="arch-header-text">ARCHIVE</span>
-				<span class="arch-header-line"></span>
+			<div class="arch-header-left">
+				<div class="arch-header-label">
+					<span class="arch-header-observing">
+						<span class="arch-header-dot"></span>
+						PERSONAL LIBRARY
+					</span>
+					<span class="arch-header-text">ARCHIVE GALAXY</span>
+				</div>
+				<h1 class="arch-title">档案</h1>
+				<p class="arch-sub">收藏那些值得留下的东西。工具、影视、漫画、社区，以及值得反复打开的数字片段。</p>
 			</div>
-			<h1 class="arch-title">档案</h1>
-			<p class="arch-sub">收藏那些值得留下的东西。工具、影像、资料，以及值得反复打开的数字片段。</p>
+			<div class="arch-header-right">
+				<div class="arch-obs-item">
+					<span class="arch-obs-label">ARCHIVE</span>
+					<span class="arch-obs-value">2026</span>
+				</div>
+				<div class="arch-obs-item">
+					<span class="arch-obs-label">TOTAL</span>
+					<span class="arch-obs-value" id="arch-total-objects">65</span>
+				</div>
+				<div class="arch-obs-item">
+					<span class="arch-obs-label">CONSTELLATIONS</span>
+					<span class="arch-obs-value">04</span>
+				</div>
+			</div>
 		</header>
 
-		<!-- Editorial Index 分类导航：横向铺开 -->
-		<nav class="arch-index" role="tablist" aria-label="档案分类">
-			<button class="arch-index-item is-active" data-tab="tv" role="tab" aria-selected="true">
-				<span class="arch-index-num">01</span>
-				<span class="arch-index-name">影视</span>
-			</button>
-			<button class="arch-index-item" data-tab="comic" role="tab" aria-selected="false">
-				<span class="arch-index-num">02</span>
-				<span class="arch-index-name">漫画</span>
-			</button>
-			<button class="arch-index-item" data-tab="community" role="tab" aria-selected="false">
-				<span class="arch-index-num">03</span>
-				<span class="arch-index-name">社区</span>
-			</button>
-			<button class="arch-index-item" data-tab="tool" role="tab" aria-selected="false">
-				<span class="arch-index-num">04</span>
-				<span class="arch-index-name">工具</span>
-			</button>
-		</nav>
+		<!-- 星系主体（含搜索+筛选+Canvas星图+详情面板） -->
+		<ArchiveGalaxy />
 
-		<!-- 影视面板 -->
-		<section class="arch-panel is-active" data-panel="tv" role="tabpanel">
-			<TvLinks />
-		</section>
-
-		<!-- 漫画资源面板：两列 Archive Grid -->
-		<section class="arch-panel" data-panel="comic" role="tabpanel">
-			<div class="arch-section-header">
-				<span class="arch-section-label">ARCHIVE INDEX</span>
-				<span class="arch-section-count">{comics.length} ENTRIES</span>
+		<!-- 底部状态栏 -->
+		<footer class="arch-statusbar">
+			<div class="arch-status-left">
+				<span class="arch-status-dot"></span>
+				<span class="arch-status-label">ARCHIVE SYSTEM</span>
+				<span class="arch-status-sep">·</span>
+				<span class="arch-status-value">4 CONSTELLATIONS</span>
 			</div>
-			<div class="arch-grid">
-				{
-					comics.map((c, index) => (
-						<a class="arch-card" href={c.url} target="_blank" rel="noopener" style={`--arch-index: ${index};`}>
-							<div class="arch-card-top">
-								<span class="arch-card-id">ARCHIVE / {String(index + 1).padStart(3, "0")}</span>
-								<span class="arch-card-type">MANGA</span>
-							</div>
-							<h3 class="arch-card-name">{c.name}</h3>
-							<div class="arch-card-meta">
-								<span class="arch-card-cat">{c.type}</span>
-							</div>
-							<div class="arch-card-bottom">
-								<span></span>
-								<span class="arch-card-arrow">↗</span>
-							</div>
-						</a>
-					))
-				}
+			<div class="arch-status-right">
+				<span class="arch-status-online">SYSTEM ONLINE</span>
 			</div>
-		</section>
-
-		<!-- 社区面板：两列 Archive Grid -->
-		<section class="arch-panel" data-panel="community" role="tabpanel">
-			<div class="arch-section-header">
-				<span class="arch-section-label">ARCHIVE INDEX</span>
-				<span class="arch-section-count">{communities.length} ENTRIES</span>
-			</div>
-			<div class="arch-grid">
-				{
-					communities.map((c, index) => (
-						<a class="arch-card" href={c.url} target="_blank" rel="noopener" style={`--arch-index: ${index};`}>
-							<div class="arch-card-top">
-								<span class="arch-card-id">ARCHIVE / {String(index + 1).padStart(3, "0")}</span>
-								<span class="arch-card-type">COMMUNITY</span>
-							</div>
-							<h3 class="arch-card-name">{c.name}</h3>
-							<p class="arch-card-desc">{c.desc}</p>
-							<div class="arch-card-bottom">
-								<span></span>
-								<span class="arch-card-arrow">↗</span>
-							</div>
-						</a>
-					))
-				}
-			</div>
-		</section>
-
-		<!-- 工具面板 -->
-		<section class="arch-panel" data-panel="tool" role="tabpanel">
-			<p class="arch-tool-hint">好用的工具让人事半功倍，点击直达官网。</p>
-			{
-				toolGroups.map((g, gi) => (
-					<section class="arch-tool-group" style={`--arch-index: ${gi};`}>
-						<h2 class="arch-tool-group-title">
-							<span class="arch-tool-group-num">{String(gi + 1).padStart(2, "0")}</span>
-							{g.title}
-						</h2>
-						<LinkRows items={g.items} />
-					</section>
-				))
-			}
-		</section>
+		</footer>
 	</div>
 </MainGridLayout>
 
@@ -139,30 +70,66 @@ const description = "收藏那些值得留下的东西。";
 		z-index: 1;
 		pointer-events: none;
 		background:
-			radial-gradient(ellipse 80% 70% at 50% 35%, rgba(3, 5, 10, 0.45) 0%, rgba(3, 5, 10, 0.2) 55%, transparent 85%),
-			linear-gradient(180deg, rgba(3, 5, 10, 0.12) 0%, transparent 10%, transparent 90%, rgba(3, 5, 10, 0.18) 100%);
+			radial-gradient(ellipse 80% 65% at 50% 40%, rgba(3, 5, 10, 0.35) 0%, rgba(3, 5, 10, 0.15) 60%, transparent 85%);
 	}
 
-	/* 主容器：1320px，宽屏三列 */
 	.arch-container {
 		position: relative;
 		z-index: 2;
-		max-width: 1320px;
+		max-width: 1500px;
 		margin: 0 auto;
-		padding: 0 3.5rem;
+		padding: 0 2.5rem;
 	}
 
-	/* 页面标题：放大 */
+	/* 标题：左右布局 */
 	.arch-header {
-		margin-bottom: 3.25rem;
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		gap: 2rem;
+		margin-bottom: 2rem;
 		padding-top: 1.25rem;
+	}
+
+	.arch-header-left {
+		flex: 1;
+	}
+
+	.arch-header-right {
+		display: flex;
+		flex-direction: column;
+		gap: 0.6rem;
+		padding-top: 0.5rem;
+		flex-shrink: 0;
+	}
+
+	.arch-obs-item {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		align-items: flex-end;
+	}
+
+	.arch-obs-label {
+		font-family: "JetBrains Mono", ui-monospace, monospace;
+		font-size: 0.52rem;
+		letter-spacing: 0.12em;
+		color: rgba(255, 255, 255, 0.25);
+		text-transform: uppercase;
+	}
+
+	.arch-obs-value {
+		font-family: "JetBrains Mono", ui-monospace, monospace;
+		font-size: 0.85rem;
+		color: rgba(255, 255, 255, 0.5);
+		letter-spacing: 0.05em;
 	}
 
 	.arch-header-label {
 		display: flex;
 		align-items: center;
 		gap: 0.85rem;
-		margin-bottom: 1.1rem;
+		margin-bottom: 1rem;
 	}
 
 	.arch-header-observing {
@@ -186,23 +153,16 @@ const description = "收藏那些值得留下的东西。";
 
 	.arch-header-text {
 		font-family: "JetBrains Mono", "Fira Code", "Space Mono", ui-monospace, monospace;
-		font-size: 0.72rem;
+		font-size: 0.7rem;
 		font-weight: 500;
 		letter-spacing: 0.2em;
 		color: rgba(155, 140, 255, 0.5);
 		text-transform: uppercase;
 	}
 
-	.arch-header-line {
-		flex: 1;
-		max-width: 200px;
-		height: 1px;
-		background: linear-gradient(90deg, rgba(155, 140, 255, 0.12), transparent);
-	}
-
 	.arch-title {
-		margin: 0 0 0.85rem;
-		font-size: 2.75rem;
+		margin: 0 0 0.75rem;
+		font-size: 2.5rem;
 		font-weight: 600;
 		line-height: 1.15;
 		color: #F4F5FA;
@@ -211,316 +171,126 @@ const description = "收藏那些值得留下的东西。";
 
 	.arch-sub {
 		margin: 0;
-		font-size: 0.95rem;
+		font-size: 0.92rem;
 		color: #7F8799;
 		line-height: 1.75;
-		max-width: 600px;
+		max-width: 560px;
 	}
 
-	/* Editorial Index 分类导航：横向铺开 */
-	.arch-index {
+	/* 搜索框 */
+	.arch-search {
 		display: flex;
 		align-items: center;
-		gap: 3.5rem;
-		margin-bottom: 3.25rem;
-		padding-bottom: 1.1rem;
-		border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-		overflow-x: auto;
-		scrollbar-width: none;
+		gap: 0.75rem;
+		margin-bottom: 1.75rem;
+		padding: 0.75rem 1.1rem;
+		border-radius: 12px;
+		background: rgba(255, 255, 255, 0.015);
+		border: 1px solid rgba(255, 255, 255, 0.07);
+		transition: border-color 0.25s ease, background 0.25s ease;
 	}
 
-	.arch-index::-webkit-scrollbar {
-		display: none;
+	.arch-search:focus-within {
+		border-color: rgba(155, 140, 255, 0.35);
+		background: rgba(255, 255, 255, 0.025);
+		box-shadow: 0 0 20px rgba(155, 140, 255, 0.06);
 	}
 
-	.arch-index-item {
-		display: inline-flex;
-		align-items: baseline;
-		gap: 0.6rem;
+	.arch-search-icon {
+		color: rgba(155, 140, 255, 0.5);
+		font-size: 0.9rem;
+		flex-shrink: 0;
+	}
+
+	.arch-search input {
+		flex: 1;
 		border: none;
 		background: transparent;
-		color: rgba(255, 255, 255, 0.38);
-		font-size: 0.82rem;
-		padding: 0.3rem 0;
-		cursor: pointer;
-		white-space: nowrap;
-		position: relative;
-		transition: color 0.2s ease;
+		outline: none;
+		color: #F4F5FA;
+		font-size: 0.85rem;
 		font-family: inherit;
 	}
 
-	.arch-index-num {
-		font-family: "JetBrains Mono", "Fira Code", "Space Mono", ui-monospace, monospace;
-		font-size: 0.62rem;
+	.arch-search input::placeholder {
 		color: rgba(255, 255, 255, 0.25);
+		font-family: "JetBrains Mono", ui-monospace, monospace;
+		font-size: 0.72rem;
 		letter-spacing: 0.05em;
 	}
 
-	.arch-index-name {
-		font-weight: 500;
-		letter-spacing: 0.02em;
+	.arch-search-hint {
+		font-family: "JetBrains Mono", ui-monospace, monospace;
+		font-size: 0.55rem;
+		letter-spacing: 0.12em;
+		color: rgba(99, 216, 255, 0.4);
+		text-transform: uppercase;
+		flex-shrink: 0;
 	}
 
-	.arch-index-item::after {
-		content: "";
-		position: absolute;
-		left: 0;
-		right: 0;
-		bottom: -1.1rem;
-		height: 1.5px;
-		background: rgba(155, 140, 255, 0.65);
-		transform: scaleX(0);
-		transition: transform 0.25s ease;
-		transform-origin: left;
+	/* 底部状态栏 */
+	.arch-statusbar {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-top: 1.5rem;
+		padding: 0.85rem 0;
+		border-top: 1px solid rgba(255, 255, 255, 0.05);
 	}
 
-	.arch-index-item:hover {
-		color: rgba(255, 255, 255, 0.7);
-	}
-
-	.arch-index-item.is-active {
-		color: #F4F5FA;
-	}
-
-	.arch-index-item.is-active::after {
-		transform: scaleX(1);
-	}
-
-	.arch-index-item.is-active .arch-index-num {
-		color: rgba(155, 140, 255, 0.65);
-	}
-
-	/* 面板切换 */
-	.arch-panel {
-		display: none;
-	}
-
-	.arch-panel.is-active {
-		display: block;
-		animation: arch-fade 0.3s ease;
-	}
-
-	@keyframes arch-fade {
-		from {
-			opacity: 0;
-			transform: translateY(0.5rem);
-		}
-		to {
-			opacity: 1;
-			transform: translateY(0);
-		}
-	}
-
-	/* Section Header：ARCHIVE INDEX + N ENTRIES */
-	.arch-section-header {
+	.arch-status-left {
 		display: flex;
 		align-items: center;
-		justify-content: space-between;
-		margin-bottom: 1.5rem;
-		padding-bottom: 0.75rem;
-		border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+		gap: 0.6rem;
 	}
 
-	.arch-section-label {
-		font-family: "JetBrains Mono", "Fira Code", "Space Mono", ui-monospace, monospace;
-		font-size: 0.62rem;
-		letter-spacing: 0.16em;
+	.arch-status-dot {
+		width: 5px;
+		height: 5px;
+		border-radius: 50%;
+		background: rgba(125, 232, 208, 0.6);
+		box-shadow: 0 0 8px rgba(125, 232, 208, 0.3);
+		animation: arch-status-pulse 3s ease-in-out infinite;
+	}
+
+	@keyframes arch-status-pulse {
+		0%, 100% { opacity: 0.5; }
+		50% { opacity: 1; }
+	}
+
+	.arch-status-label {
+		font-family: "JetBrains Mono", ui-monospace, monospace;
+		font-size: 0.58rem;
+		letter-spacing: 0.12em;
 		color: rgba(255, 255, 255, 0.35);
 		text-transform: uppercase;
 	}
 
-	.arch-section-count {
-		font-family: "JetBrains Mono", "Fira Code", "Space Mono", ui-monospace, monospace;
-		font-size: 0.62rem;
-		letter-spacing: 0.1em;
-		color: rgba(255, 255, 255, 0.3);
-		text-transform: uppercase;
-	}
-
-	/* 三列 Archive Grid：漫画/社区，宽屏三列 */
-	.arch-grid {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: 1.25rem;
-	}
-
-	/* Archive Card：轻量档案容器 */
-	.arch-card {
-		display: flex;
-		flex-direction: column;
-		min-height: 180px;
-		padding: 1.5rem 1.6rem;
-		border-radius: 16px;
-		background: rgba(255, 255, 255, 0.015);
-		border: 1px solid rgba(255, 255, 255, 0.07);
-		text-decoration: none;
-		color: inherit;
-		cursor: pointer;
-		position: relative;
-		overflow: hidden;
-		animation: arch-card-in 0.4s ease-out both;
-		animation-delay: calc(min(var(--arch-index), 8) * 50ms);
-		transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease;
-	}
-
-	@keyframes arch-card-in {
-		from {
-			opacity: 0;
-			transform: translateY(12px);
-		}
-		to {
-			opacity: 1;
-			transform: translateY(0);
-		}
-	}
-
-	.arch-card::before {
-		content: "";
-		position: absolute;
-		left: 0;
-		top: 0;
-		bottom: 0;
-		width: 2px;
-		background: linear-gradient(to bottom, rgba(155, 140, 255, 0.5), rgba(155, 140, 255, 0.05));
-		opacity: 0;
-		transition: opacity 0.25s ease;
-	}
-
-	.arch-card:hover {
-		transform: translateY(-3px);
-		border-color: rgba(155, 140, 255, 0.2);
-		background: rgba(255, 255, 255, 0.025);
-	}
-
-	.arch-card:hover::before {
-		opacity: 1;
-	}
-
-	.arch-card-top {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 1rem;
-		margin-bottom: 1rem;
-	}
-
-	.arch-card-id {
-		font-family: "JetBrains Mono", "Fira Code", "Space Mono", ui-monospace, monospace;
+	.arch-status-sep {
+		color: rgba(255, 255, 255, 0.15);
 		font-size: 0.6rem;
-		letter-spacing: 0.12em;
-		color: rgba(255, 255, 255, 0.28);
-		text-transform: uppercase;
 	}
 
-	.arch-card-type {
-		font-family: "JetBrains Mono", "Fira Code", "Space Mono", ui-monospace, monospace;
-		font-size: 0.55rem;
+	.arch-status-value {
+		font-family: "JetBrains Mono", ui-monospace, monospace;
+		font-size: 0.58rem;
 		letter-spacing: 0.1em;
-		color: rgba(255, 255, 255, 0.32);
+		color: rgba(255, 255, 255, 0.4);
 		text-transform: uppercase;
-		padding: 0.1rem 0.45rem;
-		border: 1px solid rgba(255, 255, 255, 0.07);
-		border-radius: 3px;
 	}
 
-	.arch-card-name {
-		margin: 0 0 0.6rem;
-		font-size: 1.35rem;
-		font-weight: 600;
-		color: #F1F3F8;
-		line-height: 1.3;
-		transition: color 0.2s ease;
-	}
-
-	.arch-card:hover .arch-card-name {
-		color: #FFFFFF;
-	}
-
-	.arch-card-desc {
-		margin: 0;
-		font-size: 0.85rem;
-		line-height: 1.7;
-		color: #8992A5;
-		flex: 1;
-	}
-
-	.arch-card-meta {
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-		margin-top: 0.25rem;
-		flex: 1;
-	}
-
-	.arch-card-cat {
-		font-size: 0.72rem;
-		color: rgba(255, 255, 255, 0.38);
-		font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
-	}
-
-	.arch-card-bottom {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		margin-top: 1rem;
-		padding-top: 0.85rem;
-		border-top: 1px solid rgba(255, 255, 255, 0.04);
-	}
-
-	.arch-card-arrow {
-		color: rgba(255, 255, 255, 0.25);
-		font-size: 0.9rem;
-		transition: color 0.2s ease, transform 0.2s ease;
-	}
-
-	.arch-card:hover .arch-card-arrow {
-		color: rgba(155, 140, 255, 0.75);
-		transform: translate(2px, -2px);
-	}
-
-	/* 工具分组 */
-	.arch-tool-hint {
-		color: #7F8799;
-		font-size: 0.9rem;
-		margin: 0 0 1.75rem;
-	}
-
-	.arch-tool-group {
-		margin-bottom: 2rem;
-		animation: arch-card-in 0.4s ease-out both;
-		animation-delay: calc(var(--arch-index) * 60ms);
-	}
-
-	.arch-tool-group-title {
-		display: flex;
-		align-items: baseline;
-		gap: 0.7rem;
-		font-size: 1.05rem;
-		font-weight: 600;
-		color: #F1F3F8;
-		margin: 0 0 0.85rem;
-	}
-
-	.arch-tool-group-num {
-		font-family: "JetBrains Mono", "Fira Code", "Space Mono", ui-monospace, monospace;
-		font-size: 0.68rem;
-		color: rgba(155, 140, 255, 0.55);
-		letter-spacing: 0.05em;
+	.arch-status-online {
+		font-family: "JetBrains Mono", ui-monospace, monospace;
+		font-size: 0.58rem;
+		letter-spacing: 0.12em;
+		color: rgba(125, 232, 208, 0.5);
+		text-transform: uppercase;
 	}
 
 	/* 响应式 */
 	@media (max-width: 1024px) {
 		.arch-container {
 			padding: 0 2.5rem;
-		}
-		.arch-index {
-			gap: 2.5rem;
-		}
-	}
-
-	@media (max-width: 1100px) {
-		.arch-grid {
-			grid-template-columns: repeat(2, 1fr);
 		}
 	}
 
@@ -529,76 +299,30 @@ const description = "收藏那些值得留下的东西。";
 			padding: 0 1.25rem;
 		}
 		.arch-header {
-			margin-bottom: 2.25rem;
+			flex-direction: column;
+			gap: 1rem;
+		}
+		.arch-header-right {
+			flex-direction: row;
+			gap: 1.5rem;
+			padding-top: 0;
+		}
+		.arch-obs-item {
+			align-items: flex-start;
 		}
 		.arch-title {
 			font-size: 2rem;
 		}
 		.arch-sub {
-			font-size: 0.88rem;
+			font-size: 0.85rem;
 		}
-		.arch-index {
-			gap: 1.75rem;
-			margin-bottom: 2.25rem;
+		.arch-search-hint {
+			display: none;
 		}
-		.arch-index-item {
-			font-size: 0.78rem;
-		}
-		.arch-grid {
-			grid-template-columns: 1fr;
-			gap: 1rem;
-		}
-		.arch-card {
-			min-height: 150px;
-			padding: 1.2rem 1.3rem;
-		}
-		.arch-card-name {
-			font-size: 1.2rem;
-		}
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.arch-panel,
-		.arch-card,
-		.arch-tool-group {
-			animation: none;
-		}
-		.arch-card,
-		.arch-card-arrow,
-		.arch-index-item {
-			transition: none;
+		.arch-statusbar {
+			flex-direction: column;
+			gap: 0.4rem;
+			align-items: flex-start;
 		}
 	}
 </style>
-
-<script>
-	// 档案分类切换（兼容 swup 无刷新）
-	function bindArchTabs() {
-		const tabs = document.querySelectorAll<HTMLButtonElement>(".arch-index-item[data-tab]");
-		const panels = document.querySelectorAll<HTMLElement>(".arch-panel[data-panel]");
-
-		tabs.forEach((tab) => {
-			if (tab.dataset.bound) return;
-			tab.dataset.bound = "1";
-			tab.addEventListener("click", () => {
-				const target = tab.dataset.tab || "";
-				tabs.forEach((t) => {
-					const active = t === tab;
-					t.classList.toggle("is-active", active);
-					t.setAttribute("aria-selected", String(active));
-				});
-				panels.forEach((p) => {
-					p.classList.toggle("is-active", p.dataset.panel === target);
-				});
-			});
-		});
-	}
-
-	if (document.readyState === "loading") {
-		document.addEventListener("DOMContentLoaded", bindArchTabs);
-	} else {
-		bindArchTabs();
-	}
-	document.addEventListener("swup:contentReplaced", bindArchTabs);
-	document.addEventListener("firefly:page:loaded", bindArchTabs);
-</script>

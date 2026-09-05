@@ -1,0 +1,255 @@
+---
+// 旅行时间轴：年份与地图联动
+import { travels } from "@/data/travels";
+
+// 从旅行数据提取年份
+const allYears = Array.from(
+	new Set(
+		travels.map(t => {
+			const m = t.date.match(/(\d{4})/);
+			return m ? m[1] : "";
+		}).filter(Boolean)
+	)
+).sort();
+
+const minYear = allYears.length ? parseInt(allYears[0]) : 2022;
+const maxYear = allYears.length ? parseInt(allYears[allYears.length - 1]) : 2026;
+const years: string[] = [];
+for (let y = minYear; y <= maxYear; y++) years.push(String(y));
+
+// 按年份分组旅行
+const journeysByYear = new Map<string, typeof travels>();
+travels.forEach(t => {
+	const m = t.date.match(/(\d{4})/);
+	const y = m ? m[1] : "";
+	if (!y) return;
+	const arr = journeysByYear.get(y) || [];
+	arr.push(t);
+	journeysByYear.set(y, arr);
+});
+---
+
+<div class="jtimeline" id="journey-timeline">
+	<div class="jtimeline-label">
+		<span>JOURNEY TIMELINE</span>
+		<span>点击年份筛选地图</span>
+	</div>
+
+	<div class="jtimeline-track">
+		<!-- 年份线 -->
+		<div class="jtimeline-line"></div>
+
+		{years.map(year => {
+			const journeys = journeysByYear.get(year) || [];
+			const hasJourney = journeys.length > 0;
+			return (
+				<div class={`jtimeline-year ${hasJourney ? "has-journey" : ""}`} data-year={year}>
+					<button class="jtimeline-year-btn" data-year={year}>
+						<span class="jtimeline-dot"></span>
+						<span class="jtimeline-year-num">{year}</span>
+					</button>
+					{hasJourney && (
+						<div class="jtimeline-items">
+							{journeys.map(j => (
+								<a class="jtimeline-item" href={`/travel/${j.slug}/`} data-year={year}>
+									<span class="jtimeline-item-dot"></span>
+									<span class="jtimeline-item-title">{j.title}</span>
+									<span class="jtimeline-item-date">{j.date.split(" ")[0]}</span>
+								</a>
+							))}
+						</div>
+					)}
+				</div>
+			);
+		})}
+	</div>
+</div>
+
+<style>
+	.jtimeline {
+		margin-top: 0.5rem;
+	}
+
+	.jtimeline-label {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 1.25rem;
+		font-family: "JetBrains Mono", ui-monospace, monospace;
+		font-size: 0.55rem;
+		letter-spacing: 0.12em;
+		color: rgba(255,255,255,0.3);
+		text-transform: uppercase;
+	}
+
+	.jtimeline-track {
+		position: relative;
+		display: flex;
+		justify-content: space-between;
+		padding: 0 0.5rem;
+	}
+
+	.jtimeline-line {
+		position: absolute;
+		top: 10px;
+		left: 5%;
+		right: 5%;
+		height: 1px;
+		background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08) 10%, rgba(255,255,255,0.08) 90%, transparent);
+	}
+
+	.jtimeline-year {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		flex: 1;
+	}
+
+	.jtimeline-year-btn {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.4rem;
+		background: transparent;
+		border: none;
+		cursor: pointer;
+		padding: 0;
+		position: relative;
+		z-index: 2;
+	}
+
+	.jtimeline-dot {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background: rgba(255,255,255,0.15);
+		border: 1px solid rgba(255,255,255,0.2);
+		transition: all 0.25s;
+	}
+
+	.jtimeline-year.has-journey .jtimeline-dot {
+		background: rgba(155,140,255,0.4);
+		border-color: rgba(155,140,255,0.5);
+		box-shadow: 0 0 8px rgba(155,140,255,0.2);
+	}
+
+	.jtimeline-year-btn:hover .jtimeline-dot,
+	.jtimeline-year.active .jtimeline-dot {
+		background: #9B8CFF;
+		border-color: #9B8CFF;
+		box-shadow: 0 0 12px rgba(155,140,255,0.5);
+		transform: scale(1.3);
+	}
+
+	.jtimeline-year-num {
+		font-family: "JetBrains Mono", ui-monospace, monospace;
+		font-size: 0.7rem;
+		letter-spacing: 0.05em;
+		color: rgba(255,255,255,0.35);
+		transition: color 0.2s;
+	}
+
+	.jtimeline-year-btn:hover .jtimeline-year-num,
+	.jtimeline-year.active .jtimeline-year-num {
+		color: #F4F5FA;
+	}
+
+	.jtimeline-items {
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+		margin-top: 0.75rem;
+		width: 100%;
+		align-items: center;
+	}
+
+	.jtimeline-item {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.15rem;
+		text-decoration: none;
+		padding: 0.4rem 0.5rem;
+		border-radius: 6px;
+		transition: background 0.2s;
+		width: 100%;
+		max-width: 130px;
+	}
+
+	.jtimeline-item:hover {
+		background: rgba(255,255,255,0.03);
+	}
+
+	.jtimeline-item-dot {
+		width: 3px;
+		height: 3px;
+		border-radius: 50%;
+		background: rgba(99,216,255,0.5);
+	}
+
+	.jtimeline-item-title {
+		font-size: 0.72rem;
+		color: rgba(255,255,255,0.6);
+		text-align: center;
+		line-height: 1.3;
+		transition: color 0.2s;
+	}
+
+	.jtimeline-item:hover .jtimeline-item-title {
+		color: #F4F5FA;
+	}
+
+	.jtimeline-item-date {
+		font-family: "JetBrains Mono", ui-monospace, monospace;
+		font-size: 0.5rem;
+		color: rgba(255,255,255,0.25);
+	}
+
+	/* 过滤状态：非当前年份的旅行项降低透明度 */
+	.jtimeline.filtering .jtimeline-year:not(.active) .jtimeline-items {
+		opacity: 0.25;
+	}
+
+	@media (max-width: 768px) {
+		.jtimeline-track {
+			overflow-x: auto;
+			justify-content: flex-start;
+			gap: 1.5rem;
+			padding: 0 1rem 1rem;
+			-webkit-overflow-scrolling: touch;
+		}
+		.jtimeline-year {
+			flex: 0 0 auto;
+			min-width: 100px;
+		}
+		.jtimeline-line {
+			display: none;
+		}
+	}
+</style>
+
+<script>
+	// 时间轴与地图联动：点击年份同步触发地图过滤
+	const timeline = document.getElementById("journey-timeline");
+	if (timeline) {
+		timeline.addEventListener("click", (e) => {
+			const btn = (e.target as HTMLElement).closest(".jtimeline-year-btn");
+			if (!btn) return;
+			const year = btn.getAttribute("data-year");
+			if (!year) return;
+
+			// 切换时间轴 active 状态
+			document.querySelectorAll(".jtimeline-year").forEach(y => {
+				y.classList.toggle("active", y.getAttribute("data-year") === year);
+			});
+			timeline.classList.add("filtering");
+
+			// 同步触发地图的年份过滤（通过模拟点击地图的过滤按钮）
+			const mapFilterBtn = document.querySelector(`.tmap-filter-btn[data-year="${year}"]`);
+			if (mapFilterBtn) {
+				(mapFilterBtn as HTMLElement).click();
+			}
+		});
+	}
+</script>
