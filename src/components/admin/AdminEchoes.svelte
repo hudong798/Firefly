@@ -13,14 +13,34 @@
 		created_at: string;
 	}
 
+	// 默认管理密码（Supabase 读取失败时使用）
+	const DEFAULT_ADMIN_PASSWORD = "52798";
+
 	let loggedIn = false;
 	let loading = false;
 	let echoes: Echo[] = [];
 	let echoesLoading = false;
-	let email = "";
 	let password = "";
 	let loginError = "";
 	let actionMessage = "";
+
+	// 从 Supabase 获取管理密码
+	async function getAdminPassword(): Promise<string> {
+		if (!supabase) return DEFAULT_ADMIN_PASSWORD;
+		try {
+			const { data, error } = await supabase
+				.from("site_config")
+				.select("value")
+				.eq("key", "admin_password")
+				.single();
+			if (!error && data?.value) {
+				return data.value;
+			}
+		} catch (e) {
+			// 表不存在或读取失败，使用默认密码
+		}
+		return DEFAULT_ADMIN_PASSWORD;
+	}
 
 	// 新建回声表单
 	let showForm = false;
@@ -34,12 +54,8 @@
 	const moodOptions = ["🌙", "😆", "🌱", "😊", "🤔", "😴", "✨", "🔥", "💭", "☕"];
 
 	async function handleLogin() {
-		if (!supabase) {
-			loginError = "Supabase 未配置";
-			return;
-		}
-		if (!email || !password) {
-			loginError = "请输入邮箱和密码";
+		if (!password) {
+			loginError = "请输入密码";
 			return;
 		}
 
@@ -47,29 +63,26 @@
 		loginError = "";
 
 		try {
-			const { data, error } = await supabase.auth.signInWithPassword({
-				email: email.trim(),
-				password: password,
-			});
-
-			if (error) throw error;
-			if (data.user) {
+			const adminPassword = await getAdminPassword();
+			if (password === adminPassword) {
 				loggedIn = true;
+				if (typeof window !== "undefined") {
+					localStorage.setItem("echo_admin_logged_in", "true");
+				}
 				loadEchoes();
+			} else {
+				loginError = "密码错误";
 			}
-		} catch (e: any) {
-			loginError = e?.message || "登录失败";
+		} catch (e) {
+			loginError = "登录失败，请重试";
 		} finally {
 			loading = false;
 		}
 	}
 
-	async function handleLogout() {
-		if (!supabase) return;
-		await supabase.auth.signOut();
+	function handleLogout() {
 		loggedIn = false;
 		echoes = [];
-		email = "";
 		password = "";
 		showForm = false;
 	}
@@ -131,7 +144,7 @@
 
 			if (error) throw error;
 
-			actionMessage = "回声发布成功！";
+			actionMessage = "公告发布成功！";
 			// 重置表单
 			newTitle = "";
 			newSlug = "";
@@ -149,7 +162,7 @@
 
 	async function deleteEcho(id: string) {
 		if (!supabase) return;
-		if (!confirm("确定删除这条回声吗？此操作不可撤销。")) return;
+		if (!confirm("确定删除这条公告吗？此操作不可撤销。")) return;
 		try {
 			const { error } = await supabase.from("echoes").delete().eq("id", id);
 			if (error) throw error;
@@ -165,10 +178,9 @@
 		return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 	}
 
-	onMount(async () => {
-		if (!supabase) return;
-		const { data } = await supabase.auth.getSession();
-		if (data.session) {
+	onMount(() => {
+		// 从 localStorage 读取登录状态
+		if (typeof window !== "undefined" && localStorage.getItem("echo_admin_logged_in") === "true") {
 			loggedIn = true;
 			loadEchoes();
 		}
@@ -179,26 +191,15 @@
 	{#if !loggedIn}
 		<!-- 登录表单 -->
 		<div class="admin-login">
-			<h2>回声管理登录</h2>
-			<p class="admin-login-sub">登录后可以发布和管理回声</p>
+			<h2>公告管理登录</h2>
+			<p class="admin-login-sub">登录后可以发布和管理公告</p>
 
 			{#if loginError}
 				<div class="admin-error">{loginError}</div>
 			{/if}
 
 			<div class="admin-form-group">
-				<label for="echo-email">邮箱</label>
-				<input
-					id="echo-email"
-					type="email"
-					bind:value={email}
-					placeholder="admin@example.com"
-					on:keydown={(e) => e.key === "Enter" && handleLogin()}
-				/>
-			</div>
-
-			<div class="admin-form-group">
-				<label for="echo-password">密码</label>
+				<label for="echo-password">管理密码</label>
 				<input
 					id="echo-password"
 					type="password"
@@ -217,12 +218,12 @@
 		<div class="admin-panel">
 			<div class="admin-panel-header">
 				<div>
-					<h2>回声管理</h2>
-					<p class="admin-panel-sub">共 {echoes.length} 条回声</p>
+					<h2>公告管理</h2>
+					<p class="admin-panel-sub">共 {echoes.length} 条公告</p>
 				</div>
 				<div class="admin-panel-actions">
 					<button class="admin-btn admin-btn-primary" on:click={() => (showForm = !showForm)}>
-						{#if showForm}取消{:else}+ 写回声{/if}
+						{#if showForm}取消{:else}+ 写公告{/if}
 					</button>
 					<button class="admin-btn admin-btn-secondary" on:click={loadEchoes}>刷新</button>
 					<button class="admin-btn admin-btn-danger" on:click={handleLogout}>退出</button>
@@ -236,12 +237,12 @@
 			<!-- 新建回声表单 -->
 			{#if showForm}
 				<div class="echo-form">
-					<h3>发布新回声</h3>
+					<h3>发布新公告</h3>
 
 					<div class="form-row">
 						<div class="form-group">
 							<label>标题 *</label>
-							<input type="text" bind:value={newTitle} placeholder="给这条回声起个标题" />
+							<input type="text" bind:value={newTitle} placeholder="给这条公告起个标题" />
 						</div>
 						<div class="form-group">
 							<label>Slug（URL，留空自动生成）</label>
@@ -275,7 +276,7 @@
 					</div>
 
 					<button class="admin-submit-btn" on:click={submitEcho} disabled={submitting}>
-						{#if submitting}发布中...{:else}发布回声{/if}
+						{#if submitting}发布中...{:else}发布公告{/if}
 					</button>
 				</div>
 			{/if}
@@ -284,7 +285,7 @@
 			{#if echoesLoading}
 				<div class="admin-loading">加载中...</div>
 			{:else if echoes.length === 0}
-				<div class="admin-empty">还没有回声，点击「写回声」发布第一条</div>
+				<div class="admin-empty">还没有公告，点击「写公告」发布第一条</div>
 			{:else}
 				<div class="echo-list">
 					{#each echoes as echo (echo.id)}

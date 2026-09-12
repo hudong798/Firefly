@@ -170,6 +170,176 @@ const description = "一些想法经过时间，最终留下的痕迹。";
 		position: relative;
 	}
 
+	/* 公告卡片全局样式（避免Svelte客户端样式偶尔丢失） */
+	:global(.echoes) {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+
+	:global(.echo) {
+		position: relative;
+		display: grid;
+		grid-template-columns: 140px 1fr;
+		gap: 2rem;
+		padding: 1.5rem;
+		background: rgba(155, 140, 255, 0.06);
+		border: 1px solid rgba(155, 140, 255, 0.12);
+		border-radius: 0.75rem;
+		backdrop-filter: blur(8px);
+		animation: echo-fade-in 0.6s ease-out both;
+		transition: all 0.25s ease;
+	}
+
+	:global(.echo:hover) {
+		background: rgba(155, 140, 255, 0.09);
+		border-color: rgba(155, 140, 255, 0.2);
+		transform: translateY(-2px);
+	}
+
+	:global(.echo-expanded) {
+		background: rgba(155, 140, 255, 0.1);
+		border-color: rgba(155, 140, 255, 0.25);
+	}
+
+	:global(.echo-meta) {
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+		padding-top: 0.25rem;
+	}
+
+	:global(.echo-number) {
+		font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+		font-size: 0.6rem;
+		letter-spacing: 0.15em;
+		color: rgba(155, 140, 255, 0.5);
+		text-transform: uppercase;
+	}
+
+	:global(.echo-date) {
+		font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+		font-size: 0.75rem;
+		color: rgba(255, 255, 255, 0.45);
+		letter-spacing: 0.02em;
+	}
+
+	:global(.echo-time) {
+		font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+		font-size: 0.7rem;
+		color: rgba(255, 255, 255, 0.3);
+	}
+
+	:global(.echo-night-badge) {
+		display: inline-block;
+		width: fit-content;
+		font-size: 0.6rem;
+		padding: 0.15rem 0.4rem;
+		border-radius: 4px;
+		background: rgba(99, 102, 241, 0.1);
+		color: rgba(155, 140, 255, 0.7);
+		letter-spacing: 0.1em;
+		margin-top: 0.25rem;
+	}
+
+	:global(.echo-body) {
+		min-width: 0;
+	}
+
+	:global(.echo-mood) {
+		font-size: 1.3rem;
+		margin-bottom: 0.75rem;
+		line-height: 1;
+	}
+
+	:global(.echo-title) {
+		font-size: 1.1rem;
+		font-weight: 600;
+		color: #F4F5FA;
+		margin: 0 0 0.75rem 0;
+		line-height: 1.4;
+	}
+
+	:global(.echo-content) {
+		font-size: 0.95rem;
+		line-height: 1.9;
+		color: rgba(255, 255, 255, 0.75);
+		white-space: pre-wrap;
+		word-break: break-word;
+	}
+
+	:global(.echo-expand-btn) {
+		margin-top: 0.75rem;
+		padding: 0.3rem 0.75rem;
+		background: rgba(155, 140, 255, 0.08);
+		border: 1px solid rgba(155, 140, 255, 0.15);
+		border-radius: 6px;
+		color: rgba(155, 140, 255, 0.8);
+		font-size: 0.75rem;
+		cursor: pointer;
+		transition: all 0.2s;
+		font-family: inherit;
+	}
+
+	:global(.echo-expand-btn:hover) {
+		background: rgba(155, 140, 255, 0.15);
+		color: rgba(155, 140, 255, 1);
+	}
+
+	:global(.echo-tags) {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		margin-top: 1rem;
+	}
+
+	:global(.echo-tag) {
+		font-size: 0.7rem;
+		color: rgba(155, 140, 255, 0.6);
+		background: rgba(155, 140, 255, 0.05);
+		padding: 0.2rem 0.5rem;
+		border-radius: 4px;
+		letter-spacing: 0.02em;
+	}
+
+	:global(.echo-divider) {
+		display: none;
+	}
+
+	@keyframes echo-fade-in {
+		from {
+			opacity: 0;
+			transform: translateY(12px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	@media (max-width: 768px) {
+		:global(.echo) {
+			grid-template-columns: 1fr;
+			gap: 1rem;
+			padding: 1.25rem;
+		}
+
+		:global(.echo-meta) {
+			flex-direction: row;
+			align-items: center;
+			gap: 0.75rem;
+			flex-wrap: wrap;
+		}
+
+		:global(.echo-night-badge) {
+			margin-top: 0;
+		}
+
+		:global(.echo-content) {
+			font-size: 0.9rem;
+		}
+	}
+
 	@media (max-width: 768px) {
 		.echo-container {
 			padding: 0 1.25rem;

@@ -243,7 +243,7 @@
 	.echoes {
 		display: flex;
 		flex-direction: column;
-		gap: 0;
+		gap: 1rem;
 	}
 
 	.echo {
@@ -251,9 +251,20 @@
 		display: grid;
 		grid-template-columns: 140px 1fr;
 		gap: 2rem;
-		padding: 2.5rem 0;
+		padding: 1.5rem;
+		background: rgba(155, 140, 255, 0.06);
+		border: 1px solid rgba(155, 140, 255, 0.12);
+		border-radius: 0.75rem;
+		backdrop-filter: blur(8px);
 		animation: echo-fade-in 0.6s ease-out both;
 		animation-delay: calc(var(--echo-index, 0) * 0.08s);
+		transition: all 0.25s ease;
+	}
+
+	.echo:hover {
+		background: rgba(155, 140, 255, 0.09);
+		border-color: rgba(155, 140, 255, 0.2);
+		transform: translateY(-2px);
 	}
 
 	@keyframes echo-fade-in {
@@ -268,7 +279,8 @@
 	}
 
 	.echo-expanded {
-		background: rgba(155, 140, 255, 0.02);
+		background: rgba(155, 140, 255, 0.1);
+		border-color: rgba(155, 140, 255, 0.25);
 	}
 
 	/* 左侧元信息 */
@@ -373,12 +385,9 @@
 		letter-spacing: 0.02em;
 	}
 
-	/* 底部分隔线 */
+	/* 底部分隔线（卡片模式下隐藏） */
 	.echo-divider {
-		grid-column: 1 / -1;
-		height: 1px;
-		background: linear-gradient(90deg, rgba(155, 140, 255, 0.08) 0%, rgba(155, 140, 255, 0.03) 50%, transparent 100%);
-		margin-top: 0.5rem;
+		display: none;
 	}
 
 	/* 响应式 */
@@ -386,7 +395,7 @@
 		.echo {
 			grid-template-columns: 1fr;
 			gap: 1rem;
-			padding: 2rem 0;
+			padding: 1.25rem;
 		}
 
 		.echo-meta {

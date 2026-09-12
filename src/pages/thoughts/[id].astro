@@ -52,7 +52,7 @@ const night = isNight(moment.date);
 
 	<div class="echo-detail-container">
 		<!-- 返回 -->
-		<a class="echo-detail-back" href="/thoughts/">← 返回回声</a>
+		<a class="echo-detail-back" href="/">← 返回</a>
 
 		<!-- 单条回声 -->
 		<article class="echo-detail">
@@ -128,14 +128,25 @@ const night = isNight(moment.date);
 		transform: translateX(-3px);
 	}
 
-	/* 单条回声：Editorial Layout */
+	/* 单条回声：液态玻璃卡片 */
 	.echo-detail {
 		display: grid;
-		grid-template-columns: 140px 1fr;
-		gap: 2rem;
-		padding: 1rem 0 2.5rem;
+		grid-template-columns: 160px 1fr;
+		gap: 3rem;
+		padding: 3.5rem;
+		background: rgba(155, 140, 255, 0.06);
+		border: 1px solid rgba(155, 140, 255, 0.12);
+		border-radius: 1.25rem;
+		backdrop-filter: blur(10px);
 		position: relative;
 		animation: echo-detail-in 0.5s ease-out both;
+		transition: all 0.3s ease;
+	}
+
+	.echo-detail:hover {
+		background: rgba(155, 140, 255, 0.09);
+		border-color: rgba(155, 140, 255, 0.2);
+		transform: translateY(-2px);
 	}
 
 	@keyframes echo-detail-in {
@@ -159,21 +170,21 @@ const night = isNight(moment.date);
 	}
 
 	.echo-detail-number {
-		font-size: 0.55rem;
+		font-size: 0.65rem;
 		letter-spacing: 0.12em;
-		color: rgba(255, 255, 255, 0.25);
+		color: rgba(255, 255, 255, 0.35);
 		text-transform: uppercase;
 	}
 
 	.echo-detail-date {
-		font-size: 0.7rem;
-		color: rgba(255, 255, 255, 0.4);
+		font-size: 0.85rem;
+		color: rgba(255, 255, 255, 0.5);
 		letter-spacing: 0.02em;
 	}
 
 	.echo-detail-time {
-		font-size: 0.65rem;
-		color: rgba(255, 255, 255, 0.25);
+		font-size: 0.75rem;
+		color: rgba(255, 255, 255, 0.35);
 		display: inline-flex;
 		align-items: center;
 		gap: 0.3rem;
@@ -210,7 +221,7 @@ const night = isNight(moment.date);
 
 	/* 正文 */
 	.echo-detail-content {
-		font-size: 1rem;
+		font-size: 1.15rem;
 		line-height: 2;
 		font-weight: 400;
 		color: #D8DCE7;
@@ -227,8 +238,11 @@ const night = isNight(moment.date);
 	}
 
 	.echo-detail-tag {
-		font-size: 0.68rem;
-		color: rgba(255, 255, 255, 0.32);
+		font-size: 0.8rem;
+		color: rgba(155, 140, 255, 0.7);
+		background: rgba(155, 140, 255, 0.08);
+		padding: 0.25rem 0.6rem;
+		border-radius: 4px;
 		font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
 		letter-spacing: 0.02em;
 	}
@@ -241,8 +255,8 @@ const night = isNight(moment.date);
 
 		.echo-detail {
 			grid-template-columns: 1fr;
-			gap: 0.75rem;
-			padding: 0.5rem 0 2rem;
+			gap: 1rem;
+			padding: 1.5rem;
 		}
 
 		.echo-detail-meta {
