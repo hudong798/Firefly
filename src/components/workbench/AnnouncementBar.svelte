@@ -27,7 +27,7 @@
 				.select("*")
 				.eq("status", "published")
 				.order("created_at", { ascending: false })
-				.limit(2);
+				.limit(1);
 			if (!error && data) {
 				announcements = data;
 			}
