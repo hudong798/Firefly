@@ -61,16 +61,18 @@ contacts.push({ name: "微信", icon: "fa6-brands:weixin", url: "#", external: f
 		<div class="po-grid">
 			<!-- 左侧：个人身份识别 -->
 			<aside class="po-identity">
-				<div class="id-orb">
-					<div class="id-orb-ring id-orb-ring--rotate" aria-hidden="true">
-						<span class="id-orb-comet"></span>
+				<a href="/" class="id-orb-link" title="返回首页">
+					<div class="id-orb">
+						<div class="id-orb-ring id-orb-ring--rotate" aria-hidden="true">
+							<span class="id-orb-comet"></span>
+						</div>
+						<div class="id-orb-ring id-orb-ring--static" aria-hidden="true"></div>
+						<div class="id-orb-core">
+							<img src={profileConfig.avatar} alt="Idong avatar" />
+						</div>
+						<span class="id-orb-status" title="online"></span>
 					</div>
-					<div class="id-orb-ring id-orb-ring--static" aria-hidden="true"></div>
-					<div class="id-orb-core">
-						<img src={profileConfig.avatar} alt="Idong avatar" />
-					</div>
-					<span class="id-orb-status" title="online"></span>
-				</div>
+				</a>
 
 				<h1 class="id-name">Idong</h1>
 				<p class="id-line">热爱 AI · 追求自由</p>
@@ -277,6 +279,12 @@ contacts.push({ name: "微信", icon: "fa6-brands:weixin", url: "#", external: f
 	.po-identity {
 		position: sticky;
 		top: 1.25rem;
+	}
+
+	.id-orb-link {
+		display: block;
+		text-decoration: none;
+		cursor: pointer;
 	}
 
 	.id-orb {

@@ -131,27 +131,29 @@ const totalEntries = tvSites.length + tvOthers.length;
 		</div>
 	</section>
 
-	<!-- 18+ 专区：默认折叠 -->
-	<details class="tv-adult">
-		<summary class="tv-adult-title">
-			<span class="tv-adult-label">RESTRICTED</span>
-			18+ 专区
-			<span class="tv-adult-toggle">+</span>
-		</summary>
-		<p class="tv-adult-warn">
-			以下网址需<strong>手动输入</strong>，请勿直接复制，注意甄别网络安全。
-		</p>
-		<ul class="tv-adult-list">
-			{
-				tvAdult.map((a) => (
-					<li>
-						<span class="tv-adult-no">{String(a.no).padStart(2, "0")}</span>
-						<span class="tv-adult-site">{a.site}</span>
-					</li>
-				))
-			}
-		</ul>
-	</details>
+	<!-- 18+ 专区：默认折叠（仅在有内容时显示） -->
+	{tvAdult.length > 0 && (
+		<details class="tv-adult">
+			<summary class="tv-adult-title">
+				<span class="tv-adult-label">RESTRICTED</span>
+				18+ 专区
+				<span class="tv-adult-toggle">+</span>
+			</summary>
+			<p class="tv-adult-warn">
+				以下网址需<strong>手动输入</strong>，请勿直接复制，注意甄别网络安全。
+			</p>
+			<ul class="tv-adult-list">
+				{
+					tvAdult.map((a) => (
+						<li>
+							<span class="tv-adult-no">{String(a.no).padStart(2, "0")}</span>
+							<span class="tv-adult-site">{a.site}</span>
+						</li>
+					))
+				}
+			</ul>
+		</details>
+	)}
 </div>
 
 <style>

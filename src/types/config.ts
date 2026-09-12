@@ -146,9 +146,9 @@ export type LicenseConfig = {
 export type CommentConfig = {
 	/**
 	 * 当前启用的评论系统类型
-	 * "none" | "twikoo" | "waline" | "giscus" | "disqus" | 'artalk'
+	 * "none" | "twikoo" | "waline" | "giscus" | "disqus" | 'artalk' | "supabase"
 	 */
-	type: "none" | "twikoo" | "waline" | "giscus" | "disqus" | "artalk";
+	type: "none" | "twikoo" | "waline" | "giscus" | "disqus" | "artalk" | "supabase";
 	twikoo?: {
 		envId: string;
 		region?: string;

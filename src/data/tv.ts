@@ -69,23 +69,8 @@ export const tvParsers: TvParser[] = [
 	{ name: "2S0 解析", url: "https://jx.2s0.cn/player/?url=" },
 ];
 
-// 18+ 专区（需手动输入）
-export const tvAdult: TvAdult[] = [
-	{ no: 1, site: "apiyutu · com" },
-	{ no: 2, site: "Naixxzy · com" },
-	{ no: 3, site: "xxibaozyw · com" },
-	{ no: 4, site: "ckzy · me" },
-	{ no: 5, site: "shayuapi · com" },
-	{ no: 6, site: "apilj · com" },
-	{ no: 7, site: "woaav · lol" },
-	{ no: 8, site: "jingpinx · com" },
-	{ no: 9, site: "souavzy · vip" },
-	{ no: 10, site: "jiejie51-tcpm480 · cc" },
-	{ no: 11, site: "992kp · com" },
-	{ no: 12, site: "91md · me" },
-	{ no: 13, site: "h82wz1 · lwcjcukk · xyz" },
-	{ no: 14, site: "yandex · com / search / touch" },
-];
+// 18+ 专区（需手动输入）- 已清空
+export const tvAdult: TvAdult[] = [];
 
 // 分组顺序
 export const tvTypeOrder: TvType[] = ["综合", "动漫", "短剧", "网盘", "其他"];
