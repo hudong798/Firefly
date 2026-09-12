@@ -125,46 +125,6 @@ const { title, description = "修仙系统" } = Astro.props;
 	</head>
 	<body class="cult-body">
 		<slot />
-		{/* 导航遮罩：跳转瞬间覆盖同色全屏层，遮住移动浏览器卸载旧文档时的无样式重绘帧（FOUC） */}
-		<script is:inline>
-			(function () {
-				function showMask() {
-					var m = document.getElementById("__cult_nav_mask__");
-					if (m) return;
-					m = document.createElement("div");
-					m.id = "__cult_nav_mask__";
-					m.style.cssText =
-						"position:fixed;inset:0;z-index:2147483647;background:#050811;opacity:0;transition:opacity .14s ease;";
-					(document.body || document.documentElement).appendChild(m);
-					requestAnimationFrame(function () {
-						requestAnimationFrame(function () { m.style.opacity = "1"; });
-					});
-				}
-				function hideMask() {
-					var m = document.getElementById("__cult_nav_mask__");
-					if (m && m.parentNode) m.parentNode.removeChild(m);
-				}
-				// 捕获阶段拦截所有真实跨页链接点击，提前盖遮罩
-				document.addEventListener(
-					"click",
-					function (e) {
-						var t = e.target;
-						var a = t && t.closest ? t.closest("a") : null;
-						if (!a) return;
-						var h = a.getAttribute("href") || "";
-						if (!h || h.charAt(0) === "#" || /^javascript:/i.test(h)) return;
-						if (a.target === "_blank" || a.hasAttribute("download")) return;
-						if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
-						showMask();
-					},
-					true
-				);
-				// 兜底：JS 主动跳转 / 表单提交等非点击导航
-				window.addEventListener("beforeunload", showMask);
-				// bfcache 恢复时移除遮罩
-				window.addEventListener("pageshow", hideMask);
-			})();
-		</script>
 	</body>
 </html>
 
