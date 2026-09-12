@@ -248,7 +248,7 @@
 			{:else if $authStore.isLoggedIn && $authStore.profile}
 				<div class="cult-nav-user-info">
 					<span class="cult-nav-coins">
-						<Icon icon="lucide:gem" width="16" height="16" />
+						<Icon icon="lucide:coins" width="16" height="16" />
 						<span class="cult-nav-coins-value">{$authStore.wallet?.coins ?? 0}</span>
 					</span>
 					<button class="cult-nav-avatar-btn" on:click={openProfileModal} title="账号管理">
