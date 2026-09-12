@@ -65,6 +65,7 @@ import CultivationLayout from "@layouts/CultivationLayout.astro";
 				<button class="cult-login-btn" ${loading ? "disabled" : ""}>
 					${loading ? "登录中..." : "进入小镇"}
 				</button>
+				<a href="/cultivation/" class="cult-login-secondary-link">先去逛逛修仙界 →</a>
 			`;
 
 			const btn = container.querySelector(".cult-login-btn");
@@ -236,6 +237,22 @@ import CultivationLayout from "@layouts/CultivationLayout.astro";
 	.cult-login-btn:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
+	}
+
+	.cult-login-secondary-link {
+		display: block;
+		width: 100%;
+		margin-top: 0.75rem;
+		text-align: center;
+		font-size: 0.85rem;
+		color: #a78bfa;
+		text-decoration: none;
+		transition: all 0.15s;
+	}
+
+	.cult-login-secondary-link:hover {
+		color: #c4b5fd;
+		text-decoration: underline;
 	}
 
 	.cult-login-footer {

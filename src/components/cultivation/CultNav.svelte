@@ -410,7 +410,8 @@
 	.cult-nav {
 		position: sticky;
 		top: 0;
-		z-index: 100;
+		z-index: 500;
+		isolation: isolate;
 		background: rgba(5, 8, 17, 0.9);
 		backdrop-filter: blur(12px);
 		-webkit-backdrop-filter: blur(12px);
