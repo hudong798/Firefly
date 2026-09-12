@@ -1,0 +1,165 @@
+---
+import CultivationLayout from "@layouts/CultivationLayout.astro";
+import CultNav from "@/components/cultivation/CultNav.svelte";
+---
+
+<CultivationLayout title="我的订单" description="查看兑换订单">
+	<CultNav client:load />
+
+	<main class="cult-page">
+		<div class="cult-page-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+			<div>
+				<h1 class="cult-page-title">我的订单</h1>
+				<p class="cult-page-desc">查看兑换记录和订单状态</p>
+			</div>
+			<a href="/cultivation/shop/" class="cult-btn cult-btn-primary">去仙市</a>
+		</div>
+
+		<div id="auth-guard" style="display:none;">
+			<div class="cult-empty">
+				<div class="cult-empty-icon">
+					<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+				</div>
+				<h3 class="cult-empty-title">需要登录</h3>
+				<p class="cult-empty-desc">登录后才能查看订单</p>
+				<a href="/cultivation/login/" class="cult-btn cult-btn-primary" style="margin-top: 16px;">立即登录</a>
+			</div>
+		</div>
+
+		<div id="orders-content" style="display:none;">
+			<div id="orders-list"></div>
+			<div id="orders-empty" class="cult-empty" style="display:none;">
+				<div class="cult-empty-icon">
+					<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+				</div>
+				<h3 class="cult-empty-title">暂无订单</h3>
+				<p class="cult-empty-desc">去仙市兑换仙货吧</p>
+				<a href="/cultivation/shop/" class="cult-btn cult-btn-primary" style="margin-top: 16px;">去仙市</a>
+			</div>
+		</div>
+	</main>
+</CultivationLayout>
+
+<script>
+	import { getCurrentUser, getMyOrders, confirmReceipt, refundOrder } from "@/services/cultivation";
+
+	const gemIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 2px;"><path d="M6 3h12l4 6-10 13L2 9Z"/><path d="M11 3 8 9l4 13 4-13-3-6"/><path d="M2 9h20"/></svg>`;
+
+	async function init() {
+		const user = await getCurrentUser();
+		const authGuard = document.getElementById("auth-guard");
+		const content = document.getElementById("orders-content");
+
+		if (!user) {
+			if (authGuard) authGuard.style.display = "block";
+			return;
+		}
+
+		if (content) content.style.display = "block";
+		loadOrders();
+	}
+
+	async function loadOrders() {
+		const orders = await getMyOrders();
+		const listEl = document.getElementById("orders-list");
+		const emptyEl = document.getElementById("orders-empty");
+		if (!listEl || !emptyEl) return;
+
+		if (orders.length === 0) {
+			listEl.innerHTML = "";
+			emptyEl.style.display = "block";
+			return;
+		}
+
+		emptyEl.style.display = "none";
+
+		const statusMap = {
+			pending: { label: "待发货", class: "cult-badge-warning" },
+			shipped: { label: "待收货", class: "cult-badge-info" },
+			completed: { label: "已完成", class: "cult-badge-success" },
+			refunded: { label: "已退款", class: "cult-badge-muted" },
+			cancelled: { label: "已取消", class: "cult-badge-muted" },
+		};
+
+		listEl.innerHTML = orders
+			.map((order) => {
+				const status = statusMap[order.status] || { label: order.status, class: "cult-badge-muted" };
+				const product = order.products || {};
+				const date = new Date(order.created_at).toLocaleString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+
+				let actionBtn = "";
+				if (order.status === "shipped") {
+					actionBtn = `
+						<button class="cult-btn cult-btn-primary cult-btn-sm confirm-receipt-btn" data-order-id="${order.id}">确认收货</button>
+					`;
+				} else if (order.status === "pending") {
+					actionBtn = `
+						<button class="cult-btn cult-btn-secondary cult-btn-sm refund-order-btn" data-order-id="${order.id}">退款</button>
+					`;
+				}
+
+				return `
+					<div class="cult-card" style="margin-bottom: 12px;">
+						<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;">
+							<div style="flex: 1;">
+								<div style="font-size: 15px; font-weight: 600; color: var(--cult-text); margin-bottom: 6px;">${product.name || "未知仙货"}</div>
+								${product.description ? `<div style="font-size: 13px; color: var(--cult-text-secondary); margin-bottom: 8px;">${product.description}</div>` : ""}
+								<div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+									<span class="cult-badge cult-badge-warning">${gemIcon}${order.price}</span>
+									<span class="cult-badge ${status.class}">${status.label}</span>
+									<span style="font-size: 12px; color: var(--cult-text-muted);">${date}</span>
+								</div>
+							</div>
+							${actionBtn}
+						</div>
+					</div>
+				`;
+			})
+			.join("");
+
+		listEl.querySelectorAll(".confirm-receipt-btn").forEach((btn) => {
+			btn.addEventListener("click", async (e) => {
+				const orderId = (e.target).dataset.orderId;
+				if (!orderId) return;
+
+				if (!confirm("确认已收到仙货？")) return;
+
+				(e.target).disabled = true;
+				(e.target).textContent = "确认中...";
+
+				const result = await confirmReceipt(orderId);
+				if (result.success) {
+					loadOrders();
+				} else {
+					alert(result.error || "确认收货失败");
+					(e.target).disabled = false;
+					(e.target).textContent = "确认收货";
+				}
+			});
+		});
+
+		listEl.querySelectorAll(".refund-order-btn").forEach((btn) => {
+			btn.addEventListener("click", async (e) => {
+				const orderId = (e.target).dataset.orderId;
+				if (!orderId) return;
+
+				if (!confirm("确定要退款吗？退款后灵石将退回到您的账户。")) return;
+
+				(e.target).disabled = true;
+				(e.target).textContent = "退款中...";
+
+				const result = await refundOrder(orderId);
+				if (result.success) {
+					alert(`退款成功！已退还 ${result.refundAmount} 灵石。`);
+					loadOrders();
+				} else {
+					alert(result.error || "退款失败");
+					(e.target).disabled = false;
+					(e.target).textContent = "退款";
+				}
+			});
+		});
+	}
+
+	init();
+</script>

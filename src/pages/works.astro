@@ -1,0 +1,14 @@
+---
+import ThoughtList from "@/components/workbench/ThoughtList.astro";
+import { getSortedPosts } from "@/utils/content-utils";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+
+const title = "作品";
+const description = "文章列表";
+
+const posts = await getSortedPosts();
+---
+
+<MainGridLayout title={title} description={description}>
+  <ThoughtList posts={posts} />
+</MainGridLayout>

@@ -1,0 +1,266 @@
+---
+import CultivationLayout from "@layouts/CultivationLayout.astro";
+import CultNav from "@/components/cultivation/CultNav.svelte";
+---
+
+<CultivationLayout title="任务大厅" description="领取任务赚取灵石">
+	<CultNav client:load />
+
+	<main class="cult-page">
+		<div class="cult-page-header">
+			<h1 class="cult-page-title">任务大厅</h1>
+			<p class="cult-page-desc">领取任务，完成后获得灵石奖励</p>
+		</div>
+
+		<div id="tasks-content">
+			<!-- 分类筛选 -->
+			<div class="cult-task-filter">
+				<a href="/cultivation/my-tasks/" class="cult-btn" style="margin-right: 8px; padding: 8px 14px; background: rgba(52, 211, 153, 0.15); border: 1px solid rgba(52, 211, 153, 0.3); color: #34d399; border-radius: 10px; font-size: 14px;">我的任务</a>
+				<select id="task-category-filter" class="cult-task-select">
+					<option value="all">全部任务</option>
+					<option value="顶级任务">顶级任务</option>
+					<option value="中级任务">中级任务</option>
+					<option value="初级任务">初级任务</option>
+				</select>
+			</div>
+
+			<div id="tasks-list"></div>
+			<div id="tasks-empty" class="cult-empty" style="display:none;">
+				<div class="cult-empty-icon">
+					<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+				</div>
+				<h3 class="cult-empty-title">暂无可用任务</h3>
+				<p class="cult-empty-desc">稍后再来看看吧</p>
+			</div>
+		</div>
+	</main>
+</CultivationLayout>
+
+<script>
+	import { getCurrentUser, getPublishedTasks, getMyTaskClaims, claimTask } from "@/services/cultivation";
+	import { supabase } from "@/lib/supabase";
+
+	const gemIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 13L2 9Z"/><path d="M11 3 8 9l4 13 4-13-3-6"/><path d="M2 9h20"/></svg>`;
+
+	async function init() {
+		const user = await getCurrentUser();
+		const content = document.getElementById("tasks-content");
+
+		// 未登录也显示任务列表
+		if (content) content.style.display = "block";
+
+		// 加载任务列表（公开数据）
+		const tasks = await getPublishedTasks();
+
+		// 已登录用户：加载我的领取记录
+		let myClaims: any[] = [];
+		let claimedTaskIds = new Set<string>();
+		if (user) {
+			myClaims = await getMyTaskClaims();
+			claimedTaskIds = new Set(myClaims.map((c) => c.task_id));
+		}
+
+		// 查询所有任务的领取人数统计
+		const taskIds = tasks.map((t: any) => t.id);
+		let claimCounts: Record<string, number> = {};
+
+		async function fetchClaimCounts() {
+			if (taskIds.length > 0 && supabase) {
+				// 使用 RPC 函数统计领取人数（绕过 RLS 限制）
+				const { data: countsData, error } = await supabase
+					.rpc("get_task_claim_counts", { p_task_ids: taskIds });
+				
+				if (error) {
+					console.error("获取领取人数失败:", error);
+					return;
+				}
+				
+				if (countsData) {
+					const newCounts: Record<string, number> = {};
+					countsData.forEach((c: any) => {
+						newCounts[c.task_id] = c.claim_count || 0;
+					});
+					claimCounts = newCounts;
+				}
+			}
+		}
+
+		await fetchClaimCounts();
+
+		const listEl = document.getElementById("tasks-list");
+		const emptyEl = document.getElementById("tasks-empty");
+		const filterEl = document.getElementById("task-category-filter") as HTMLSelectElement;
+
+		if (!listEl) return;
+
+		function renderTasks(filterCategory: string) {
+			const filteredTasks = filterCategory === "all"
+				? tasks
+				: tasks.filter((t: any) => t.category === filterCategory);
+
+			if (filteredTasks.length === 0) {
+				listEl.innerHTML = "";
+				if (emptyEl) emptyEl.style.display = "block";
+				return;
+			}
+
+			if (emptyEl) emptyEl.style.display = "none";
+
+			listEl.innerHTML = filteredTasks
+				.map((task: any) => {
+					const claimed = claimedTaskIds.has(task.id);
+					const myClaim = myClaims.find((c) => c.task_id === task.id);
+					const claimCount = claimCounts[task.id] || 0;
+					const maxClaimants = task.max_claimants || 0;
+					const isFull = maxClaimants > 0 && claimCount >= maxClaimants;
+					let btnHtml = "";
+					if (claimed && myClaim) {
+						const statusMap: Record<string, string> = {
+							claimed: "进行中",
+							submitted: "待审核",
+							approved: "已完成",
+							rejected: "已驳回",
+						};
+						const statusClass: Record<string, string> = {
+							claimed: "cult-badge-info",
+							submitted: "cult-badge-warning",
+							approved: "cult-badge-success",
+							rejected: "cult-badge-danger",
+						};
+						btnHtml = `<a href="/cultivation/my-tasks/" class="cult-badge ${statusClass[myClaim.status] || "cult-badge-muted"}">${statusMap[myClaim.status] || "已领取"}</a>`;
+					} else if (isFull) {
+						btnHtml = `<span class="cult-badge cult-badge-muted">已满员</span>`;
+					} else {
+						btnHtml = `<button class="cult-btn cult-btn-primary cult-btn-sm task-btn-claim" data-task-id="${task.id}">领取任务</button>`;
+					}
+
+					const categoryClass = task.category === "顶级任务" ? "cult-task-category-top"
+						: task.category === "中级任务" ? "cult-task-category-mid"
+						: "cult-task-category-low";
+
+					const claimantsText = maxClaimants > 0 ? `${claimCount}/${maxClaimants}人` : `${claimCount}人已领取`;
+
+					return `
+						<div class="cult-task-card">
+							<div class="cult-task-header">
+								<div>
+									<div class="cult-task-category ${categoryClass}">${task.category || "初级任务"}</div>
+									<h3 class="cult-task-title">${task.title}</h3>
+								</div>
+							</div>
+							<p class="cult-task-desc">${task.description || "暂无描述"}</p>
+							<div class="cult-task-footer">
+								<div class="cult-task-reward">
+									${gemIcon}
+									<span>${task.reward_coins} 灵石</span>
+								</div>
+								<div style="font-size: 12px; color: ${isFull ? '#ef4444' : 'var(--cult-text-secondary)'}; margin-right: 8px;">${claimantsText}</div>
+								${btnHtml}
+							</div>
+						</div>
+					`;
+				})
+				.join("");
+
+			// 绑定领取按钮
+			listEl.querySelectorAll(".task-btn-claim").forEach((btn) => {
+				btn.addEventListener("click", async (e) => {
+					const taskId = (e.target as HTMLElement).dataset.taskId;
+					if (!taskId) return;
+
+					// 未登录跳转到登录页
+					const currentUser = await getCurrentUser();
+					if (!currentUser) {
+						window.location.href = "/cultivation/login/";
+						return;
+					}
+
+					// 点击时先重新查询最新领取人数
+					await fetchClaimCounts();
+					const currentCount = claimCounts[taskId] || 0;
+					const task = tasks.find((t: any) => t.id === taskId);
+					const maxClaimants = task?.max_claimants || 0;
+
+					if (maxClaimants > 0 && currentCount >= maxClaimants) {
+						alert("任务领取人数已满");
+						renderTasks(filterEl?.value || "all");
+						return;
+					}
+
+					(e.target as HTMLButtonElement).disabled = true;
+					(e.target as HTMLButtonElement).textContent = "领取中...";
+
+					const result = await claimTask(taskId);
+					if (result.success) {
+						// 刷新我的任务领取记录和领取人数统计
+						const updatedMyClaims = await getMyTaskClaims();
+						claimedTaskIds = new Set(updatedMyClaims.map((c) => c.task_id));
+						await fetchClaimCounts();
+						// 重新渲染
+						renderTasks(filterEl?.value || "all");
+					} else {
+						alert(result.error || "领取失败");
+						// 刷新领取人数
+						await fetchClaimCounts();
+						renderTasks(filterEl?.value || "all");
+					}
+				});
+			});
+		}
+
+		// 初始渲染
+		renderTasks("all");
+
+		// 绑定筛选
+		if (filterEl) {
+			filterEl.addEventListener("change", () => {
+				renderTasks(filterEl.value);
+			});
+		}
+
+		// 定时刷新领取人数（每5秒）
+		let refreshInterval: any = null;
+
+		function startRefresh() {
+			if (refreshInterval) clearInterval(refreshInterval);
+			refreshInterval = setInterval(async () => {
+				if (!document.hidden) {
+					await fetchClaimCounts();
+					renderTasks(filterEl?.value || "all");
+				}
+			}, 5000);
+		}
+
+		function stopRefresh() {
+			if (refreshInterval) {
+				clearInterval(refreshInterval);
+				refreshInterval = null;
+			}
+		}
+
+		// 启动定时刷新
+		startRefresh();
+
+		// 页面可见性变化时处理
+		document.addEventListener("visibilitychange", () => {
+			if (document.hidden) {
+				stopRefresh();
+			} else {
+				// 页面重新可见时立即刷新一次，然后重新启动定时器
+				fetchClaimCounts().then(() => {
+					renderTasks(filterEl?.value || "all");
+				});
+				startRefresh();
+			}
+		});
+
+		// 窗口聚焦时立即刷新
+		window.addEventListener("focus", () => {
+			fetchClaimCounts().then(() => {
+				renderTasks(filterEl?.value || "all");
+			});
+		});
+	}
+
+	init();
+</script>

@@ -1,0 +1,410 @@
+---
+// 站长板块：结构化个人名片
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import { profileConfig, siteConfig } from "@/config";
+
+const title = "站长";
+const description = "站长 Idong 的个人名片";
+
+const qq = "519931819";
+const qqLink = `https://wpa.qq.com/msgrd?v=3&uin=${qq}&site=qq&menu=yes`;
+
+// 一句话主句
+const tagline =
+	"你好呀，我是 Idong——热爱 AI、追求自由。";
+
+// 分区内容
+const bio = [
+	"一个热爱 AI、追求自由，期待AGI到来那一天。",
+];
+
+const likes = [
+	"⚽️ 喜欢足球，巴塞罗那，内马尔",
+	"🤖️ 喜欢 AI",
+];
+
+const aboutSite = [
+	"「FreeX」一个记录生活、分享想法的小站。",
+	"这里既有我的琐碎日常与想法，也有我收藏的影视、工具、阅读笔记和旅行足迹。祝你开心。",
+];
+
+const contacts = [
+	"Email：519931819",
+];
+
+const chips = [
+	{ icon: "🤖", label: "AI 爱好者" },
+	{ icon: "⚽", label: "巴萨球迷" },
+	{ icon: "🌐", label: "FreeX 站长" },
+	{ icon: "✨", label: "追求自由" },
+];
+---
+
+<MainGridLayout title={title} description={description}>
+	<div class="owner-wrap">
+		<article class="owner-card card-base">
+			<div class="owner-glow"></div>
+
+			{/* 头部：头像 + 名字 */}
+			<header class="owner-hero">
+				<div class="owner-avatar-box">
+					<img
+						class="owner-avatar"
+						src={profileConfig.avatar}
+						alt="Idong"
+						loading="lazy"
+					/>
+					<span class="owner-online" title="在线"></span>
+				</div>
+				<div class="owner-hero-meta">
+					<h1 class="owner-name">Idong</h1>
+					<p class="owner-sub">热爱AI · 追求自由</p>
+				</div>
+			</header>
+
+			{/* 标签 */}
+			<div class="owner-chips">
+				{chips.map((c) => (
+					<span class="owner-chip">
+						<span class="owner-chip-ic">{c.icon}</span>
+						{c.label}
+					</span>
+				))}
+			</div>
+
+			{/* 一句话主句 */}
+			<p class="owner-tagline">{tagline}</p>
+
+			{/* 分段简介 */}
+			<div class="owner-section">
+				<h2 class="owner-section-title">🙋 关于我</h2>
+				{bio.map((p) => (
+					<p class="owner-p">{p}</p>
+				))}
+			</div>
+
+			<div class="owner-section">
+				<h2 class="owner-section-title">💫 兴趣爱好</h2>
+				<ul class="owner-list">
+					{likes.map((l) => (
+						<li>{l}</li>
+					))}
+				</ul>
+			</div>
+
+			<div class="owner-section">
+				<h2 class="owner-section-title">🌐 关于本站</h2>
+				{aboutSite.map((p) => (
+					<p class="owner-p">{p}</p>
+				))}
+			</div>
+
+			<div class="owner-section">
+				<h2 class="owner-section-title">📮 联系我</h2>
+				<ul class="owner-list">
+					{contacts.map((c) => (
+						<li>{c}</li>
+					))}
+				</ul>
+			</div>
+
+			{/* QQ 快速联系 */}
+			<div class="owner-qq">
+				<div class="owner-qq-info">
+					<span class="owner-qq-label">QQ</span>
+					<span class="owner-qq-num">{qq}</span>
+				</div>
+				<div class="owner-qq-actions">
+					<button type="button" class="owner-qq-btn" id="owner-copy-qq">
+						复制
+					</button>
+					<a
+						class="owner-qq-btn owner-qq-btn-primary"
+						href={qqLink}
+						target="_blank"
+						rel="noopener"
+					>
+						加我 QQ
+					</a>
+				</div>
+			</div>
+
+			<p class="owner-tip">💡 加我备注一下下哈，不然我可能以为你走错门了～</p>
+		</article>
+	</div>
+</MainGridLayout>
+
+<style>
+	.owner-wrap {
+		display: flex;
+		justify-content: center;
+		padding: 1rem 0 2rem;
+	}
+	.owner-card {
+		position: relative;
+		width: 100%;
+		max-width: 640px;
+		padding: 2rem 1.8rem 1.6rem;
+		border-radius: var(--radius-large);
+		overflow: hidden;
+	}
+	/* 背景柔光 */
+	.owner-glow {
+		position: absolute;
+		top: -40%;
+		left: 50%;
+		width: 130%;
+		height: 60%;
+		transform: translateX(-50%);
+		background: radial-gradient(
+			closest-side,
+			color-mix(in oklch, var(--primary) 26%, transparent),
+			transparent
+		);
+		opacity: 0.55;
+		pointer-events: none;
+	}
+
+	/* 头部 */
+	.owner-hero {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		position: relative;
+		margin-bottom: 1.05rem;
+	}
+	.owner-avatar-box {
+		position: relative;
+		flex-shrink: 0;
+	}
+	.owner-avatar {
+		width: 4.4rem;
+		height: 4.4rem;
+		border-radius: 1rem;
+		object-fit: cover;
+		border: 1px solid var(--glass-border, var(--wb-border));
+		box-shadow: 0 4px 14px oklch(0.3 0.02 var(--hue) / 0.3);
+	}
+	.owner-online {
+		position: absolute;
+		right: -2px;
+		bottom: -2px;
+		width: 0.95rem;
+		height: 0.95rem;
+		border-radius: 50%;
+		background: #44e08a;
+		border: 2px solid var(--wb-surface, #fff);
+		box-shadow: 0 0 8px #44e08a;
+	}
+	.owner-hero-meta {
+		display: flex;
+		flex-direction: column;
+		gap: 0.2rem;
+	}
+	.owner-name {
+		margin: 0;
+		font-size: 1.6rem;
+		font-weight: 800;
+		letter-spacing: 0.02em;
+		color: var(--deep-text);
+	}
+	.owner-sub {
+		margin: 0;
+		font-size: 0.85rem;
+		color: var(--content-meta);
+	}
+
+	/* 标签 */
+	.owner-chips {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.45rem;
+		position: relative;
+		margin-bottom: 1.05rem;
+	}
+	.owner-chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3rem;
+		font-size: 0.76rem;
+		padding: 0.3rem 0.6rem;
+		border-radius: 999px;
+		background: color-mix(in oklch, var(--primary) 14%, transparent);
+		color: var(--primary);
+		border: 1px solid color-mix(in oklch, var(--primary) 28%, transparent);
+	}
+	.owner-chip-ic {
+		font-size: 0.9rem;
+		line-height: 1;
+	}
+
+	/* 一句话主句 */
+	.owner-tagline {
+		position: relative;
+		margin: 0 0 1.3rem;
+		padding-bottom: 1rem;
+		border-bottom: 1px dashed var(--line-color, var(--glass-border));
+		font-size: 1.02rem;
+		font-weight: 600;
+		line-height: 1.75;
+		color: var(--deep-text);
+	}
+
+	/* 分段 */
+	.owner-section {
+		position: relative;
+		margin-bottom: 1.2rem;
+	}
+	.owner-section-title {
+		display: flex;
+		align-items: center;
+		margin: 0 0 0.55rem;
+		font-size: 1rem;
+		font-weight: 700;
+		color: var(--primary);
+		gap: 0.35rem;
+	}
+	.owner-p {
+		margin: 0 0 0.5rem;
+		font-size: 0.94rem;
+		line-height: 1.8;
+		color: var(--content-normal);
+	}
+	.owner-p:last-child {
+		margin-bottom: 0;
+	}
+	.owner-list {
+		margin: 0;
+		padding-left: 1.1rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+	}
+	.owner-list li {
+		font-size: 0.92rem;
+		line-height: 1.7;
+		color: var(--content-normal);
+	}
+
+	/* QQ 卡 */
+	.owner-qq {
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.8rem;
+		margin-top: 1.5rem;
+		padding: 0.85rem 1rem;
+		border-radius: 0.9rem;
+		background: color-mix(in oklch, var(--primary) 8%, transparent);
+		border: 1px solid color-mix(in oklch, var(--primary) 20%, transparent);
+	}
+	.owner-qq-info {
+		display: flex;
+		align-items: baseline;
+		gap: 0.5rem;
+	}
+	.owner-qq-label {
+		font-size: 0.8rem;
+		color: var(--content-meta);
+	}
+	.owner-qq-num {
+		font-size: 1.15rem;
+		font-weight: 700;
+		color: var(--primary);
+		letter-spacing: 0.04em;
+		font-variant-numeric: tabular-nums;
+	}
+	.owner-qq-actions {
+		display: flex;
+		gap: 0.5rem;
+	}
+	.owner-qq-btn {
+		font-size: 0.82rem;
+		font-weight: 600;
+		padding: 0.4rem 0.85rem;
+		border-radius: 0.55rem;
+		border: 1px solid color-mix(in oklch, var(--primary) 35%, transparent);
+		background: transparent;
+		color: var(--primary);
+		text-decoration: none;
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+	.owner-qq-btn:hover {
+		background: color-mix(in oklch, var(--primary) 14%, transparent);
+	}
+	.owner-qq-btn-primary {
+		background: var(--primary);
+		color: #fff;
+		border-color: var(--primary);
+	}
+	.owner-qq-btn-primary:hover {
+		filter: brightness(1.08);
+	}
+	.owner-qq-btn.copied {
+		color: #44e08a;
+		border-color: #44e08a;
+	}
+
+	.owner-tip {
+		margin: 0.9rem 0 0;
+		font-size: 0.8rem;
+		color: var(--content-meta);
+		text-align: center;
+	}
+
+	@media (max-width: 520px) {
+		.owner-card {
+			padding: 1.5rem 1.2rem 1.2rem;
+		}
+		.owner-qq {
+			flex-direction: column;
+			align-items: stretch;
+		}
+		.owner-qq-actions {
+			justify-content: stretch;
+		}
+		.owner-qq-btn {
+			flex: 1;
+			text-align: center;
+		}
+	}
+</style>
+
+<script>
+	function initOwner() {
+		const btn = document.getElementById("owner-copy-qq");
+		if (!btn || btn.dataset.init) return;
+		btn.dataset.init = "1";
+		btn.addEventListener("click", async () => {
+			const num = "519931819";
+			try {
+				await navigator.clipboard.writeText(num);
+			} catch {
+				const ta = document.createElement("textarea");
+				ta.value = num;
+				document.body.appendChild(ta);
+				ta.select();
+				try {
+					document.execCommand("copy");
+				} catch {}
+				ta.remove();
+			}
+			const old = btn.textContent;
+			btn.textContent = "已复制 ✓";
+			btn.classList.add("copied");
+			setTimeout(() => {
+				btn.textContent = old;
+				btn.classList.remove("copied");
+			}, 1500);
+		});
+	}
+
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", initOwner);
+	} else {
+		initOwner();
+	}
+	document.addEventListener("swup:page:view", initOwner);
+</script>

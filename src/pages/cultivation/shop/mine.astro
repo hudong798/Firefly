@@ -1,0 +1,358 @@
+---
+import CultivationLayout from "@layouts/CultivationLayout.astro";
+import CultNav from "@/components/cultivation/CultNav.svelte";
+---
+
+<CultivationLayout title="我的仙铺" description="管理我的仙货和订单">
+	<CultNav client:load />
+
+	<main class="cult-page">
+		<div class="cult-page-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+			<div>
+				<h1 class="cult-page-title">我的仙铺</h1>
+				<p class="cult-page-desc">管理仙货和订单</p>
+			</div>
+			<a href="/cultivation/shop/" class="cult-btn cult-btn-primary">去仙市</a>
+		</div>
+
+		<div id="auth-guard" style="display:none;">
+			<div class="cult-empty">
+				<div class="cult-empty-icon">
+					<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+				</div>
+				<h3 class="cult-empty-title">需要登录</h3>
+				<p class="cult-empty-desc">登录后才能管理商铺</p>
+				<a href="/cultivation/login/" class="cult-btn cult-btn-primary" style="margin-top: 16px;">立即登录</a>
+			</div>
+		</div>
+
+		<div id="shop-content" style="display:none;">
+			<div class="cult-segmented">
+				<button class="cult-segmented-btn active" data-tab="products">仙货管理</button>
+				<button class="cult-segmented-btn" data-tab="orders">订单管理</button>
+			</div>
+
+			<!-- 仙货管理 -->
+			<div id="tab-products" class="shop-tab-content">
+				<div class="cult-card" style="margin-bottom: 20px;">
+					<h3 class="cult-card-title" style="margin-bottom: 16px;">发布新仙货</h3>
+					<div style="display: flex; flex-direction: column; gap: 12px;">
+						<div>
+							<label class="cult-form-label">仙货名称 *</label>
+							<input type="text" class="cult-form-input" id="new-product-name" placeholder="输入仙货名称" />
+						</div>
+						<div>
+							<label class="cult-form-label">仙货描述</label>
+							<textarea class="cult-form-textarea" id="new-product-desc" rows="2" placeholder="输入仙货描述"></textarea>
+						</div>
+						<div>
+							<label class="cult-form-label">价格（灵石）*</label>
+							<input type="number" class="cult-form-input" id="new-product-price" placeholder="输入价格" min="1" />
+						</div>
+						<div>
+							<label class="cult-form-label">库存数量 *</label>
+							<input type="number" class="cult-form-input" id="new-product-stock" placeholder="输入库存数量" min="1" value="1" />
+						</div>
+						<button class="cult-btn cult-btn-primary" id="create-product-btn">发布仙货</button>
+					</div>
+				</div>
+				<div id="my-products-list" class="admin-list"></div>
+				<div id="products-empty" class="cult-empty" style="display:none;">
+					<div class="cult-empty-icon">
+						<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+					</div>
+					<h3 class="cult-empty-title">暂无仙货</h3>
+					<p class="cult-empty-desc">发布你的第一个仙货吧</p>
+				</div>
+			</div>
+
+			<!-- 订单管理 -->
+			<div id="tab-orders" class="shop-tab-content" style="display:none;">
+				<div id="shop-orders-list" class="admin-list"></div>
+				<div id="shop-orders-empty" class="cult-empty" style="display:none;">
+					<div class="cult-empty-icon">
+						<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="m21 3-7.5 7.5"/><path d="M21 15v6H3V3h6"/></svg>
+					</div>
+					<h3 class="cult-empty-title">暂无订单</h3>
+					<p class="cult-empty-desc">还没有用户购买你的仙货</p>
+				</div>
+			</div>
+		</div>
+	</main>
+</CultivationLayout>
+
+<style>
+	.cult-form-label {
+		display: block;
+		font-size: 13px;
+		font-weight: 500;
+		color: var(--cult-text-secondary);
+		margin-bottom: 6px;
+	}
+
+	.cult-form-input,
+	.cult-form-textarea {
+		width: 100%;
+		padding: 10px 12px;
+		background: var(--cult-bg-soft) !important;
+		border: 1px solid var(--cult-border) !important;
+		border-radius: 8px !important;
+		color: var(--cult-text) !important;
+		font-size: 14px;
+		font-family: inherit;
+		transition: border-color 0.15s !important;
+		resize: vertical;
+		-webkit-appearance: none;
+		appearance: none;
+		box-sizing: border-box;
+	}
+
+	.cult-form-input:focus,
+	.cult-form-textarea:focus {
+		outline: none !important;
+		border-color: var(--cult-primary) !important;
+	}
+
+	.cult-form-input::placeholder,
+	.cult-form-textarea::placeholder {
+		color: var(--cult-text-muted) !important;
+	}
+</style>
+
+<script>
+	import {
+		getCurrentUser,
+		getMyShopProducts,
+		getMyShopOrders,
+		createProduct,
+		updateMyProductStatus,
+		shipOrder,
+		refundOrder,
+	} from "@/services/cultivation";
+
+	let currentTab = "products";
+
+	const gemIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 2px;"><path d="M6 3h12l4 6-10 13L2 9Z"/><path d="M11 3 8 9l4 13 4-13-3-6"/><path d="M2 9h20"/></svg>`;
+
+	async function init() {
+		const user = await getCurrentUser();
+		const authGuard = document.getElementById("auth-guard");
+		const content = document.getElementById("shop-content");
+
+		if (!user) {
+			if (authGuard) authGuard.style.display = "block";
+			return;
+		}
+
+		if (content) content.style.display = "block";
+
+		// Tab 切换
+		document.querySelectorAll(".cult-segmented-btn").forEach((tab) => {
+			tab.addEventListener("click", (e) => {
+				document.querySelectorAll(".cult-segmented-btn").forEach((t) => t.classList.remove("active"));
+				(e.target as HTMLElement).classList.add("active");
+				currentTab = (e.target as HTMLElement).dataset.tab || "products";
+				document.querySelectorAll(".shop-tab-content").forEach((c) => (c.style.display = "none"));
+				const tabEl = document.getElementById(`tab-${currentTab}`);
+				if (tabEl) tabEl.style.display = "block";
+				loadTabData();
+			});
+		});
+
+		// 绑定创建按钮
+		document.getElementById("create-product-btn")?.addEventListener("click", handleCreateProduct);
+
+		loadTabData();
+	}
+
+	async function loadTabData() {
+		if (currentTab === "products") loadMyProducts();
+		else if (currentTab === "orders") loadShopOrders();
+	}
+
+	async function handleCreateProduct() {
+		const name = (document.getElementById("new-product-name") as HTMLInputElement)?.value.trim();
+		const desc = (document.getElementById("new-product-desc") as HTMLTextAreaElement)?.value.trim();
+		const price = parseInt((document.getElementById("new-product-price") as HTMLInputElement)?.value || "0");
+		const stock = parseInt((document.getElementById("new-product-stock") as HTMLInputElement)?.value || "1");
+
+		if (!name) {
+			alert("请输入仙货名称");
+			return;
+		}
+		if (!price || price <= 0) {
+			alert("请输入有效的价格");
+			return;
+		}
+		if (!stock || stock <= 0) {
+			alert("请输入有效的库存数量");
+			return;
+		}
+
+		const btn = document.getElementById("create-product-btn") as HTMLButtonElement;
+		if (btn) {
+			btn.disabled = true;
+			btn.textContent = "发布中...";
+		}
+
+		const result = await createProduct(name, desc, price, stock);
+		if (result.success) {
+			(document.getElementById("new-product-name") as HTMLInputElement).value = "";
+			(document.getElementById("new-product-desc") as HTMLTextAreaElement).value = "";
+			(document.getElementById("new-product-price") as HTMLInputElement).value = "";
+			(document.getElementById("new-product-stock") as HTMLInputElement).value = "1";
+			loadMyProducts();
+		} else {
+			alert(result.error || "发布失败");
+		}
+
+		if (btn) {
+			btn.disabled = false;
+			btn.textContent = "发布仙货";
+		}
+	}
+
+	async function loadMyProducts() {
+		const products = await getMyShopProducts();
+		const listEl = document.getElementById("my-products-list");
+		const emptyEl = document.getElementById("products-empty");
+		if (!listEl || !emptyEl) return;
+
+		if (products.length === 0) {
+			listEl.innerHTML = "";
+			emptyEl.style.display = "block";
+			return;
+		}
+
+		emptyEl.style.display = "none";
+
+		listEl.innerHTML = products
+			.map((p) => {
+				return `
+					<div class="cult-card admin-item">
+						<div class="admin-item-header">
+							<div>
+								<div style="font-size: 15px; font-weight: 600; color: var(--cult-text); margin-bottom: 4px;">${p.name}</div>
+								<div style="font-size: 13px; color: var(--cult-text-secondary); margin-bottom: 8px;">${p.description || "暂无描述"}</div>
+								<div style="display: flex; gap: 8px;">
+									<span class="cult-badge cult-badge-warning">${gemIcon}${p.price}</span>
+									<span class="cult-badge ${p.status === "active" ? "cult-badge-success" : "cult-badge-muted"}">${p.status === "active" ? "上架中" : "已下架"}</span>
+								</div>
+							</div>
+						</div>
+						<div class="admin-item-actions">
+							${p.status === "active" ? `
+								<button class="cult-btn cult-btn-secondary cult-btn-sm my-product-action" data-action="inactive" data-product-id="${p.id}">下架</button>
+							` : `
+								<button class="cult-btn cult-btn-success cult-btn-sm my-product-action" data-action="active" data-product-id="${p.id}">上架</button>
+							`}
+						</div>
+					</div>
+				`;
+			})
+			.join("");
+
+		listEl.querySelectorAll(".my-product-action").forEach((btn) => {
+			btn.addEventListener("click", async (e) => {
+				const productId = (e.target as HTMLElement).dataset.productId;
+				const action = (e.target as HTMLElement).dataset.action;
+				if (!productId || !action) return;
+				const result = await updateMyProductStatus(productId, action as any);
+				if (result.success) {
+					loadMyProducts();
+				} else {
+					alert(result.error || "操作失败");
+				}
+			});
+		});
+	}
+
+	async function loadShopOrders() {
+		const orders = await getMyShopOrders();
+		const listEl = document.getElementById("shop-orders-list");
+		const emptyEl = document.getElementById("shop-orders-empty");
+		if (!listEl || !emptyEl) return;
+
+		if (orders.length === 0) {
+			listEl.innerHTML = "";
+			emptyEl.style.display = "block";
+			return;
+		}
+
+		emptyEl.style.display = "none";
+
+		const statusMap: Record<string, { label: string; class: string }> = {
+			pending: { label: "待发货", class: "cult-badge-warning" },
+			shipped: { label: "待收货", class: "cult-badge-info" },
+			completed: { label: "已完成", class: "cult-badge-success" },
+			refunded: { label: "已退款", class: "cult-badge-muted" },
+			cancelled: { label: "已取消", class: "cult-badge-muted" },
+		};
+
+		listEl.innerHTML = orders
+			.map((order: any) => {
+				const status = statusMap[order.status] || { label: order.status, class: "cult-badge-muted" };
+				const product = order.products || {};
+				const buyer = order.profiles || {};
+				const date = new Date(order.created_at).toLocaleString("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+
+				let actionBtns = "";
+				if (order.status === "pending") {
+					actionBtns = `
+						<button class="cult-btn cult-btn-primary cult-btn-sm shop-order-action" data-action="ship" data-order-id="${order.id}">发货</button>
+						<button class="cult-btn cult-btn-danger cult-btn-sm shop-order-action" data-action="refund" data-order-id="${order.id}">退款</button>
+					`;
+				} else if (order.status === "shipped") {
+					actionBtns = `
+						<button class="cult-btn cult-btn-danger cult-btn-sm shop-order-action" data-action="refund" data-order-id="${order.id}">退款</button>
+					`;
+				}
+
+				return `
+					<div class="cult-card admin-item">
+						<div class="admin-item-header">
+							<div>
+								<div style="font-size: 15px; font-weight: 600; color: var(--cult-text); margin-bottom: 4px;">${product.name || "未知仙货"}</div>
+								<div style="font-size: 13px; color: var(--cult-text-secondary); margin-bottom: 8px;">
+									买家：${buyer.username || "未知"} · ${date}
+								</div>
+								<div style="display: flex; gap: 8px; align-items: center;">
+									<span class="cult-badge cult-badge-warning">${gemIcon}${order.price}</span>
+									<span class="cult-badge ${status.class}">${status.label}</span>
+								</div>
+							</div>
+						</div>
+						${actionBtns ? `<div class="admin-item-actions">${actionBtns}</div>` : ""}
+					</div>
+				`;
+			})
+			.join("");
+
+		listEl.querySelectorAll(".shop-order-action").forEach((btn) => {
+			btn.addEventListener("click", async (e) => {
+				const orderId = (e.target as HTMLElement).dataset.orderId;
+				const action = (e.target as HTMLElement).dataset.action;
+				if (!orderId || !action) return;
+
+				if (action === "ship") {
+					const result = await shipOrder(orderId);
+					if (result.success) {
+						loadShopOrders();
+					} else {
+						alert(result.error || "发货失败");
+					}
+				} else if (action === "refund") {
+					if (!confirm("确定要退款吗？灵石将退还给买家。")) return;
+					const result = await refundOrder(orderId);
+					if (result.success) {
+						loadShopOrders();
+					} else {
+						alert(result.error || "退款失败");
+					}
+				}
+			});
+		});
+	}
+
+	init();
+</script>

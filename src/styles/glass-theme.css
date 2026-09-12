@@ -1,0 +1,472 @@
+/* =========================================================
+   液态玻璃主题 · 数字观测站版（Liquid Glass · Digital Observatory）
+   深空蓝黑渐变背景 + 玻璃拟态面板 + 淡紫青色星空粒子装饰
+   ========================================================= */
+
+/* ---- 深空环境光渐变背景（为玻璃提供可模糊的光影） ---- */
+:root {
+  --deep-space-0: #05070D;      /* 最深：近黑的深空 */
+  --deep-space-1: #070A12;      /* 深黑蓝 */
+  --deep-space-2: #0A0F1C;      /* 深蓝黑 */
+  --deep-space-3: #111827;      /* 中深蓝 */
+  --cosmic-glow: #9B8CFF;        /* 发光淡紫（星云紫光） */
+  --cosmic-glow2: #63D8FF;       /* 亮青色（星点高光） */
+
+  --glass-bg:
+    radial-gradient(
+      85% 60% at 12% 6%,
+      var(--deep-space-3) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      70% 55% at 88% 10%,
+      color-mix(in oklch, var(--cosmic-glow) 22%, transparent) 0%,
+      transparent 58%
+    ),
+    radial-gradient(
+      90% 80% at 50% 110%,
+      var(--deep-space-2) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      42% 40% at 26% 44%,
+      color-mix(in oklch, var(--cosmic-glow2) 10%, transparent) 0%,
+      transparent 62%
+    ),
+    linear-gradient(180deg, var(--deep-space-1) 0%, var(--deep-space-0) 100%);
+}
+
+/* ---- 玻璃表面变量：默认（深空亮面） ---- */
+:root {
+  --glass-surface: rgba(255, 255, 255, 0.025);
+  --glass-surface-strong: rgba(255, 255, 255, 0.04);
+  --glass-surface-soft: rgba(255, 255, 255, 0.018);
+  --glass-border: rgba(255, 255, 255, 0.07);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --glass-blur: blur(24px) saturate(140%);
+
+  /* 覆盖工作台变量：深空玻璃 */
+  --wb-rail: rgba(255, 255, 255, 0.025);
+  --wb-bubble: rgba(255, 255, 255, 0.04);
+  --wb-hover: rgba(155, 140, 255, 0.1);
+  --wb-border: rgba(255, 255, 255, 0.08);
+  --wb-border-strong: rgba(155, 140, 255, 0.25);
+  --wb-code: oklch(0.32 0.05 265);
+}
+
+/* ---- 玻璃表面变量：更深（暗色增强） ---- */
+:root.dark {
+  --glass-surface: rgba(255, 255, 255, 0.028);
+  --glass-surface-strong: rgba(255, 255, 255, 0.045);
+  --glass-surface-soft: rgba(255, 255, 255, 0.02);
+  --glass-border: rgba(255, 255, 255, 0.06);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --glass-blur: blur(24px) saturate(130%);
+
+  --wb-rail: rgba(255, 255, 255, 0.022);
+  --wb-bubble: rgba(255, 255, 255, 0.04);
+  --wb-hover: rgba(155, 140, 255, 0.08);
+  --wb-border: rgba(255, 255, 255, 0.06);
+  --wb-border-strong: rgba(155, 140, 255, 0.2);
+}
+
+/* ---- 首页：液态玻璃舞台铺满时，面板更通透 ---- */
+:root:has(.wb-home-stage) {
+  --glass-surface: rgba(255, 255, 255, 0.018);
+  --glass-surface-strong: rgba(255, 255, 255, 0.032);
+  --glass-surface-soft: rgba(255, 255, 255, 0.012);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --wb-border: rgba(255, 255, 255, 0.08);
+  --wb-hover: rgba(155, 140, 255, 0.12);
+}
+:root.dark:has(.wb-home-stage) {
+  --glass-surface: rgba(255, 255, 255, 0.02);
+  --glass-surface-strong: rgba(255, 255, 255, 0.036);
+  --glass-surface-soft: rgba(255, 255, 255, 0.014);
+  --glass-border: rgba(255, 255, 255, 0.05);
+  --wb-border: rgba(255, 255, 255, 0.05);
+  --wb-hover: rgba(155, 140, 255, 0.06);
+}
+
+/* ---- 外壳背景换成深空环境光渐变 ---- */
+.wb-shell {
+  position: relative;
+  background: var(--glass-bg);
+  /* 工作台统一浅色文字（深空底），不依赖 .dark 类 */
+  color: oklch(0.95 0.01 265);
+  --deep-text: oklch(0.95 0.01 265);
+  --content-meta: oklch(0.68 0.02 265);
+  --wb-muted: oklch(0.68 0.02 265);
+  --line-color: rgb(255 255 255 / 0.07);
+  --wb-border: var(--glass-border);
+}
+
+/* ---- 液态玻璃动态光斑（缓慢流动的淡紫青光，营造星云氛围） ---- */
+.wb-shell::before {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      38% 32% at 22% 28%,
+      color-mix(in oklch, var(--cosmic-glow) 18%, transparent) 0%,
+      transparent 68%
+    ),
+    radial-gradient(
+      30% 26% at 76% 20%,
+      color-mix(in oklch, var(--cosmic-glow2) 14%, transparent) 0%,
+      transparent 66%
+    ),
+    radial-gradient(
+      42% 38% at 68% 78%,
+      color-mix(in oklch, var(--cosmic-glow) 14%, transparent) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      26% 30% at 18% 82%,
+      color-mix(in oklch, var(--cosmic-glow2) 10%, transparent) 0%,
+      transparent 64%
+    );
+  filter: blur(12px) saturate(130%);
+  animation: wb-glass-drift 32s ease-in-out infinite alternate;
+  opacity: 0.7;
+}
+.wb-shell::after {
+  /* 顶部一层淡淡的玻璃高光，让整体更有"液体"光泽 */
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    160deg,
+    rgb(155 140 255 / 0.06) 0%,
+    rgb(99 216 255 / 0.02) 22%,
+    transparent 46%,
+    transparent 78%,
+    rgb(155 140 255 / 0.03) 100%
+  );
+}
+:root.dark .wb-shell::after {
+  background: linear-gradient(
+    160deg,
+    rgb(155 140 255 / 0.04) 0%,
+    transparent 40%,
+    transparent 75%,
+    rgb(99 216 255 / 0.02) 100%
+  );
+}
+
+@keyframes wb-glass-drift {
+  0% {
+    transform: translate3d(-1.2%, -0.8%, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(1%, 0.6%, 0) scale(1.04);
+  }
+  100% {
+    transform: translate3d(-0.6%, 1.2%, 0) scale(1.02);
+  }
+}
+
+/* 工作台内容层位于动态光斑之上 */
+.wb-shell > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* 动态光斑位于背景之上、内容之下 */
+.wb-shell::before {
+  z-index: 0;
+}
+.wb-shell::after {
+  z-index: 0;
+}
+
+/* 首页壁纸舞台：光斑在壁纸之下，壁纸保持主角 */
+.wb-shell:has(.wb-home-stage)::before {
+  opacity: 0.4;
+}
+
+/* 顶栏 / 侧边栏 / 状态栏：磨砂玻璃，且层级在壁纸之上 */
+.wb-titlebar,
+.wb-rail,
+.wb-statusbar {
+  position: relative;
+  z-index: 2;
+  background: var(--glass-surface);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-highlight);
+}
+
+/* 消息气泡：液态玻璃 */
+.wb-bubble,
+.wb-chat .card-base,
+.wb-chat .btn-card {
+  background: var(--glass-surface-strong);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-highlight), var(--wb-shadow-sm);
+}
+
+/* 侧边栏条目：悬停/激活时的高光玻璃 */
+.wb-session:hover {
+  background: var(--glass-surface-soft);
+  border-color: var(--glass-border);
+}
+.wb-session.is-active {
+  background: color-mix(in oklch, var(--primary) 22%, transparent);
+  border-color: color-mix(in oklch, var(--primary) 40%, transparent);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+}
+
+/* 顶栏搜索面板 */
+.wb-search-results {
+  background: var(--glass-surface-strong);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border-color: var(--glass-border);
+}
+
+/* 快捷指令 chip */
+.wb-chip {
+  background: var(--glass-surface-soft);
+  border-color: var(--glass-border);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+/* 通用浮动面板 */
+:root {
+  --float-panel-bg: rgba(10, 15, 28, 0.72);
+}
+:root.dark {
+  --float-panel-bg: rgba(5, 7, 13, 0.82);
+}
+
+/* ---------- 深空星空点缀文字基础色 ---------- */
+:root {
+  --ascii-color: rgb(155 140 255 / 0.4);
+  --ascii-glow: 0 0 18px rgb(99 216 255 / 0.4);
+}
+
+/* =========================================================
+   液态玻璃全面应用：让整个工作台都呈现玻璃质感
+   ========================================================= */
+
+/* 会话栏整体：玻璃面板 */
+.wb-rail {
+  background: var(--glass-surface);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-highlight);
+}
+
+/* 会话条目：默认更透，悬停微亮 */
+.wb-session {
+  background: transparent;
+  border-color: transparent;
+  transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+}
+
+/* 聊天气泡：玻璃 */
+.wb-bubble {
+  background: var(--glass-surface-strong) !important;
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-highlight), var(--wb-shadow-sm);
+}
+
+/* 用户气泡（如果有）：更深的玻璃 */
+.wb-bubble-user {
+  background: color-mix(in oklch, var(--glass-surface-strong) 88%, var(--primary) 12%);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border-color: var(--glass-border);
+}
+
+/* 状态栏：玻璃 */
+.wb-statusbar {
+  background: var(--glass-surface);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-highlight);
+}
+
+/* 页面内容气泡（wb-page-bubble）：更明显的玻璃 */
+.wb-page-bubble {
+  background: var(--glass-surface-strong);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-highlight), var(--wb-shadow-md);
+}
+
+/* 通用卡片：玻璃化 */
+.wb-chat .card-base,
+.wb-chat .btn-card,
+.card-base {
+  background: var(--glass-surface-strong);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-highlight), var(--wb-shadow-sm);
+}
+
+/* 顶栏：更通透的玻璃 */
+.wb-titlebar {
+  background: color-mix(in oklch, var(--glass-surface) 92%, transparent);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-highlight);
+}
+
+/* AI 工具卡片 / 游戏卡片等页面卡片：玻璃 */
+.wb-ai-card,
+.wb-game-card,
+.wb-tool-card {
+  background: var(--glass-surface-strong);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-highlight), var(--wb-shadow-sm);
+}
+
+/* 移动端：会话栏横向玻璃条 */
+@media (max-width: 860px) {
+  .wb-rail {
+    background: var(--glass-surface);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+  }
+  .wb-session {
+    background: var(--glass-surface-soft);
+    border-color: transparent;
+    border-radius: 0.7rem;
+  }
+  .wb-session.is-active {
+    background: color-mix(in oklch, var(--primary) 24%, transparent);
+    border-color: color-mix(in oklch, var(--primary) 40%, transparent);
+  }
+}
+
+/* 尊重系统降低动态效果偏好：关闭光斑流动动画 */
+@media (prefers-reduced-motion: reduce) {
+  .wb-shell::before {
+    animation: none;
+  }
+}
+
+/* =========================================================
+   深空星空背景装饰元素（星夜氛围感）
+   用 CSS 生成星空粒子 + 淡紫青色光晕，映射到所有页面，作为
+   深空玻璃背景之上的氛围照明，不阻挡交互。
+   ========================================================= */
+
+/* 全局场景层：铺满外壳，位于内容之下、背景光斑之上 */
+.wb-shell .wb-scene-atoms {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* 星点（粒子）装饰 */
+.scene-atom {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.4;
+}
+.scene-atom-ring {
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgb(155 140 255 / 0.2);
+  border-radius: 50%;
+  transform: rotate(var(--rot, 0deg));
+}
+.scene-atom-core {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  margin: -3px;
+  border-radius: 50%;
+  background: rgb(200 190 255 / 0.7);
+  box-shadow: 0 0 12px rgb(155 140 255 / 0.6);
+}
+.scene-atom-e {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgb(180 220 255 / 0.8);
+  box-shadow: 0 0 10px rgb(99 216 255 / 0.5);
+  animation: scene-atom-orbit var(--dur, 8s) linear infinite;
+}
+
+/* 像素点阵纹理（细微网格，仅在边缘可见） */
+.scene-pixels {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgb(155 140 255 / 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(155 140 255 / 0.03) 1px, transparent 1px);
+  background-size: 34px 34px;
+  mask-image: radial-gradient(ellipse at center, transparent 20%, black 85%);
+  -webkit-mask-image: radial-gradient(ellipse at center, transparent 20%, black 85%);
+}
+
+/* 离散星点字符点缀 */
+.scene-ascii-char {
+  position: absolute;
+  font-family: var(--wb-mono, ui-monospace, monospace);
+  color: rgb(155 140 255 / 0.25);
+  text-shadow: 0 0 12px rgb(99 216 255 / 0.3);
+  user-select: none;
+  animation: scene-ascii-float var(--dur, 9s) ease-in-out infinite alternate;
+}
+
+@keyframes scene-atom-orbit {
+  0% { transform: rotate(0deg) translateX(var(--r, 26px)) rotate(0deg); }
+  100% { transform: rotate(360deg) translateX(var(--r, 26px)) rotate(-360deg); }
+}
+@keyframes scene-ascii-float {
+  0% { transform: translateY(0); opacity: 0.2; }
+  50% { transform: translateY(-14px); opacity: 0.5; }
+  100% { transform: translateY(8px); opacity: 0.25; }
+}
+
+/* 首页已有其专属星空层，避免重复；其它页面由场景层补充 */
+.wb-home-stage .wb-scene-atoms {
+  display: none;
+}
+
+/* 移动端：场景装饰简化，避免干扰 */
+@media (max-width: 860px) {
+  .wb-shell .wb-scene-atoms {
+    opacity: 0.45;
+  }
+  .scene-atom,
+  .scene-ascii-char {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-atom-e,
+  .scene-ascii-char {
+    animation: none;
+  }
+}

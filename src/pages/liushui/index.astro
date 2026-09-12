@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>童话小镇流水榜</title>
+<style is:global>
+  :root{
+    --bg:#3771e4; --bg-deep:#1e4fb8;
+    --tab-bg:#ffb3d5; --tab-bg-idle:#19346b; --tab-fg-idle:#8e9fc5;
+    --tab-bg-on:#c41941; --tab-fg-on:#fff;
+    --ink:#fff; --ink-soft:#ffe2c2; --gold:#ffab4b; --hi:#ff632a;
+    --card:rgba(25,52,107,.72); --card-line:rgba(255,179,213,.35);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  /* 返回按钮 */
+  .back-btn{
+    position:fixed;top:calc(.2rem + env(safe-area-inset-top,0px));left:.2rem;z-index:100;
+    width:.62rem;height:.62rem;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(25,52,107,.88);border:1px solid rgba(255,179,213,.45);
+    color:#fff;text-decoration:none;font-size:.32rem;font-weight:800;line-height:1;
+    backdrop-filter:blur(6px);box-shadow:0 .04rem .16rem rgba(0,0,0,.32);
+    transition:transform .18s ease,background .18s ease;
+  }
+  .back-btn:active{transform:scale(.88);background:#c41941}
+  html{font-size:10vw}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+    min-height:100vh;color:var(--ink);
+    background:linear-gradient(180deg,#4f8bef 0%,var(--bg) 30%,var(--bg-deep) 100%);
+    background-attachment:fixed;
+  }
+  /* 星星装饰 */
+  .stars i{position:absolute;background:#fff;border-radius:50%;opacity:.7;animation:tw 3s infinite}
+  @keyframes tw{0%,100%{opacity:.15}50%{opacity:.8}}
+  .wrap{max-width:7.5rem;margin:0 auto;padding:0 .3rem .6rem;position:relative}
+
+  header{text-align:center;padding:.55rem 0 .35rem;position:relative}
+  header .castle{font-size:.6rem;line-height:1}
+  h1{
+    font-size:.52rem;font-weight:800;letter-spacing:.06rem;margin-top:.12rem;
+    background:linear-gradient(180deg,#fff 30%,#ffd9ec 70%,#ffab4b);
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+    text-shadow:0 .04rem .12rem rgba(30,79,184,.45);
+    filter:drop-shadow(0 2px 6px rgba(0,0,0,.25));
+  }
+  header .sub{font-size:.22rem;color:var(--ink-soft);opacity:.85;margin-top:.08rem}
+
+  /* 统计卡 */
+  .stats{display:flex;gap:.16rem;margin:.25rem 0 .3rem}
+  .stat{
+    flex:1;background:var(--card);border:1px solid var(--card-line);border-radius:.16rem;
+    padding:.2rem .1rem;text-align:center;backdrop-filter:blur(6px);
+  }
+  .stat b{display:block;font-size:.32rem;color:var(--gold);font-variant-numeric:tabular-nums}
+  .stat span{font-size:.2rem;color:var(--ink-soft)}
+
+  /* Tab */
+  .tabs{
+    position:sticky;top:0;z-index:50;display:flex;gap:.14rem;
+    background:var(--tab-bg);border-radius:.999rem;padding:.07rem;
+    box-shadow:0 .06rem .2rem rgba(0,0,0,.22);
+  }
+  .tabs button{
+    flex:1;border:0;outline:0;cursor:pointer;border-radius:.999rem;
+    padding:.17rem 0;font-size:.26rem;font-weight:700;
+    background:var(--tab-bg-idle);color:var(--tab-fg-idle);
+    transition:all .22s ease;font-family:inherit;
+  }
+  .tabs button.on{background:var(--tab-bg-on);color:var(--tab-fg-on);box-shadow:0 .04rem .14rem rgba(196,25,65,.5)}
+
+  /* 搜索 */
+  .search{margin:.22rem 0;display:flex}
+  .search input{
+    flex:1;border:1px solid var(--card-line);background:var(--card);color:var(--ink);
+    border-radius:.999rem;padding:.15rem .3rem;font-size:.24rem;outline:none;font-family:inherit;
+  }
+  .search input::placeholder{color:#8ea7d8}
+  .search input:focus{border-color:var(--tab-bg)}
+
+  /* Top3 领奖台 */
+  .podium{display:flex;align-items:flex-end;gap:.14rem;margin:.3rem 0 .34rem}
+  .pod{flex:1;text-align:center;position:relative}
+  .pod .ava{
+    width:1rem;height:1rem;margin:0 auto;border-radius:50%;overflow:hidden;position:relative;
+    border:.05rem solid var(--c,#ffab4b);box-shadow:0 .06rem .18rem rgba(0,0,0,.3);
+  }
+  .pod.p1 .ava{width:1.24rem;height:1.24rem}
+  .pod img{width:100%;height:100%;object-fit:cover;display:block}
+  .pod .ph{
+    width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+    font-size:.5rem;font-weight:800;color:#fff;background:linear-gradient(135deg,#4f8bef,#c41941);
+  }
+  .pod .crown{position:absolute;top:-.3rem;left:50%;transform:translateX(-50%);font-size:.4rem;z-index:2}
+  .pod .nm{
+    font-size:.22rem;font-weight:700;margin:.1rem .02rem 0;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .pod .sc{font-size:.22rem;color:var(--gold);font-variant-numeric:tabular-nums}
+  .pod .base{
+    margin-top:.1rem;border-radius:.12rem .12rem 0 0;color:#fff;font-size:.3rem;font-weight:800;
+    display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(180deg,var(--c,#ffab4b),rgba(0,0,0,.25));height:.56rem;
+  }
+  .pod.p1 .base{height:.82rem}
+  .pod.p2 .base{height:.66rem}
+  .pod.p3 .base{height:.54rem}
+  .live-dot{
+    position:absolute;right:.04rem;bottom:.04rem;background:#ff3b30;color:#fff;
+    font-size:.16rem;font-weight:800;padding:.02rem .07rem;border-radius:.06rem;z-index:2;
+  }
+
+  /* 列表 */
+  .row{
+    display:flex;align-items:center;gap:.18rem;
+    background:var(--card);border:1px solid var(--card-line);border-radius:.14rem;
+    padding:.16rem .2rem;margin-bottom:.12rem;
+  }
+  .row .rk{
+    width:.5rem;text-align:center;font-size:.28rem;font-weight:800;color:var(--ink-soft);
+    font-variant-numeric:tabular-nums;flex-shrink:0;
+  }
+  .row .ava{
+    width:.72rem;height:.72rem;border-radius:50%;overflow:hidden;position:relative;flex-shrink:0;
+    border:.03rem solid rgba(255,179,213,.6);
+  }
+  .row .ava img{width:100%;height:100%;object-fit:cover;display:block}
+  .row .info{flex:1;min-width:0}
+  .row .nm{
+    font-size:.26rem;font-weight:700;display:flex;align-items:center;gap:.1rem;
+    white-space:nowrap;overflow:hidden;
+  }
+  .row .nm b{overflow:hidden;text-overflow:ellipsis}
+  .row .live{background:#ff3b30;color:#fff;font-size:.15rem;font-weight:800;padding:.01rem .06rem;border-radius:.05rem;flex-shrink:0}
+  .lv{display:inline-flex;align-items:center;font-size:.17rem;font-weight:700;color:#fff;border-radius:.07rem;padding:.02rem .09rem;margin-top:.07rem}
+  .lv-0{background:linear-gradient(90deg,#a8825a,#7c5a34)}
+  .lv-1{background:linear-gradient(90deg,#9fd6ff,#4d8fd1)}
+  .lv-2{background:linear-gradient(90deg,#ffd86b,#e8a020)}
+  .lv-3{background:linear-gradient(90deg,#7de3ff,#1a9ec9)}
+  .row .sc{
+    text-align:right;flex-shrink:0;font-size:.28rem;font-weight:800;color:var(--gold);
+    font-variant-numeric:tabular-nums;
+  }
+  .row .sc small{display:block;font-size:.16rem;color:var(--ink-soft);font-weight:400}
+  .me{outline:.03rem solid var(--hi);outline-offset:.03rem}
+
+  .empty{text-align:center;color:var(--ink-soft);font-size:.24rem;padding:.6rem 0}
+  footer{text-align:center;font-size:.18rem;color:var(--ink-soft);opacity:.7;padding:.3rem 0 .1rem;line-height:1.7}
+
+  /* 桌面端：宽屏榜单布局 */
+  @media(min-width:760px){
+    html{font-size:16px}
+
+    body{
+      min-width:1000px;
+      background:
+        radial-gradient(circle at 50% -10%,rgba(126,176,255,.45),transparent 38%),
+        linear-gradient(180deg,#3f7be9 0%,#3771e4 38%,#1e4fb8 100%);
+      overflow-x:auto;
+    }
+
+    .wrap{
+      width:min(1180px,calc(100vw - 64px));
+      max-width:none;
+      margin:0 auto;
+      padding:28px 0 44px;
+    }
+
+    header{
+      padding:10px 0 22px;
+    }
+
+    header .castle{font-size:42px}
+
+    h1{
+      font-size:34px;
+      letter-spacing:4px;
+      margin-top:10px;
+    }
+
+    header .sub{
+      font-size:14px;
+      margin-top:8px;
+    }
+
+    .stats{
+      gap:16px;
+      margin:0 0 18px;
+    }
+
+    .stat{
+      padding:18px 12px;
+      border-radius:14px;
+    }
+
+    .stat b{font-size:28px}
+    .stat span{font-size:14px}
+
+    .tabs{
+      position:sticky;
+      top:14px;
+      width:420px;
+      margin:0 auto 16px;
+      gap:6px;
+      padding:5px;
+      border-radius:999px;
+    }
+
+    .tabs button{
+      padding:11px 0;
+      font-size:16px;
+    }
+
+    .search{
+      width:620px;
+      margin:0 auto 22px;
+    }
+
+    #podium{
+      padding-top:2px;
+    }
+
+    .search input{
+      padding:11px 18px;
+      font-size:15px;
+      border-radius:999px;
+    }
+
+    /* Top 3 在桌面端保持居中，但尺寸更舒展 */
+    .podium{
+      width:760px;
+      margin:0 auto 24px;
+      gap:20px;
+    }
+
+    .pod .ava{
+      width:92px;
+      height:92px;
+      border-width:4px;
+    }
+
+    .pod.p1 .ava{
+      width:116px;
+      height:116px;
+    }
+
+    .pod .crown{
+      top:-28px;
+      font-size:32px;
+    }
+
+    .pod .nm{
+      font-size:15px;
+      margin-top:9px;
+    }
+
+    .pod .sc{font-size:15px}
+
+    .pod .base{
+      margin-top:8px;
+      font-size:20px;
+      height:48px;
+      border-radius:10px 10px 0 0;
+    }
+
+    .pod.p1 .base{height:68px}
+    .pod.p2 .base{height:56px}
+    .pod.p3 .base{height:48px}
+
+    /* 桌面端列表改成真正的多列榜单 */
+    #list{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:12px 16px;
+    }
+
+    .row{
+      gap:14px;
+      min-height:78px;
+      margin:0;
+      padding:12px 16px;
+      border-radius:12px;
+      transition:transform .18s ease,background .18s ease,box-shadow .18s ease;
+    }
+
+    .row:hover{
+      transform:translateY(-2px);
+      background:rgba(25,52,107,.88);
+      box-shadow:0 8px 24px rgba(0,0,0,.18);
+    }
+
+    .row .rk{
+      width:42px;
+      font-size:20px;
+    }
+
+    .row .ava{
+      width:54px;
+      height:54px;
+      border-width:2px;
+    }
+
+    .row .nm{font-size:16px;gap:8px}
+    .row .live{font-size:10px;padding:2px 5px}
+    .lv{
+      font-size:11px;
+      padding:3px 7px;
+      margin-top:6px;
+      border-radius:5px;
+    }
+
+    .row .sc{
+      font-size:18px;
+    }
+
+    .row .sc small{
+      font-size:11px;
+      margin-top:2px;
+    }
+
+    footer{
+      font-size:12px;
+      padding:24px 0 4px;
+    }
+
+    .back-btn{
+      top:20px;
+      left:20px;
+      width:42px;
+      height:42px;
+      font-size:22px;
+    }
+  }
+
+  /* 更宽的桌面显示器：三列榜单，充分利用屏幕 */
+  @media(min-width:1400px){
+    .wrap{width:min(1380px,calc(100vw - 96px))}
+    #list{grid-template-columns:repeat(3,minmax(0,1fr))}
+  }
+
+/* ===== Desktop V2 hard override ===== */
+@media screen and (min-width: 760px) {
+  html { font-size: 16px !important; }
+  body {
+    min-width: 1000px !important;
+    overflow-x: auto !important;
+  }
+
+  .wrap {
+    width: min(1380px, calc(100vw - 80px)) !important;
+    max-width: none !important;
+    margin: 0 auto !important;
+    padding: 28px 0 48px !important;
+  }
+
+  header {
+    display: block !important;
+    text-align: center !important;
+    padding: 8px 0 24px !important;
+  }
+
+  header .castle { font-size: 42px !important; }
+  h1 { font-size: 34px !important; margin-top: 10px !important; }
+  header .sub { font-size: 14px !important; margin-top: 8px !important; }
+
+  .stats {
+    display: flex !important;
+    width: 100% !important;
+    gap: 16px !important;
+    margin: 0 0 18px !important;
+  }
+  .stat {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    padding: 16px 14px !important;
+    border-radius: 14px !important;
+    text-align: center !important;
+  }
+  .stat b { display: block !important; font-size: 26px !important; }
+  .stat span { font-size: 14px !important; }
+
+  .tabs {
+    position: sticky !important;
+    top: 12px !important;
+    z-index: 50 !important;
+    display: flex !important;
+    width: 420px !important;
+    margin: 0 auto 16px !important;
+    gap: 6px !important;
+    padding: 5px !important;
+  }
+  .tabs button {
+    flex: 1 1 0 !important;
+    padding: 11px 0 !important;
+    font-size: 16px !important;
+  }
+
+  .search {
+    display: flex !important;
+    width: 620px !important;
+    margin: 0 auto 24px !important;
+  }
+  .search input {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 12px 18px !important;
+    font-size: 15px !important;
+  }
+
+  #podium {
+    width: 760px !important;
+    margin: 0 auto 28px !important;
+  }
+  .podium {
+    display: flex !important;
+    align-items: flex-end !important;
+    justify-content: center !important;
+    gap: 24px !important;
+    width: 760px !important;
+    margin: 0 auto !important;
+  }
+  .pod {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    text-align: center !important;
+    position: relative !important;
+  }
+  .pod .ava {
+    width: 92px !important;
+    height: 92px !important;
+    margin: 0 auto !important;
+    border-radius: 50% !important;
+  }
+  .pod.p1 .ava {
+    width: 116px !important;
+    height: 116px !important;
+  }
+  .pod .nm { font-size: 15px !important; margin-top: 9px !important; }
+  .pod .sc { font-size: 15px !important; }
+  .pod .crown { top: -28px !important; font-size: 32px !important; }
+  .pod .base {
+    margin-top: 8px !important;
+    font-size: 20px !important;
+    height: 48px !important;
+  }
+  .pod.p1 .base { height: 68px !important; }
+  .pod.p2 .base { height: 56px !important; }
+  .pod.p3 .base { height: 48px !important; }
+
+  #list {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px 18px !important;
+    width: 100% !important;
+  }
+
+  #list > .row {
+    display: flex !important;
+    align-items: center !important;
+    width: auto !important;
+    min-width: 0 !important;
+    min-height: 78px !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    padding: 12px 16px !important;
+    gap: 14px !important;
+    border-radius: 12px !important;
+  }
+
+  #list > .row .rk {
+    width: 42px !important;
+    flex: 0 0 42px !important;
+    font-size: 20px !important;
+    text-align: center !important;
+  }
+  #list > .row .ava {
+    width: 54px !important;
+    height: 54px !important;
+    flex: 0 0 54px !important;
+    border-width: 2px !important;
+    border-radius: 50% !important;
+  }
+  #list > .row .info {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+  }
+  #list > .row .nm { font-size: 16px !important; gap: 8px !important; }
+  #list > .row .live { font-size: 10px !important; padding: 2px 5px !important; }
+  #list > .row .lv {
+    font-size: 11px !important;
+    padding: 3px 7px !important;
+    margin-top: 6px !important;
+    border-radius: 5px !important;
+  }
+  #list > .row .sc {
+    flex: 0 0 auto !important;
+    font-size: 18px !important;
+    text-align: right !important;
+  }
+  #list > .row .sc small {
+    display: block !important;
+    font-size: 11px !important;
+    margin-top: 2px !important;
+  }
+
+  footer {
+    font-size: 12px !important;
+    padding: 24px 0 4px !important;
+  }
+
+  .back-btn {
+    position: fixed !important;
+    top: 14px !important;
+    left: 20px !important;
+    width: 42px !important;
+    height: 42px !important;
+    font-size: 22px !important;
+    z-index: 100 !important;
+  }
+}
+
+@media screen and (min-width: 1400px) {
+  #list { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+}
+
+</style>
+</head>
+<body>
+<a class="back-btn" href="https://52798.xyz" aria-label="返回" title="返回 52798.xyz">←</a>
+<div class="stars" id="stars"></div>
+<div class="wrap">
+  <header>
+    <div class="castle">🏰✨🎠</div>
+    <h1>童话小镇流水榜</h1>
+    <div class="sub">· 战力值榜单 · 段位争夺 ·</div>
+  </header>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="tabs" id="tabs">
+    <button data-k="zhubo" class="on">👑 主播榜</button>
+    <button data-k="dage">💎 大哥榜</button>
+  </div>
+
+  <div class="search">
+    <input id="q" type="search" placeholder="🔍 搜索昵称，回车过滤">
+  </div>
+
+  <div id="podium"></div>
+  <div id="list"></div>
+
+  <footer>
+    数据快照：2026-09-12 00:41（北京时间）<br>
+    源页面：zt.huya.com/92d8003a · 主播榜 40 人 · 大哥榜 100 人
+  </footer>
+</div>
+
+<script>
+const DATA = {
+  zhubo: [{"r":1,"n":"小二拦不住【798】","s":905349,"a":"https://huyaimg.msstatic.com/avatar/1049/a2/2ace91ec8b0abfe39c1582b8305ca8_180_135.jpg?1784281410","l":1,"uid":1199545795164},{"r":2,"n":"李文卓-798","s":467447,"a":"https://huyaimg.msstatic.com/avatar/1052/37/635bc4999d6963ca6b3817aa5fea3e_180_135.jpg?1782719711","l":1,"uid":1199665994138},{"r":3,"n":"大锤酱798","s":352372,"a":"https://huyaimg.msstatic.com/avatar/1074/1b/99d6af0e29efe786c28698c118b894_180_135.jpg?1780862572","l":1,"uid":1199665267312},{"r":4,"n":"超越妹妹-798","s":71962,"a":"https://huyaimg.msstatic.com/avatar/1019/75/49b0301d3f070e124700aadfdcdd93_180_135.jpg?1785876408","l":1,"uid":1199666367290},{"r":5,"n":"朝朝-798","s":32630,"a":"https://huyaimg.msstatic.com/avatar/1064/6e/93e08ce7e3b7a36c9b53af6dc6f87e_180_135.jpg?1775239437","l":1,"uid":1199663647633},{"r":6,"n":"x11-798","s":19167,"a":"https://huyaimg.msstatic.com/avatar/1070/27/554decbd6d3ee57008d18a32bd5a6f_180_135.jpg?1782287866","l":1,"uid":1199663591186},{"r":7,"n":"可乐-【798】","s":19093,"a":"https://huyaimg.msstatic.com/avatar/1071/02/6c3b715618b5b89d467be3c687a6d6_180_135.jpg?1774967435","l":0,"uid":1199663352039},{"r":8,"n":"壮壮-798","s":8696,"a":"https://huyaimg.msstatic.com/avatar/1069/f7/96575f338ab2ef89cdf30e65f7f4ce_180_135.jpg?1784898333","l":1,"uid":1199666286296},{"r":9,"n":"史莱姆-798","s":7249,"a":"https://huyaimg.msstatic.com/avatar/1075/94/a2433871636e82594c6a261752c75e_180_135.jpg?1783360731","l":1,"uid":1199632255978},{"r":10,"n":"猫11-798","s":7052,"a":"https://huyaimg.msstatic.com/avatar/1011/28/44d0f20146f46f182c356de0b18a31_180_135.jpg?1781000787","l":1,"uid":1199660105723},{"r":11,"n":"小宝-798","s":5116,"a":"https://huyaimg.msstatic.com/avatar/1046/8e/3f57ed9cb9e1f1f9a82d74002905ca_180_135.jpg?1785354945","l":1,"uid":1199665916976},{"r":12,"n":"Tt-798","s":4543,"a":"https://huyaimg.msstatic.com/avatar/1042/d8/e52e60eb0fc85f6a79dd6bd42fdc7e_180_135.jpg?1779476281","l":1,"uid":1199665009300},{"r":13,"n":"童锦程【798】","s":3999,"a":"https://huyaimg.msstatic.com/avatar/1073/f7/5d111b33a50f1d18c09d854a4436ff_180_135.jpg?1649483573","l":1,"uid":1199568157971},{"r":14,"n":"飒飒798","s":3280,"a":"https://huyaimg.msstatic.com/avatar/1077/71/971ed5edeab5b5a8309bb9d49a9b8b_180_135.jpg?1783137228","l":1,"uid":1199666033904},{"r":15,"n":"小小怪-798","s":1677,"a":"https://huyaimg.msstatic.com/avatar/1066/d5/323d2ef5937b73fce85e4812dbfe14_180_135.jpg?1784229637","l":0,"uid":1199649763017},{"r":16,"n":"一斤-798","s":1444,"a":"https://huyaimg.msstatic.com/avatar/1019/fc/6724396451fa8d71fc600de9a21e82_180_135.jpg?1788688847","l":0,"uid":1199577418728},{"r":17,"n":"董事儿798","s":1200,"a":"https://huyaimg.msstatic.com/avatar/1005/07/71659601076692c25c612007e239e9_180_135.jpg?1785590096","l":0,"uid":1199657858148},{"r":18,"n":"VV-798","s":1114,"a":"https://huyaimg.msstatic.com/avatar/1030/b0/fdf7ee13e446aa864f41eaaf6c35e1_180_135.jpg?1788285455","l":1,"uid":1199551674164},{"r":19,"n":"悦酱798","s":575,"a":"https://huyaimg.msstatic.com/avatar/1068/45/a69b838bdbb5f6c0423ed7a64d9861_180_135.jpg?1788806784","l":1,"uid":1199667550748},{"r":20,"n":"许多鱼-798","s":374,"a":"https://huyaimg.msstatic.com/avatar/1035/78/e55fb0a8c8eac545e1dddbb25a6453_180_135.jpg?1788332830","l":1,"uid":1199667561553},{"r":21,"n":"图一一798","s":277,"a":"https://huyaimg.msstatic.com/avatar/1018/b9/aaab206c7afa7a00461f957a5af144_180_135.jpg?1786814624","l":1,"uid":1199666773359},{"r":22,"n":"娜娜大王798","s":200,"a":"https://huyaimg.msstatic.com/avatar/1003/1f/7fd7f7d2254a8d59c8d6cbca6c151b_180_135.jpg?1780731285","l":0,"uid":1199665261476},{"r":23,"n":"子圣-798","s":173,"a":"https://huyaimg.msstatic.com/avatar/1007/9f/dfa37c735f938fc44878302d786cd8_180_135.jpg?1657106196","l":0,"uid":1199577402271},{"r":24,"n":"浅浅-798","s":138,"a":"https://huyaimg.msstatic.com/avatar/1053/4e/8635da2fd9ffb5f3b25207ea0449e8_180_135.jpg?1787055535","l":1,"uid":1199665670228},{"r":25,"n":"雪芙-798","s":112,"a":"https://huyaimg.msstatic.com/avatar/1036/20/5cd904f9d5d43e4e9f7c968ec292bd_180_135.jpg?1783965670","l":1,"uid":2454327754},{"r":26,"n":"可欣798","s":83,"a":"https://huyaimg.msstatic.com/avatar/1056/43/e04ec32e9a96680ddea3b883d4fe86_180_135.jpg?1787478859","l":0,"uid":1199667255915},{"r":27,"n":"抱抱-798","s":82,"a":"https://huyaimg.msstatic.com/avatar/1049/b0/455459a17ba17379916b97579633f6_180_135.jpg?1738702109","l":0,"uid":1199635593168},{"r":28,"n":"娜扎-798","s":17,"a":"https://huyaimg.msstatic.com/avatar/1068/e7/82dccb95a13833b9af1c33dc2a6b2a_180_135.jpg?1788178346","l":1,"uid":1279519784044},{"r":29,"n":"孟孟-798","s":7,"a":"https://huyaimg.msstatic.com/avatar/1025/07/dcc0142ed5da1bf4a4bd7325ef146f_180_135.jpg?1787243854","l":1,"uid":1199598719599},{"r":30,"n":"王子彦798","s":6,"a":"https://huyaimg.msstatic.com/avatar/1003/75/22e3f73302c8b557bcf312c216ffeb_180_135.jpg?1678607542","l":1,"uid":2353553538},{"r":31,"n":"师兄-798","s":4,"a":"https://huyaimg.msstatic.com/avatar/1029/20/c6955755631e982d264a5c51f0979b_180_135.jpg?1784537099","l":0,"uid":1199627576009},{"r":32,"n":"牛牛-798","s":3,"a":"https://huyaimg.msstatic.com/avatar/1045/54/741a9d2174efc98b4c1227a7002d0b_180_135.jpg?1731933628","l":0,"uid":1199592194974},{"r":33,"n":"文彬【798】","s":3,"a":"https://huyaimg.msstatic.com/avatar/1041/ae/6e2f5a0af9a90be5306c7f6305d8b6_180_135.jpg?1784668404","l":1,"uid":"1646666043"},{"r":34,"n":"小雪-798","s":2,"a":"https://huyaimg.msstatic.com/avatar/1007/e2/cd73bf03543f619288afbfbe690840_180_135.jpg?1787671698","l":0,"uid":1199665275082},{"r":35,"n":"天九-798","s":2,"a":"https://huyaimg.msstatic.com/avatar/1011/b4/a2c6b7b023cffd63d7c7f89ae60e24_180_135.jpg?1694117487","l":0,"uid":1199517772856},{"r":36,"n":"集美大帝813【ZKL】","s":2,"a":"https://huyaimg.msstatic.com/avatar/1073/cc/e944dc119e9b9e75797543105b1a06_180_135.jpg?1773233881","l":0,"uid":"1653893709"},{"r":37,"n":"炎炎-798","s":1,"a":"https://huyaimg.msstatic.com/avatar/1090/f7/ffa4ed44399f2b718eb0862a2ad3fc_180_135.jpg?1788165669","l":0,"uid":1199667527388},{"r":38,"n":"朱朱798","s":1,"a":"https://huyaimg.msstatic.com/avatar/1011/6d/4175f9c4e9a3a2ace911c5d7cb56d5_180_135.jpg?1788619502","l":0,"uid":1199665224670},{"r":39,"n":"小志-798","s":1,"a":"https://huyaimg.msstatic.com/avatar/1055/46/1fb2b5794749cb24aef370d1c2f329_180_135.jpg?1784413472","l":0,"uid":1199663481289},{"r":40,"n":"灵儿不灵了798","s":1,"a":"https://huyaimg.msstatic.com/avatar/1033/76/5395d98f7f9f75b6858407f839c9ba_180_135.jpg?1756099528","l":0,"uid":1199606346005}],
+  dage: [{"r":1,"n":"李文卓的黑粉","s":146955,"a":"https://huyaimg.msstatic.com/avatar/1036/f3/9787c455460f8f36e95204cb7517b3_180_135.jpg?1788585746","l":0,"uid":1199657608485},{"r":2,"n":"蟑螂王王","s":85696,"a":"https://huyaimg.msstatic.com/avatar/1049/43/cc6894f5cc00708bd6e598cbd3076f_180_135.jpg?1781975062","l":0,"uid":1199608101960},{"r":3,"n":"鱼右渡","s":80198,"a":"https://diy-assets.msstatic.com/cqhfolder/NewDefault.png","l":0,"uid":1199666929898},{"r":4,"n":"李文卓的腿毛","s":79539,"a":"https://huyaimg.msstatic.com/avatar/1058/3a/0542e72ce72b40d3469777b86f9ab8_180_135.jpg?1786727170","l":0,"uid":2331959358},{"r":5,"n":"王子彦798","s":72590,"a":"https://huyaimg.msstatic.com/avatar/1003/75/22e3f73302c8b557bcf312c216ffeb_180_135.jpg?1678607542","l":0,"uid":2353553538},{"r":6,"n":"李文卓的發財福","s":71689,"a":"https://huyaimg.msstatic.com/avatar/1048/b7/97f040a16cc7f84c1b9784a206e367_180_135.jpg?1788626190","l":0,"uid":"1584605718"},{"r":7,"n":"一一一文","s":69690,"a":"https://huyaimg.msstatic.com/avatar/1056/cf/c5db8e43c640bb4a6827ba74d08a0c_180_135.jpg?1786458532","l":0,"uid":1199660582563},{"r":8,"n":"健忘是我缺点","s":67865,"a":"https://huyaimg.msstatic.com/avatar/1046/af/6b496be15f09fcc4caefe11b88018b_180_135.jpg?1789122896","l":0,"uid":"1701696819"},{"r":9,"n":"子圣-798","s":63710,"a":"https://huyaimg.msstatic.com/avatar/1007/9f/dfa37c735f938fc44878302d786cd8_180_135.jpg?1657106196","l":0,"uid":1199577402271},{"r":10,"n":"迪奥【798】","s":56753,"a":"https://huyaimg.msstatic.com/avatar/1098/bd/cb2ea1d0de981aca4f0ed119ed27a8_180_135.jpg?1787579387","l":0,"uid":1199591434364},{"r":11,"n":"2323Z3","s":53124,"a":"https://diy-assets.msstatic.com/cqhfolder/NewDefault.png","l":0,"uid":1199665504274},{"r":12,"n":"N","s":52550,"a":"https://huyaimg.msstatic.com/avatar/1042/c0/91aaad9b7ab24b88998dd937074010_180_135.jpg?1751104866","l":0,"uid":2315455321},{"r":13,"n":"可爱小猪o1o","s":50990,"a":"https://huyaimg.msstatic.com/avatar/1094/be/a9852b58273c9008fe41428e6654c5_180_135.jpg?1782807563","l":0,"uid":1199638715087},{"r":14,"n":"天九-798","s":50165,"a":"https://huyaimg.msstatic.com/avatar/1011/b4/a2c6b7b023cffd63d7c7f89ae60e24_180_135.jpg?1694117487","l":0,"uid":1199517772856},{"r":15,"n":"李文卓-798","s":50030,"a":"https://huyaimg.msstatic.com/avatar/1052/37/635bc4999d6963ca6b3817aa5fea3e_180_135.jpg?1782719711","l":0,"uid":1199665994138},{"r":16,"n":"壮壮-798","s":50000,"a":"https://huyaimg.msstatic.com/avatar/1069/f7/96575f338ab2ef89cdf30e65f7f4ce_180_135.jpg?1784898333","l":0,"uid":1199666286296},{"r":17,"n":"大锤酱798","s":50000,"a":"https://huyaimg.msstatic.com/avatar/1074/1b/99d6af0e29efe786c28698c118b894_180_135.jpg?1780862572","l":0,"uid":1199665267312},{"r":18,"n":"抱抱-798","s":50000,"a":"https://huyaimg.msstatic.com/avatar/1049/b0/455459a17ba17379916b97579633f6_180_135.jpg?1738702109","l":0,"uid":1199635593168},{"r":19,"n":"星星大王798","s":50000,"a":"https://huyaimg.msstatic.com/avatar/1035/03/0885bcc9bccc8cf9af19253a6a3aed_180_135.jpg?1781284122","l":0,"uid":1199539960367},{"r":20,"n":"李文卓的戾劣","s":29561,"a":"https://huyaimg.msstatic.com/avatar/1078/af/54afeccd98643ef484cc18cededccc_180_135.jpg?1788385364","l":0,"uid":2372827629},{"r":21,"n":"ZajZZWYZZ","s":29098,"a":"https://huyaimg.msstatic.com/avatar/1068/c1/d39283103a7e639b39787282c16e0d_180_135.jpg?1789133127","l":0,"uid":1279527511508},{"r":22,"n":"集美敢敢【ZKL】超级白","s":28085,"a":"https://huyaimg.msstatic.com/avatar/1056/ba/0f244c03f93fba158b752ac2ae2123_180_135.jpg?1787319043","l":0,"uid":1199656578811},{"r":23,"n":"集美小柔【zkl】白白白","s":26800,"a":"https://huyaimg.msstatic.com/avatar/1014/e0/b7c329093fbbeb8fcb10e16a437c4f_180_135.jpg?1740750895","l":0,"uid":1199641197077},{"r":24,"n":"恶果恶因","s":19330,"a":"https://huyaimg.msstatic.com/avatar/1090/c9/5b8825df5a59a519958a5a760cf5d1_180_135.jpg?1788602533","l":0,"uid":1279530496532},{"r":25,"n":"Pisces","s":16627,"a":"https://huyaimg.msstatic.com/avatar/1073/ce/8f88d45b4ed0647f510c2258465f55_180_135.jpg?1788961035","l":0,"uid":1199551113618},{"r":26,"n":"文彬【798】","s":15690,"a":"https://huyaimg.msstatic.com/avatar/1041/ae/6e2f5a0af9a90be5306c7f6305d8b6_180_135.jpg?1784668404","l":0,"uid":"1646666043"},{"r":27,"n":"、Ay926","s":15617,"a":"https://huyaimg.msstatic.com/avatar/1011/2a/5accf0c6707b30d3edfaa34429d17d_180_135.jpg?1788770890","l":0,"uid":1199666555561},{"r":28,"n":"集美星星发奖号","s":15583,"a":"https://huyaimg.msstatic.com/avatar/1040/79/f1904ea0bec564e51fe396aa2466e9_180_135.jpg?1772291305","l":0,"uid":1199646102425},{"r":29,"n":"小R菌、","s":14655,"a":"https://huyaimg.msstatic.com/avatar/1003/44/a343f5657c495696dadf483e9e85c1_180_135.jpg?1734457692","l":0,"uid":2331283653},{"r":30,"n":"星辰之夜8","s":13800,"a":"https://huyaimg.msstatic.com/avatar/1065/bb/693694ebabf486c6130975f49620b3_180_135.jpg?1788613480","l":0,"uid":1199612654125},{"r":31,"n":"龙丶绫","s":13520,"a":"https://huyaimg.msstatic.com/avatar/1072/ca/2bbb014baa944ece9154951dfafbf1_180_135.jpg?1788650903","l":0,"uid":"1555789632"},{"r":32,"n":"DarrenHou","s":13370,"a":"https://huyaimg.msstatic.com/avatar/1037/7b/51cf158b18af1c2af2b5d0ebcc2ad2_180_135.jpg?1788609292","l":0,"uid":1199667607546},{"r":33,"n":"、下雨天、x","s":13344,"a":"https://huyaimg.msstatic.com/avatar/1068/1a/b1c80d9f7ea4fdd653663d6508f840_180_135.jpg?1787382981","l":0,"uid":1199523345897},{"r":34,"n":"董事儿798","s":13150,"a":"https://huyaimg.msstatic.com/avatar/1005/07/71659601076692c25c612007e239e9_180_135.jpg?1785590096","l":0,"uid":1199657858148},{"r":35,"n":"甜甜圈-798","s":13141,"a":"https://huyaimg.msstatic.com/avatar/1019/79/1d0ef1fdfdec58c01b87de144beaf5_180_135.jpg?1788928192","l":0,"uid":1199654423586},{"r":36,"n":"IL富贵798","s":13140,"a":"https://huyaimg.msstatic.com/avatar/1097/0e/a6129745a3805e186c556565340bab_180_135.jpg?1731925059","l":0,"uid":1259552026609},{"r":37,"n":"图一一798","s":13140,"a":"https://huyaimg.msstatic.com/avatar/1018/b9/aaab206c7afa7a00461f957a5af144_180_135.jpg?1786814624","l":0,"uid":1199666773359},{"r":38,"n":"超越妹妹-798","s":13140,"a":"https://huyaimg.msstatic.com/avatar/1019/75/49b0301d3f070e124700aadfdcdd93_180_135.jpg?1785876408","l":0,"uid":1199666367290},{"r":39,"n":"飒飒798","s":13140,"a":"https://huyaimg.msstatic.com/avatar/1077/71/971ed5edeab5b5a8309bb9d49a9b8b_180_135.jpg?1783137228","l":0,"uid":1199666033904},{"r":40,"n":"丢丢发奖号","s":13140,"a":"https://huyaimg.msstatic.com/avatar/1030/75/662224dbc4526d658bb0c0951bf457_180_135.jpg?1778740860","l":0,"uid":1199664812791},{"r":41,"n":"朝朝-798","s":13140,"a":"https://huyaimg.msstatic.com/avatar/1064/6e/93e08ce7e3b7a36c9b53af6dc6f87e_180_135.jpg?1775239437","l":0,"uid":1199663647633},{"r":42,"n":"x11-798","s":13140,"a":"https://huyaimg.msstatic.com/avatar/1070/27/554decbd6d3ee57008d18a32bd5a6f_180_135.jpg?1782287866","l":0,"uid":1199663591186},{"r":43,"n":"小岩-798","s":13140,"a":"https://huyaimg.msstatic.com/avatar/1046/c7/738ea3d916c0548b6bcd1157053655_180_135.jpg?1723711705","l":0,"uid":1199645327485},{"r":44,"n":"集美汉堡【ZKL】","s":13140,"a":"https://huyaimg.msstatic.com/avatar/1036/b5/c3cbcf15c2b20dc1ffaacf489c12dc_180_135.jpg?1765389780","l":0,"uid":1199643886212},{"r":45,"n":"孟孟-798","s":13140,"a":"https://huyaimg.msstatic.com/avatar/1025/07/dcc0142ed5da1bf4a4bd7325ef146f_180_135.jpg?1787243854","l":0,"uid":1199598719599},{"r":46,"n":"牛牛-798","s":13140,"a":"https://huyaimg.msstatic.com/avatar/1045/54/741a9d2174efc98b4c1227a7002d0b_180_135.jpg?1731933628","l":0,"uid":1199592194974},{"r":47,"n":"雪芙-798","s":13140,"a":"https://huyaimg.msstatic.com/avatar/1036/20/5cd904f9d5d43e4e9f7c968ec292bd_180_135.jpg?1783965670","l":0,"uid":2454327754},{"r":48,"n":"吉吉国王798","s":13140,"a":"https://huyaimg.msstatic.com/avatar/1039/d0/be1eb4e56c05a51d5a85ce77a6664a_180_135.jpg?1778934452","l":0,"uid":2362343971},{"r":49,"n":"李文卓的粉笔","s":10104,"a":"https://huyaimg.msstatic.com/avatar/1095/56/9c9b394ed783510c8d7080cdad0375_180_135.jpg?1787664906","l":0,"uid":1199535297081},{"r":50,"n":"An","s":10004,"a":"https://huyaimg.msstatic.com/avatar/1085/3c/9b5a5823d43e909e0d6ea26e8f1b4d_180_135.jpg?1788626689","l":0,"uid":1199564834125},{"r":51,"n":"雅婷小小号","s":10000,"a":"https://huyaimg.msstatic.com/avatar/1084/35/5e5fcc9da39aa50ac86c2968521b10_180_135.jpg?1716193388","l":0,"uid":1199639601238},{"r":52,"n":"李文卓的机子","s":9170,"a":"https://huyaimg.msstatic.com/avatar/1087/2e/2860f6d82b04a62dde547e157b0a5c_180_135.jpg?1789035695","l":0,"uid":2232591654},{"r":53,"n":"U87988","s":6693,"a":"https://huyaimg.msstatic.com/avatar/1024/98/e569831f2a0814f54395a77383abb5_180_135.jpg?1786977028","l":0,"uid":1199618786873},{"r":54,"n":"Hel、","s":5128,"a":"https://huyaimg.msstatic.com/avatar/1084/37/c9454e157dc113c6132efe833a319c_180_135.jpg?1774091713","l":0,"uid":"1451544207"},{"r":55,"n":"章鱼哥叽里咕噜没力气","s":4722,"a":"https://huyaimg.msstatic.com/avatar/1041/90/e7335d9b1fe96986e9344591b25299_180_135.jpg?1789060268","l":0,"uid":1199525621713},{"r":56,"n":"前方风景正好","s":4265,"a":"https://huyaimg.msstatic.com/avatar/1035/d8/97f539ca2b34f91c27123ae1de97fe_180_135.jpg?1788963958","l":0,"uid":2203150988},{"r":57,"n":"要开心798","s":4116,"a":"https://huyaimg.msstatic.com/avatar/1079/ca/0d0b3a59cafd1c8f043174fc15b730_180_135.jpg?1784339501","l":0,"uid":"1569547119"},{"r":58,"n":"遥不可及不可耐","s":3774,"a":"https://huyaimg.msstatic.com/avatar/1075/36/798cf561529a2b4f8c9375b40e90fe_180_135.jpg?1756225922","l":0,"uid":"1685209551"},{"r":59,"n":"TT一个蛋","s":3673,"a":"https://huyaimg.msstatic.com/avatar/1029/63/8db35c5c04968379a6091ccb58fcbe_180_135.jpg?1785394505","l":0,"uid":1199649966927},{"r":60,"n":"有点火热诶","s":3622,"a":"https://huyaimg.msstatic.com/avatar/1043/0d/c3537c673b8323128e024e61a7c8a0_180_135.jpg?1787902642","l":0,"uid":1199589335065},{"r":61,"n":"张三hy","s":3473,"a":"https://huyaimg.msstatic.com/avatar/1053/57/8f071e38f206c6c12e0d2a269b5c85_180_135.jpg?1788422320","l":0,"uid":1259528944160},{"r":62,"n":"Jefferey","s":3256,"a":"https://huyaimg.msstatic.com/avatar/1062/3a/8b456bdb19a1851c07a4f71cadecf1_180_135.jpg?1787692636","l":0,"uid":2453964659},{"r":63,"n":"伊豆","s":3000,"a":"https://huyaimg.msstatic.com/avatar/1048/30/8052011dfc731465dd8256e919ed85_180_135.jpg?1787941910","l":0,"uid":1279529145374},{"r":64,"n":"不想yy了啊","s":2975,"a":"https://huyaimg.msstatic.com/avatar/1090/d1/7b8326e895c1feef02c163bdf4030c_180_135.jpg?1702305384","l":0,"uid":1199638447221},{"r":65,"n":"李文卓的串子","s":2844,"a":"https://huyaimg.msstatic.com/avatar/1081/8e/f45b9298062c22a1474be1e710149b_180_135.jpg?1788626170","l":0,"uid":1199536758836},{"r":66,"n":"猫11-798","s":2650,"a":"https://huyaimg.msstatic.com/avatar/1011/28/44d0f20146f46f182c356de0b18a31_180_135.jpg?1781000787","l":0,"uid":1199660105723},{"r":67,"n":"晴天869","s":2572,"a":"https://huyaimg.msstatic.com/avatar/1057/e0/e9429dc88a5c3d477d1a05e9072de8_180_135.jpg?1786549898","l":0,"uid":2287307352},{"r":68,"n":"无未的人","s":2461,"a":"https://huyaimg.msstatic.com/avatar/1006/85/487c26264f1167c36d148ce1ccdf39_180_135.jpg?1684037077","l":0,"uid":1259523843952},{"r":69,"n":"李文卓的木已","s":2361,"a":"https://huyaimg.msstatic.com/avatar/1010/4c/f1aee7c026d99d38d0c4e802617b98_180_135.jpg?1788974397","l":0,"uid":2323734197},{"r":70,"n":"落日晚风丶丶","s":2310,"a":"https://huyaimg.msstatic.com/avatar/1098/47/32e7609a4966f5be11aed2851f753c_180_135.jpg?1787843064","l":0,"uid":1199666352933},{"r":71,"n":"曉看士798","s":2179,"a":"https://huyaimg.msstatic.com/avatar/1079/3d/208175569522be9746b9d7bb1bb161_180_135.jpg?1789119950","l":0,"uid":1199588183876},{"r":72,"n":"李文卓你要开心快乐啊","s":2122,"a":"https://huyaimg.msstatic.com/avatar/1074/b3/3be7aeef30c55fec9f2bf1415bbf49_180_135.jpg?1788626311","l":0,"uid":"451779775"},{"r":73,"n":"爱瑶瑶的小洋","s":2011,"a":"https://huyaimg.msstatic.com/avatar/1094/f4/2d0e68171af6a8006679d2fb9eb16e_180_135.jpg?1789118827","l":0,"uid":1199548262612},{"r":74,"n":"吃豆腐脑儿","s":2007,"a":"https://huyaimg.msstatic.com/avatar/1094/58/60da2a9d50569a3429997bb087be68_180_135.jpg?1786952029","l":0,"uid":1199548094142},{"r":75,"n":"陪小宝去海边发呆","s":1959,"a":"https://huyaimg.msstatic.com/avatar/1072/f2/a9cb8fe8d713cf95fdd47bb6cce854_180_135.jpg?1786973007","l":0,"uid":1259512472517},{"r":76,"n":"辣条emm","s":1920,"a":"https://huyaimg.msstatic.com/avatar/1076/ba/c7fc4bfbc1cf6b83283ed8e98b6a3a_180_135.jpg?1785807497","l":0,"uid":1199589576156},{"r":77,"n":"李文卓的红果病友","s":1882,"a":"https://huyaimg.msstatic.com/avatar/1097/be/c70359dc59ba9387baef6c844ce577_180_135.jpg?1788692267","l":0,"uid":1199604151610},{"r":78,"n":"无为小咸鱼","s":1880,"a":"https://huyaimg.msstatic.com/avatar/1010/9d/e6c1a48d3565a8d62eb9523267060c_180_135.jpg?1789137010","l":0,"uid":1199661255631},{"r":79,"n":"荡漾是汝师","s":1706,"a":"https://huyaimg.msstatic.com/avatar/1017/d8/8384da9f29b3a8cfd2ce7baebe7865_180_135.jpg?1783601464","l":0,"uid":1199665763369},{"r":80,"n":"江東周游-","s":1651,"a":"https://huyaimg.msstatic.com/avatar/1076/cf/8199c110b5d183e6524e8a16df210b_180_135.jpg?1788115265","l":0,"uid":"1106873601"},{"r":81,"n":"明灬城","s":1610,"a":"https://huyaimg.msstatic.com/avatar/1000/06/dc9dccb3e9a1bb96b4f95a640c10a0_180_135.jpg?1789064141","l":0,"uid":"1260992334"},{"r":82,"n":"陈米咻【233】","s":1342,"a":"https://huyaimg.msstatic.com/avatar/1073/38/e1e21214542b19a4e1fdd8a74209b2_180_135.jpg?1786962110","l":0,"uid":1199556928995},{"r":83,"n":"boki仔淋迪版798","s":1331,"a":"https://huyaimg.msstatic.com/avatar/1063/89/4070fa88e255b14fbe8b3783c8cb9b_180_135.jpg?1788276738","l":0,"uid":1259525205525},{"r":84,"n":"星觉天","s":1322,"a":"https://huyaimg.msstatic.com/avatar/1085/0f/bfd51fcae51aff4b25f74d7f50a363_180_135.jpg?1788656634","l":0,"uid":1199620643814},{"r":85,"n":"So-wHat","s":1320,"a":"https://huyaimg.msstatic.com/avatar/1085/db/b1fd1e7a164ea368d6b5d053ac42c1_180_135.jpg?1788062101","l":0,"uid":1199617251939},{"r":86,"n":"djdbfk","s":1311,"a":"https://huyaimg.msstatic.com/avatar/1058/77/342d2671232da19fcc78771f2b6acc_180_135.jpg?1789116841","l":0,"uid":1199634495986},{"r":87,"n":"卓有意思","s":1230,"a":"https://huyaimg.msstatic.com/avatar/1020/17/1e8902e3c20ddbf7dcc32745b1d8be_180_135.jpg?1786697054","l":0,"uid":1199602902982},{"r":88,"n":"星河爱吃布洛芬","s":1206,"a":"https://huyaimg.msstatic.com/avatar/1050/3d/62b5ad9e21ec33ff868e2961e4d1fd_180_135.jpg?1785517385","l":0,"uid":1199556188963},{"r":89,"n":"小三子","s":1200,"a":"https://diy-assets.msstatic.com/cqhfolder/NewDefault.png","l":0,"uid":"1564083201"},{"r":90,"n":"世一萌大成宝","s":1182,"a":"https://huyaimg.msstatic.com/avatar/1085/d8/bc8add65e4238e6b5c3cd65333ee74_180_135.jpg?1788261049","l":0,"uid":1259516812755},{"r":91,"n":"爱童yyds","s":1108,"a":"https://huyaimg.msstatic.com/avatar/1097/73/254b57e69fa10659ed6771aae8b1cb_180_135.jpg?1776474970","l":0,"uid":1199560572552},{"r":92,"n":"刄】","s":1098,"a":"https://huyaimg.msstatic.com/avatar/1009/92/b37897fd3b3002b7003c499faf825a_180_135.jpg?1789058566","l":0,"uid":1199590036593},{"r":93,"n":"Tt-798","s":1060,"a":"https://huyaimg.msstatic.com/avatar/1042/d8/e52e60eb0fc85f6a79dd6bd42fdc7e_180_135.jpg?1779476281","l":0,"uid":1199665009300},{"r":94,"n":"大犟牛牛","s":1050,"a":"https://huyaimg.msstatic.com/avatar/1005/aa/c9e056c3b975477650da56db43b3bb_180_135.jpg?1786470809","l":0,"uid":1199635957561},{"r":95,"n":"李文卓的水笔","s":1040,"a":"https://huyaimg.msstatic.com/avatar/1092/46/50d40ad70933f11a637646bd74b380_180_135.jpg?1788596194","l":0,"uid":1279519767315},{"r":96,"n":"李文卓的懒觉","s":1040,"a":"https://huyaimg.msstatic.com/avatar/1064/3a/fc108c39884771085445cc1fe8524e_180_135.jpg?1787589290","l":0,"uid":2339297093},{"r":97,"n":"马铃薯798","s":1031,"a":"https://huyaimg.msstatic.com/avatar/1029/62/35bb1e89041a4b93725ef91998faa5_180_135.jpg?1788494497","l":0,"uid":1199584841063},{"r":98,"n":"钟逆时针绕","s":1029,"a":"https://huyaimg.msstatic.com/avatar/1015/80/f982323c295f1294c67352f1ce4a54_180_135.jpg?1786456651","l":0,"uid":1259522023515},{"r":99,"n":"Seniiii","s":1000,"a":"https://huyaimg.msstatic.com/avatar/1056/0d/e06e4c97434414071b100d79b5fbd0_180_135.jpg?1787333222","l":0,"uid":1199590664234},{"r":100,"n":"聪","s":990,"a":"https://huyaimg.msstatic.com/avatar/1033/bb/59949f0974107c05003b16ca693f3e_180_135.jpg?1786506294","l":0,"uid":1279521343903}]
+};
+const LVS = [
+  {min:400000, name:'砖石', cls:'lv-3'},
+  {min:150000, name:'黄金', cls:'lv-2'},
+  {min:50000,  name:'白银', cls:'lv-1'},
+  {min:0,      name:'青铜', cls:'lv-0'}
+];
+const lvOf = s => LVS.find(l => s >= l.min);
+const fmt = n => n.toLocaleString('zh-CN');
+const esc = s => s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+let cur = 'zhubo', kw = '';
+
+function avatar(u, cls){
+  const inner = u.a
+    ? '<img src="'+esc(u.a)+'" loading="lazy" onerror="this.parentNode.innerHTML=ph(this.dataset.n)" data-n="'+esc(u.n)+'">'
+    : ph(u.n);
+  const live = u.l ? '<span class="live-dot">LIVE</span>' : '';
+  return '<div class="ava '+cls+'">'+inner+live+'</div>';
+}
+function ph(n){ return '<div class="ph">'+esc((n||'?')[0])+'</div>'; }
+
+function render(){
+  let rows = DATA[cur];
+  const total = rows.reduce((a,u)=>a+u.s,0);
+  const top = rows[0];
+  document.getElementById('stats').innerHTML =
+    '<div class="stat"><b>'+rows.length+'</b><span>上榜人数</span></div>'+
+    '<div class="stat"><b>'+fmt(total)+'</b><span>总战力值</span></div>'+
+    '<div class="stat"><b>'+fmt(top.s)+'</b><span>榜首战力</span></div>';
+
+  const q = kw.trim().toLowerCase();
+  const shown = q ? rows.filter(u => u.n.toLowerCase().includes(q)) : rows;
+
+  // 领奖台
+  const top3 = shown.slice(0,3);
+  const order = top3.length === 3 ? [top3[1],top3[0],top3[2]] : top3;
+  const pcls = u => u===top3[0]?'p1':(u===top3[1]?'p2':'p3');
+  const colors = {1:'#ffd86b',2:'#cdd6e4',3:'#e8a080'};
+  let pod = '<div class="podium">';
+  order.forEach(u=>{
+    const k = top3.indexOf(u)+1;
+    pod += '<div class="pod '+pcls(u)+'" style="--c:'+colors[k]+'">'
+      + (k===1?'<div class="crown">👑</div>':'')
+      + avatar(u,'')
+      + '<div class="nm">'+esc(u.n)+'</div>'
+      + '<div class="sc">'+fmt(u.s)+'</div>'
+      + '<div class="base">'+k+'</div></div>';
+  });
+  pod += '</div>';
+  document.getElementById('podium').innerHTML = pod;
+
+  // 列表
+  const rest = shown.slice(3);
+  let html = '';
+  rest.forEach(u=>{
+    const lv = lvOf(u.s);
+    html += '<div class="row">'
+      + '<div class="rk">'+u.r+'</div>'
+      + avatar(u,'')
+      + '<div class="info"><div class="nm"><b>'+esc(u.n)+'</b>'
+      + (u.l?'<span class="live">LIVE</span>':'')+'</div>'
+      + '<span class="lv '+lv.cls+'">'+lv.name+'</span></div>'
+      + '<div class="sc">'+fmt(u.s)+'<small>战力值</small></div></div>';
+  });
+  document.getElementById('list').innerHTML =
+    html || '<div class="empty">没有找到「'+esc(kw)+'」相关的上榜用户</div>';
+}
+
+document.getElementById('tabs').addEventListener('click', e=>{
+  const b = e.target.closest('button'); if(!b) return;
+  document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on', x===b));
+  cur = b.dataset.k; render();
+});
+document.getElementById('q').addEventListener('input', e=>{ kw = e.target.value; render(); });
+
+// 星星
+(function(){
+  const box = document.getElementById('stars');
+  let s = '';
+  for(let i=0;i<26;i++){
+    const sz = 2+Math.random()*3;
+    s += '<i style="left:'+(Math.random()*100)+'vw;top:'+(Math.random()*100)+'vh;width:'+sz+'px;height:'+sz+'px;animation-delay:'+(Math.random()*3)+'s"></i>';
+  }
+  box.innerHTML = s;
+})();
+
+render();
+</script>
+</body>
+</html>

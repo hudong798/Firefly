@@ -1,0 +1,291 @@
+---
+import CultivationLayout from "@layouts/CultivationLayout.astro";
+import CultNav from "@/components/cultivation/CultNav.svelte";
+---
+
+<CultivationLayout title="储物袋" description="我的丹药和物品">
+	<CultNav client:load />
+
+	<main class="cult-page">
+		<div class="cult-page-header">
+			<h1 class="cult-page-title">储物袋</h1>
+			<p class="cult-page-desc">查看和使用你拥有的丹药</p>
+		</div>
+
+		<div id="auth-guard" style="display:none;">
+			<div class="cult-empty">
+				<div class="cult-empty-icon">
+					<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+				</div>
+				<h3 class="cult-empty-title">需要登录</h3>
+				<p class="cult-empty-desc">登录后才能查看储物袋</p>
+				<a href="/cultivation/login/" class="cult-btn cult-btn-primary" style="margin-top: 16px;">立即登录</a>
+			</div>
+		</div>
+
+		<div id="inventory-content" style="display:none;">
+			<div class="cult-card" style="margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+				<div>
+					<div style="font-size: 13px; color: var(--cult-text-muted); margin-bottom: 4px;">我的灵气</div>
+					<div style="font-size: 24px; font-weight: 700; color: #a78bfa; display: flex; align-items: center; gap: 6px;">
+						<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="m16.2 7.8 2.9-2.9"/><path d="M18 12h4"/><path d="m16.2 16.2 2.9 2.9"/><path d="M12 18v4"/><path d="m4.9 19.1 2.9-2.9"/><path d="M2 12h4"/><path d="m4.9 4.9 2.9 2.9"/></svg>
+						<span id="user-qi">0</span>
+					</div>
+				</div>
+				<div style="display: flex; gap: 8px;">
+					<a href="/cultivation/shop/" class="cult-btn cult-btn-secondary cult-btn-sm">去仙市</a>
+					<a href="/cultivation/" class="cult-btn cult-btn-secondary cult-btn-sm">返回首页</a>
+				</div>
+			</div>
+
+			<!-- Tab 切换 -->
+			<div class="cult-segmented" style="margin-bottom: 20px;">
+				<button class="cult-segmented-btn active" data-tab="owned">持有中</button>
+				<button class="cult-segmented-btn" data-tab="used">已使用</button>
+			</div>
+
+			<div id="inventory-list" class="cult-products-grid"></div>
+			<div id="inventory-empty" class="cult-empty" style="display:none;">
+				<div class="cult-empty-icon">
+					<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg>
+				</div>
+				<h3 class="cult-empty-title" id="empty-title">储物袋空空如也</h3>
+				<p class="cult-empty-desc" id="empty-desc">去仙市购买丹药吧</p>
+				<a href="/cultivation/shop/" class="cult-btn cult-btn-primary" style="margin-top: 16px;" id="empty-btn">去仙市</a>
+			</div>
+		</div>
+	</main>
+</CultivationLayout>
+
+<script>
+	import { getCurrentUser, getMyProfile, getMyInventory, usePill, listPillForResell, markItemAsUsed } from "@/services/cultivation";
+
+	const pillIcon = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg>`;
+	const qiIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="m16.2 7.8 2.9-2.9"/><path d="M18 12h4"/><path d="m16.2 16.2 2.9 2.9"/><path d="M12 18v4"/><path d="m4.9 19.1 2.9-2.9"/><path d="M2 12h4"/><path d="m4.9 4.9 2.9 2.9"/></svg>`;
+	const productIcon = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>`;
+
+	let currentTab = "owned";
+
+	function formatDate(dateStr: string) {
+		if (!dateStr) return "-";
+		const d = new Date(dateStr);
+		return d.toLocaleString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+	}
+
+	async function init() {
+		const user = await getCurrentUser();
+		const authGuard = document.getElementById("auth-guard");
+		const content = document.getElementById("inventory-content");
+
+		if (!user) {
+			if (authGuard) authGuard.style.display = "block";
+			return;
+		}
+
+		if (content) content.style.display = "block";
+
+		const profile = await getMyProfile();
+		const qiEl = document.getElementById("user-qi");
+		if (qiEl) qiEl.textContent = String(profile?.qi || 0);
+
+		// Tab 切换
+		document.querySelectorAll(".cult-segmented-btn").forEach((tab) => {
+			tab.addEventListener("click", (e) => {
+				document.querySelectorAll(".cult-segmented-btn").forEach((t) => t.classList.remove("active"));
+				(e.target as HTMLElement).classList.add("active");
+				currentTab = (e.target as HTMLElement).dataset.tab || "owned";
+				loadInventory();
+			});
+		});
+
+		loadInventory();
+	}
+
+	async function loadInventory() {
+		const inventory = await getMyInventory(currentTab as "owned" | "used");
+		const listEl = document.getElementById("inventory-list");
+		const emptyEl = document.getElementById("inventory-empty");
+		const emptyTitle = document.getElementById("empty-title");
+		const emptyDesc = document.getElementById("empty-desc");
+		const emptyBtn = document.getElementById("empty-btn");
+
+		if (!listEl || !emptyEl) return;
+
+		if (inventory.length === 0) {
+			listEl.innerHTML = "";
+			emptyEl.style.display = "block";
+			if (currentTab === "used") {
+				if (emptyTitle) emptyTitle.textContent = "暂无已使用物品";
+				if (emptyDesc) emptyDesc.textContent = "使用过的物品会显示在这里";
+				if (emptyBtn) emptyBtn.style.display = "none";
+			} else {
+				if (emptyTitle) emptyTitle.textContent = "储物袋空空如也";
+				if (emptyDesc) emptyDesc.textContent = "去仙市购买丹药吧";
+				if (emptyBtn) emptyBtn.style.display = "inline-block";
+			}
+			return;
+		}
+
+		emptyEl.style.display = "none";
+
+		const gradeColors = ["#94a3b8", "#60a5fa", "#a78bfa", "#fbbf24", "#f87171"];
+		const isUsed = currentTab === "used";
+
+		listEl.innerHTML = inventory
+			.map((item: any) => {
+				const isPill = item.item_type === "pill";
+				const gradeColor = gradeColors[item.pill_grade - 1] || gradeColors[0];
+				const shipTime = formatDate(item.obtained_at);
+				const usedTime = formatDate(item.used_at);
+
+				if (isPill) {
+					let actionBtns = "";
+					if (!isUsed) {
+						actionBtns = `
+							<div style="display: flex; gap: 8px;">
+								<button class="cult-btn cult-btn-primary cult-btn-sm use-pill-btn" data-inventory-id="${item.id}" style="flex: 1;">
+									去使用
+								</button>
+								<button class="cult-btn cult-btn-secondary cult-btn-sm resell-pill-btn" data-inventory-id="${item.id}" style="flex: 1;">
+									竞价
+								</button>
+								<button class="cult-btn cult-btn-danger cult-btn-sm mark-used-btn" data-inventory-id="${item.id}" style="flex: 1;">
+									已使用
+								</button>
+							</div>
+						`;
+					} else {
+						actionBtns = `
+							<div style="font-size: 12px; color: var(--cult-text-muted); text-align: center; padding: 8px; background: rgba(255,255,255,0.03); border-radius: 8px;">
+								已作废 · ${usedTime}
+							</div>
+						`;
+					}
+
+					return `
+						<div class="cult-product-card" style="${isUsed ? 'opacity: 0.6;' : ''}">
+							<div class="cult-product-icon" style="color: ${gradeColor};">${pillIcon}</div>
+							<h3 class="cult-product-name">${item.pill_name}</h3>
+							<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12px;">
+								<span style="color: ${gradeColor}; font-weight: 600;">${item.pill_grade}品丹药</span>
+								<span style="color: #a78bfa; display: flex; align-items: center; gap: 4px;">${qiIcon} +${item.pill_qi_bonus} 灵气</span>
+							</div>
+							<div style="font-size: 12px; color: var(--cult-text-secondary); margin-bottom: 4px;">数量：${item.quantity}</div>
+							<div style="font-size: 12px; color: var(--cult-text-muted); margin-bottom: 12px;">获得时间：${shipTime}</div>
+							${actionBtns}
+						</div>
+					`;
+				} else {
+					let actionBtns = "";
+					if (!isUsed) {
+						actionBtns = `
+							<div style="display: flex; gap: 8px;">
+								<button class="cult-btn cult-btn-secondary cult-btn-sm resell-pill-btn" data-inventory-id="${item.id}" style="flex: 1;">
+									竞价
+								</button>
+								<button class="cult-btn cult-btn-danger cult-btn-sm mark-used-btn" data-inventory-id="${item.id}" style="flex: 1;">
+									已使用
+								</button>
+							</div>
+						`;
+					} else {
+						actionBtns = `
+							<div style="font-size: 12px; color: var(--cult-text-muted); text-align: center; padding: 8px; background: rgba(255,255,255,0.03); border-radius: 8px;">
+								已作废 · ${usedTime}
+							</div>
+						`;
+					}
+
+					return `
+						<div class="cult-product-card" style="${isUsed ? 'opacity: 0.6;' : ''}">
+							<div class="cult-product-icon" style="color: #60a5fa;">${productIcon}</div>
+							<h3 class="cult-product-name">${item.pill_name}</h3>
+							<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12px;">
+								<span style="color: #60a5fa; font-weight: 600;">仙货</span>
+								<span style="color: var(--cult-text-muted);">已发货</span>
+							</div>
+							<div style="font-size: 12px; color: var(--cult-text-secondary); margin-bottom: 4px;">数量：${item.quantity}</div>
+							<div style="font-size: 12px; color: var(--cult-text-muted); margin-bottom: 12px;">发货时间：${shipTime}</div>
+							${actionBtns}
+						</div>
+					`;
+				}
+			})
+			.join("");
+
+		// 绑定使用按钮
+		listEl.querySelectorAll(".use-pill-btn").forEach((btn) => {
+			btn.addEventListener("click", async (e) => {
+				const inventoryId = (e.target as HTMLElement).dataset.inventoryId;
+				if (!inventoryId) return;
+
+				if (!confirm("确定要使用这个丹药吗？使用后将获得灵气提升。")) return;
+
+				(e.target as HTMLButtonElement).disabled = true;
+				(e.target as HTMLButtonElement).textContent = "使用中...";
+
+				const result = await usePill(inventoryId);
+				if (result.success) {
+					alert(`使用成功！获得 ${result.qi_earned} 灵气，当前灵气：${result.new_qi}`);
+					window.location.reload();
+				} else {
+					alert(result.error || "使用失败");
+					(e.target as HTMLButtonElement).disabled = false;
+					(e.target as HTMLButtonElement).textContent = "去使用";
+				}
+			});
+		});
+
+		// 绑定竞价按钮
+		listEl.querySelectorAll(".resell-pill-btn").forEach((btn) => {
+			btn.addEventListener("click", async (e) => {
+				const inventoryId = (e.target as HTMLElement).dataset.inventoryId;
+				if (!inventoryId) return;
+
+				const price = prompt("请输入基础竞价价格（灵石）：");
+				if (!price) return;
+
+				const priceNum = parseInt(price);
+				if (isNaN(priceNum) || priceNum <= 0) {
+					alert("请输入有效的价格");
+					return;
+				}
+
+				if (!confirm(`确定要以 ${priceNum} 灵石作为基础价格上架竞价吗？最多5人竞价，价高者得。`)) return;
+
+				const result = await listPillForResell(inventoryId, priceNum);
+				if (result.success) {
+					alert("上架成功！其他用户可以在炒币市场参与竞价。");
+					window.location.reload();
+				} else {
+					alert(result.error || "上架失败");
+				}
+			});
+		});
+
+		// 绑定已使用按钮
+		listEl.querySelectorAll(".mark-used-btn").forEach((btn) => {
+			btn.addEventListener("click", async (e) => {
+				const inventoryId = (e.target as HTMLElement).dataset.inventoryId;
+				if (!inventoryId) return;
+
+				if (!confirm("确定要标记为已使用吗？此操作不可撤销，如在竞价中将同时下架。")) return;
+
+				(e.target as HTMLButtonElement).disabled = true;
+				(e.target as HTMLButtonElement).textContent = "处理中...";
+
+				const result = await markItemAsUsed(inventoryId);
+				if (result.success) {
+					alert("已标记为已使用，物品已作废。");
+					loadInventory();
+				} else {
+					alert(result.error || "操作失败");
+					(e.target as HTMLButtonElement).disabled = false;
+					(e.target as HTMLButtonElement).textContent = "已使用";
+				}
+			});
+		});
+	}
+
+	init();
+</script>

@@ -1,0 +1,71 @@
+---
+import LinkGrid from "@/components/workbench/LinkGrid.astro";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import { getAiToolGroups } from "@/services/ai.service";
+
+const title = "AI";
+const description = "AI 工具导航";
+
+// 从 Supabase 获取 AI 工具数据（未配置时自动降级到静态数据）
+const aiGroups = await getAiToolGroups();
+---
+
+<MainGridLayout title={title} description={description}>
+	<p class="section-hint">点击直达官网，收藏你常用的 AI 助手吧。</p>
+
+	{
+		aiGroups.map((g) => (
+			<section class="ai-group">
+				<h2 class="ai-group-title">{g.title}</h2>
+				<LinkGrid items={g.items} perRow={6} />
+			</section>
+		))
+	}
+
+	<p class="section-tip">💡 想推荐其他好用的 AI 工具？欢迎去<a href="/guestbook/">讨论区</a>留言！</p>
+</MainGridLayout>
+
+<style>
+	.section-hint {
+		color: var(--content-meta);
+		font-size: 0.88rem;
+		margin: 0 0 1.1rem;
+	}
+
+	.ai-group {
+		margin-top: 1.7rem;
+	}
+	.ai-group:first-of-type {
+		margin-top: 0.2rem;
+	}
+
+	.ai-group-title {
+		display: flex;
+		align-items: center;
+		gap: 0.55rem;
+		font-size: 1.08rem;
+		font-weight: 700;
+		margin: 0 0 0.9rem;
+		color: var(--text-90, #e6edf3);
+	}
+	.ai-group-title::before {
+		content: "";
+		width: 4px;
+		height: 1.05rem;
+		border-radius: 2px;
+		background: var(--primary);
+	}
+
+	.section-tip {
+		margin-top: 1.6rem;
+		font-size: 0.85rem;
+		color: var(--content-meta);
+	}
+	.section-tip a {
+		color: var(--primary);
+		text-decoration: none;
+	}
+	.section-tip a:hover {
+		text-decoration: underline;
+	}
+</style>

@@ -1,0 +1,304 @@
+---
+import CultivationLayout from "@layouts/CultivationLayout.astro";
+import CultNav from "@/components/cultivation/CultNav.svelte";
+---
+
+<CultivationLayout title="灵石仙市" description="用灵石兑换好物">
+	<CultNav client:load />
+
+	<main class="cult-page">
+		<div class="cult-page-header">
+			<h1 class="cult-page-title">灵石仙市</h1>
+			<p class="cult-page-desc">用灵石兑换你想要的东西</p>
+		</div>
+
+		<div id="shop-content">
+			<div class="cult-card" style="margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+				<div>
+					<div style="font-size: 13px; color: var(--cult-text-muted); margin-bottom: 4px;">我的灵石</div>
+					<div style="font-size: 24px; font-weight: 700; color: var(--cult-gold-text); display: flex; align-items: center; gap: 6px;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 13L2 9Z"/><path d="M11 3 8 9l4 13 4-13-3-6"/><path d="M2 9h20"/></svg> <span id="user-coins">0</span></div>
+				</div>
+				<div style="display: flex; gap: 8px; flex-wrap: wrap; position: relative;">
+					<!-- 快捷入口下拉菜单 -->
+					<div class="cult-dropdown" id="quick-dropdown">
+						<button class="cult-btn cult-btn-sm" id="quick-dropdown-btn" onclick="toggleQuickDropdown()" style="background: rgba(52, 211, 153, 0.15); border: 1px solid rgba(52, 211, 153, 0.3); color: #34d399;">
+							快捷入口
+							<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px;"><path d="m6 9 6 6 6-6"/></svg>
+						</button>
+						<div class="cult-dropdown-menu" id="quick-dropdown-menu" style="display: none;">
+							<a href="/cultivation/inventory/" class="cult-dropdown-item">储物袋</a>
+							<a href="/cultivation/shop/mine/" class="cult-dropdown-item">我的仙铺</a>
+							<a href="/cultivation/orders/" class="cult-dropdown-item">我的订单</a>
+							<a href="/cultivation/resell/" class="cult-dropdown-item">炒币市场</a>
+							<a href="/cultivation/transactions/" class="cult-dropdown-item">查看流水</a>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Tab 切换 -->
+			<div class="cult-segmented" style="margin-bottom: 20px;">
+				<button class="cult-segmented-btn active" data-tab="products">仙货</button>
+				<button class="cult-segmented-btn" data-tab="pills">丹药</button>
+			</div>
+
+			<!-- 仙货列表 -->
+			<div id="products-tab">
+				<div id="shop-list" class="cult-products-grid"></div>
+				<div id="shop-empty" class="cult-empty" style="display:none;">
+					<div class="cult-empty-icon">
+							<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/><path d="M22 7v3a2 2 0 0 1-2 2v0a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12v0a2 2 0 0 1-2-2V7"/></svg>
+						</div>
+					<h3 class="cult-empty-title">仙市暂无仙货</h3>
+					<p class="cult-empty-desc">稍后再来看看吧</p>
+				</div>
+			</div>
+
+			<!-- 丹药列表 -->
+			<div id="pills-tab" style="display: none;">
+				<div id="pills-list" class="cult-products-grid"></div>
+				<div id="pills-empty" class="cult-empty" style="display:none;">
+					<div class="cult-empty-icon">
+						<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg>
+					</div>
+					<h3 class="cult-empty-title">暂无丹药</h3>
+					<p class="cult-empty-desc">宗主正在炼制中...</p>
+				</div>
+			</div>
+		</div>
+	</main>
+</CultivationLayout>
+
+<script>
+	import { getCurrentUser, getActiveProductsWithSeller, getMyWallet, redeemProduct, getActivePills, buyPill } from "@/services/cultivation";
+
+	const gemIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 13L2 9Z"/><path d="M11 3 8 9l4 13 4-13-3-6"/><path d="M2 9h20"/></svg>`;
+	const packageIcon = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>`;
+	const pillIcon = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg>`;
+	const qiIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="m16.2 7.8 2.9-2.9"/><path d="M18 12h4"/><path d="m16.2 16.2 2.9 2.9"/><path d="M12 18v4"/><path d="m4.9 19.1 2.9-2.9"/><path d="M2 12h4"/><path d="m4.9 4.9 2.9 2.9"/></svg>`;
+
+	// 快捷入口下拉菜单
+	window.toggleQuickDropdown = function() {
+		const menu = document.getElementById("quick-dropdown-menu");
+		if (menu) {
+			menu.style.display = menu.style.display === "none" ? "block" : "none";
+		}
+	};
+
+	// 点击外部关闭下拉菜单
+	document.addEventListener("click", function(e) {
+		const dropdown = document.getElementById("quick-dropdown");
+		const menu = document.getElementById("quick-dropdown-menu");
+		if (dropdown && menu && !dropdown.contains(e.target)) {
+			menu.style.display = "none";
+		}
+	});
+
+	let currentTab = "products";
+
+	async function init() {
+		const user = await getCurrentUser();
+		const content = document.getElementById("shop-content");
+
+		// 未登录也显示商品列表
+		if (content) content.style.display = "block";
+
+		// Tab 切换
+		document.querySelectorAll(".cult-segmented-btn").forEach((tab) => {
+			tab.addEventListener("click", (e) => {
+				document.querySelectorAll(".cult-segmented-btn").forEach((t) => t.classList.remove("active"));
+				(e.target as HTMLElement).classList.add("active");
+				currentTab = (e.target as HTMLElement).dataset.tab || "products";
+				document.getElementById("products-tab")!.style.display = currentTab === "products" ? "block" : "none";
+				document.getElementById("pills-tab")!.style.display = currentTab === "pills" ? "block" : "none";
+			});
+		});
+
+		// 加载商品和丹药（公开数据）
+		const [products, pills] = await Promise.all([getActiveProductsWithSeller(), getActivePills()]);
+
+		// 已登录用户：加载钱包
+		let coins = 0;
+		if (user) {
+			const wallet = await getMyWallet();
+			coins = wallet?.coins || 0;
+			const coinsEl = document.getElementById("user-coins");
+			if (coinsEl) coinsEl.textContent = String(coins);
+		}
+
+		// 加载仙货列表
+		loadProducts(products, coins, !!user);
+
+		// 加载丹药列表
+		loadPills(pills, coins, !!user);
+	}
+
+	function loadProducts(products: any[], coins: number, isLoggedIn: boolean) {
+		const listEl = document.getElementById("shop-list");
+		const emptyEl = document.getElementById("shop-empty");
+		if (!listEl) return;
+
+		if (products.length === 0) {
+			if (emptyEl) emptyEl.style.display = "block";
+			return;
+		}
+
+		listEl.innerHTML = products
+			.map((product: any) => {
+				const canAfford = coins >= product.price;
+				const inStock = (product.stock ?? 1) > 0;
+				const seller = product.profiles || {};
+				const btnText = !isLoggedIn ? "登录后兑换" : (!inStock ? "已售罄" : canAfford ? "兑换" : "灵石不足");
+				const btnDisabled = isLoggedIn && (!canAfford || !inStock);
+				return `
+					<div class="cult-product-card">
+						<div class="cult-product-icon">${product.image_url ? `<img src="${product.image_url}" alt="${product.name}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />` : packageIcon}</div>
+						<h3 class="cult-product-name">${product.name}</h3>
+						<p class="cult-product-desc">${product.description || "暂无描述"}</p>
+						<div style="font-size: 12px; color: var(--cult-text-muted); margin-bottom: 4px;">卖家：${seller.username || "官方"}</div>
+						<div style="font-size: 12px; color: ${inStock ? 'var(--cult-text-secondary)' : '#ef4444'}; margin-bottom: 8px;">库存：${product.stock ?? 1}${inStock ? '' : '（已售罄）'}</div>
+						<div class="cult-product-price">${gemIcon} ${product.price}</div>
+						<button class="cult-btn ${isLoggedIn && canAfford && inStock ? "cult-btn-primary" : "cult-btn-secondary"} cult-btn-sm cult-btn-block redeem-btn" data-product-id="${product.id}" ${btnDisabled ? "disabled" : ""}>
+							${btnText}
+						</button>
+					</div>
+				`;
+			})
+			.join("");
+
+		// 绑定兑换按钮
+		listEl.querySelectorAll(".redeem-btn:not(:disabled)").forEach((btn) => {
+			btn.addEventListener("click", async (e) => {
+				const productId = (e.target as HTMLElement).dataset.productId;
+				if (!productId) return;
+
+				// 未登录跳转到登录页
+				const currentUser = await getCurrentUser();
+				if (!currentUser) {
+					window.location.href = "/cultivation/login/";
+					return;
+				}
+
+				if (!confirm("确定要兑换这个仙货吗？")) return;
+
+				(e.target as HTMLButtonElement).disabled = true;
+				(e.target as HTMLButtonElement).textContent = "兑换中...";
+
+				const result = await redeemProduct(productId);
+				if (result.success) {
+					if (confirm("兑换成功！点击确定查看我的订单")) {
+						window.location.href = "/cultivation/orders/";
+					} else {
+						window.location.reload();
+					}
+				} else {
+					alert(result.error || "兑换失败");
+					(e.target as HTMLButtonElement).disabled = false;
+					(e.target as HTMLButtonElement).textContent = "兑换";
+				}
+			});
+		});
+	}
+
+	function loadPills(pills: any[], coins: number, isLoggedIn: boolean) {
+		const listEl = document.getElementById("pills-list");
+		const emptyEl = document.getElementById("pills-empty");
+		if (!listEl) return;
+
+		if (pills.length === 0) {
+			if (emptyEl) emptyEl.style.display = "block";
+			return;
+		}
+
+		const gradeColors = ["#94a3b8", "#60a5fa", "#a78bfa", "#fbbf24", "#f87171"];
+
+		listEl.innerHTML = pills
+			.map((pill: any) => {
+				const canAfford = coins >= pill.price;
+				const gradeColor = gradeColors[pill.grade - 1] || gradeColors[0];
+				const btnText = !isLoggedIn ? "登录后购买" : (canAfford ? "购买" : "灵石不足");
+				const btnDisabled = isLoggedIn && !canAfford;
+				return `
+					<div class="cult-product-card">
+						<div class="cult-product-icon" style="color: ${gradeColor};">${pillIcon}</div>
+						<h3 class="cult-product-name">${pill.name}</h3>
+						<p class="cult-product-desc">${pill.description || "暂无描述"}</p>
+						<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12px;">
+							<span style="color: ${gradeColor}; font-weight: 600;">${pill.grade}品丹药</span>
+							<span style="color: #a78bfa; display: flex; align-items: center; gap: 4px;">${qiIcon} +${pill.qi_bonus} 灵气</span>
+						</div>
+						<div class="cult-product-price">${gemIcon} ${pill.price}</div>
+						<button class="cult-btn ${isLoggedIn && canAfford ? "cult-btn-primary" : "cult-btn-secondary"} cult-btn-sm cult-btn-block buy-pill-btn" data-pill-id="${pill.id}" ${btnDisabled ? "disabled" : ""}>
+							${btnText}
+						</button>
+					</div>
+				`;
+			})
+			.join("");
+
+		// 绑定购买按钮
+		listEl.querySelectorAll(".buy-pill-btn:not(:disabled)").forEach((btn) => {
+			btn.addEventListener("click", async (e) => {
+				const pillId = (e.target as HTMLElement).dataset.pillId;
+				if (!pillId) return;
+
+				// 未登录跳转到登录页
+				const currentUser = await getCurrentUser();
+				if (!currentUser) {
+					window.location.href = "/cultivation/login/";
+					return;
+				}
+
+				if (!confirm("确定要购买这个丹药吗？购买后可在储物袋中使用。")) return;
+
+				(e.target as HTMLButtonElement).disabled = true;
+				(e.target as HTMLButtonElement).textContent = "购买中...";
+
+				const result = await buyPill(pillId);
+				if (result.success) {
+					alert(`购买成功！获得 ${result.remaining_coins} 灵石剩余，丹药已放入储物袋。`);
+					window.location.reload();
+				} else {
+					alert(result.error || "购买失败");
+					(e.target as HTMLButtonElement).disabled = false;
+					(e.target as HTMLButtonElement).textContent = "购买";
+				}
+			});
+		});
+	}
+
+	init();
+</script>
+
+<style is:global>
+	.cult-dropdown {
+		position: relative;
+	}
+
+	.cult-dropdown-menu {
+		position: absolute;
+		top: calc(100% + 6px);
+		right: 0;
+		min-width: 140px;
+		background: #0f1220;
+		border: 1px solid rgba(139, 92, 246, 0.2);
+		border-radius: 10px;
+		box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+		z-index: 100;
+		overflow: hidden;
+	}
+
+	.cult-dropdown-item {
+		display: block;
+		padding: 10px 14px;
+		color: var(--cult-text);
+		text-decoration: none;
+		font-size: 14px;
+		transition: background 0.15s;
+	}
+
+	.cult-dropdown-item:hover {
+		background: rgba(139, 92, 246, 0.1);
+		color: #a78bfa;
+	}
+</style>

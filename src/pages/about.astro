@@ -1,0 +1,761 @@
+---
+// 关于我 / ABOUT —— Personal Observatory · Idong Profile
+// 个人数字观测档案：左侧身份识别，右侧 About / Interest Signals / About FreeX / Signal
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import { Icon } from "astro-icon/components";
+import { profileConfig } from "@/config";
+
+// 身份标签
+const identityTags = ["AI 爱好者", "足球迷", "FreeX 站长", "数字探索者"];
+
+// 兴趣信号（Interest Signals）
+const interests = [
+	{ no: "01", en: "AI", zh: "人工智能", desc: "Artificial Intelligence · 研究模型与工具，相信技术的可能性", tone: "cyan" },
+	{ no: "02", en: "FOOTBALL", zh: "足球", desc: "Neymar · Brazil · 绿茵场是永远的热爱", tone: "violet" },
+	{ no: "03", en: "TRAVEL", zh: "旅行", desc: "City Walk · Photography · 用脚步和镜头记录世界", tone: "blue" },
+	{ no: "04", en: "CREATION", zh: "创造", desc: "Coding · Design · Experiment · 写代码、做设计、折腾数字实验", tone: "violet" },
+];
+
+// 关于 FreeX —— 网站结构节点（链接到真实板块）
+const freexNodes = [
+	{ code: "ECHO", name: "回声", desc: "碎片与想法", url: "/thoughts/" },
+	{ code: "ARCHIVE", name: "档案", desc: "收藏与资源", url: "/archive/" },
+	{ code: "JOURNEY", name: "轨迹", desc: "旅行与足迹", url: "/travel/" },
+	{ code: "SIGNAL", name: "信号", desc: "留言与连接", url: "/guestbook/" },
+	{ code: "AI RADAR", name: "AI", desc: "实验与探索", url: "/ai/" },
+];
+
+// 联系方式：站点配置 + 微信
+const wechat = "hd60819";
+const contacts = profileConfig.links.map((l) => ({
+	name: l.name,
+	icon: l.icon,
+	url: l.url,
+	external: !l.url.startsWith("/") && !l.url.startsWith("mailto:"),
+	copy: null as string | null,
+}));
+contacts.push({ name: "微信", icon: "fa6-brands:weixin", url: "#", external: false, copy: wechat });
+---
+
+<MainGridLayout title={i18n(I18nKey.about)} description="Idong 的个人数字观测档案">
+	<!-- Reading Quiet Zone：局部阅读暗层，让星空退后 -->
+	<div class="po-vignette" aria-hidden="true"></div>
+
+	<div class="po-container">
+		<!-- 顶部 HUD -->
+		<header class="po-top">
+			<div class="po-top-label">
+				<span class="po-live-dot"></span>
+				<span class="po-top-mono">PERSONAL OBSERVATORY</span>
+				<span class="po-top-sep">/</span>
+				<span class="po-top-mono po-top-mono--accent">IDONG · PROFILE</span>
+			</div>
+			<div class="po-top-status">
+				<span class="po-top-mono">OBS-01</span>
+				<span class="po-top-mono">SIGNAL ACTIVE</span>
+			</div>
+		</header>
+
+		<div class="po-grid">
+			<!-- 左侧：个人身份识别 -->
+			<aside class="po-identity">
+				<div class="id-orb">
+					<div class="id-orb-ring id-orb-ring--rotate" aria-hidden="true">
+						<span class="id-orb-comet"></span>
+					</div>
+					<div class="id-orb-ring id-orb-ring--static" aria-hidden="true"></div>
+					<div class="id-orb-core">
+						<img src={profileConfig.avatar} alt="Idong avatar" />
+					</div>
+					<span class="id-orb-status" title="online"></span>
+				</div>
+
+				<h1 class="id-name">Idong</h1>
+				<p class="id-line">热爱 AI · 追求自由</p>
+
+				<div class="id-tags">
+					{identityTags.map((t) => <span class="id-tag">{t}</span>)}
+				</div>
+
+				<!-- 个人宣言 -->
+				<blockquote class="id-manifesto">
+					<p>你好，我是 <em>Idong</em>。</p>
+					<p>一个热爱 AI、追求自由，</p>
+					<p>也喜欢记录生活的人。</p>
+				</blockquote>
+
+				<!-- 建立连接 -->
+				<div class="id-signal">
+					<div class="po-section-head">
+						<span class="po-section-no"></span>
+						<span class="po-section-en">SIGNAL</span>
+						<span class="po-section-zh">建立连接</span>
+					</div>
+					<div class="id-contacts">
+						{contacts.map((c) => (
+							c.copy ? (
+								<button class="contact-item" type="button" data-copy={c.copy} title={`微信 ${c.copy}，点击复制`}>
+									<Icon name={c.icon} />
+									<span>{c.name}</span>
+								</button>
+							) : (
+								<a class="contact-item" href={c.url} title={c.name}
+									{...c.external ? { target: "_blank", rel: "noopener noreferrer" } : {}}>
+									<Icon name={c.icon} />
+									<span>{c.name}</span>
+								</a>
+							)
+						))}
+					</div>
+				</div>
+			</aside>
+
+			<!-- 右侧：信息档案 -->
+			<main class="po-main">
+				<!-- 01 ABOUT -->
+				<section class="po-section">
+					<div class="po-section-head">
+						<span class="po-section-no">01</span>
+						<span class="po-section-en">ABOUT</span>
+						<span class="po-section-zh">关于我</span>
+						<span class="po-section-line"></span>
+					</div>
+					<div class="about-body">
+						<p>一个热爱 AI、追求自由，也喜欢探索新事物的人。</p>
+						<p>
+							我喜欢研究 AI、折腾软件和各种新工具，也喜欢足球、旅行、摄影和记录生活。
+							这里不是一份正式的个人简历，只是我留在数字宇宙里的一些足迹。
+						</p>
+					</div>
+				</section>
+
+				<!-- 02 INTEREST SIGNALS -->
+				<section class="po-section">
+					<div class="po-section-head">
+						<span class="po-section-no">02</span>
+						<span class="po-section-en">INTEREST SIGNALS</span>
+						<span class="po-section-zh">兴趣信号</span>
+						<span class="po-section-line"></span>
+					</div>
+					<div class="interest-list">
+						{interests.map((it) => (
+							<div class={`interest-item tone-${it.tone}`}>
+								<span class="interest-signal-line" aria-hidden="true"></span>
+								<span class="interest-no">{it.no}</span>
+								<span class="interest-node" aria-hidden="true"></span>
+								<div class="interest-text">
+									<div class="interest-title">
+										<span class="interest-en">{it.en}</span>
+										<span class="interest-zh">{it.zh}</span>
+									</div>
+									<p class="interest-desc">{it.desc}</p>
+								</div>
+							</div>
+						))}
+					</div>
+				</section>
+
+				<!-- 03 ABOUT FREEX -->
+				<section class="po-section">
+					<div class="po-section-head">
+						<span class="po-section-no">03</span>
+						<span class="po-section-en">ABOUT FREEX</span>
+						<span class="po-section-zh">关于这个小站</span>
+						<span class="po-section-line"></span>
+					</div>
+					<p class="freex-intro">
+						FreeX 不是一个单纯的网站名称，而是一个记录生活、分享想法的小站——
+						碎碎念、AI 工具、影视与漫画收藏、旅行足迹，以及一些数字实验。
+					</p>
+					<div class="freex-grid">
+						{freexNodes.map((n) => (
+							<a class="freex-node" href={n.url}>
+								<span class="freex-node-top">
+									<span class="freex-node-code">{n.code}</span>
+									<span class="freex-node-arrow">→</span>
+								</span>
+								<span class="freex-node-name">{n.name}</span>
+								<span class="freex-node-desc">{n.desc}</span>
+							</a>
+						))}
+					</div>
+				</section>
+
+				<footer class="po-end">
+					<span class="po-end-line"></span>
+					<span class="po-top-mono">END OF PROFILE · IDONG / 2026</span>
+				</footer>
+			</main>
+		</div>
+	</div>
+</MainGridLayout>
+
+<style>
+	/* 解除父级 .wb-chat 的 52rem 居中限制，让档案页获得桌面宽幅 */
+	:global(.wb-chat:has(.po-container)) {
+		max-width: none !important;
+		margin: 0 !important;
+		padding: 0.5rem 0 4rem !important;
+		gap: 0 !important;
+	}
+
+	/* Quiet Zone：星空退后，内容成为主体 */
+	.po-vignette {
+		position: fixed;
+		inset: 0;
+		z-index: 1;
+		pointer-events: none;
+		background:
+			radial-gradient(ellipse 75% 60% at 50% 30%, rgba(3, 5, 10, 0.4) 0%, rgba(3, 5, 10, 0.15) 55%, transparent 85%),
+			linear-gradient(180deg, rgba(3, 5, 10, 0.1) 0%, transparent 12%, transparent 90%, rgba(3, 5, 10, 0.2) 100%);
+	}
+
+	.po-container {
+		position: relative;
+		z-index: 2;
+		width: 100%;
+		max-width: 1280px;
+		margin: 0 auto;
+		padding: 0 2.25rem;
+		overflow-x: clip;
+	}
+
+	/* 顶部 HUD */
+	.po-top {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		padding: 0.25rem 0 1.75rem;
+		border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+		margin-bottom: 2.75rem;
+	}
+	.po-top-label {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.6rem;
+	}
+	.po-live-dot {
+		width: 5px;
+		height: 5px;
+		border-radius: 50%;
+		background: rgba(99, 216, 255, 0.7);
+		box-shadow: 0 0 8px rgba(99, 216, 255, 0.5);
+		animation: po-pulse 3.2s ease-in-out infinite;
+	}
+	.po-top-mono {
+		font-family: "JetBrains Mono", "Fira Code", "Space Mono", ui-monospace, monospace;
+		font-size: 0.62rem;
+		letter-spacing: 0.18em;
+		color: rgba(255, 255, 255, 0.32);
+		text-transform: uppercase;
+		white-space: nowrap;
+	}
+	.po-top-mono--accent {
+		color: rgba(155, 140, 255, 0.55);
+	}
+	.po-top-sep {
+		color: rgba(255, 255, 255, 0.18);
+		font-size: 0.62rem;
+	}
+	.po-top-status {
+		display: flex;
+		gap: 1.25rem;
+	}
+
+	/* 左右分栏 */
+	.po-grid {
+		display: grid;
+		grid-template-columns: minmax(0, 35%) minmax(0, 65%);
+		gap: 3.5rem;
+		align-items: start;
+	}
+
+	/* ============ 左侧身份 ============ */
+	.po-identity {
+		position: sticky;
+		top: 1.25rem;
+	}
+
+	.id-orb {
+		position: relative;
+		width: 168px;
+		height: 168px;
+		margin: 0 auto 1.5rem;
+		display: grid;
+		place-items: center;
+	}
+	.id-orb-ring {
+		position: absolute;
+		inset: 0;
+		border-radius: 50%;
+		pointer-events: none;
+	}
+	.id-orb-ring--static {
+		inset: 6px;
+		border: 1px solid rgba(155, 140, 255, 0.14);
+	}
+	.id-orb-ring--rotate {
+		border: 1px dashed rgba(99, 216, 255, 0.16);
+		animation: po-spin 48s linear infinite;
+	}
+	.id-orb-comet {
+		position: absolute;
+		top: -3px;
+		left: 50%;
+		width: 6px;
+		height: 6px;
+		transform: translateX(-50%);
+		border-radius: 50%;
+		background: rgba(99, 216, 255, 0.85);
+		box-shadow: 0 0 10px rgba(99, 216, 255, 0.6);
+	}
+	.id-orb-core {
+		width: 112px;
+		height: 112px;
+		border-radius: 50%;
+		overflow: hidden;
+		border: 1px solid rgba(155, 140, 255, 0.35);
+		box-shadow:
+			0 0 0 4px rgba(5, 8, 17, 0.6),
+			0 0 28px rgba(155, 140, 255, 0.18),
+			inset 0 0 18px rgba(99, 216, 255, 0.08);
+		animation: po-breathe 5s ease-in-out infinite;
+	}
+	.id-orb-core img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		display: block;
+	}
+	.id-orb-status {
+		position: absolute;
+		right: 30px;
+		bottom: 30px;
+		width: 11px;
+		height: 11px;
+		border-radius: 50%;
+		background: #63d8ff;
+		border: 2px solid #070a12;
+		box-shadow: 0 0 10px rgba(99, 216, 255, 0.7);
+	}
+
+	.id-name {
+		margin: 0;
+		text-align: center;
+		font-size: 1.7rem;
+		font-weight: 600;
+		letter-spacing: 0.02em;
+		color: #f4f5fa;
+	}
+	.id-line {
+		margin: 0.4rem 0 1.25rem;
+		text-align: center;
+		font-family: "JetBrains Mono", "Space Mono", monospace;
+		font-size: 0.7rem;
+		letter-spacing: 0.14em;
+		color: rgba(255, 255, 255, 0.45);
+	}
+	.id-tags {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 0.5rem;
+		margin-bottom: 2rem;
+	}
+	.id-tag {
+		font-family: "JetBrains Mono", "Space Mono", monospace;
+		font-size: 0.62rem;
+		letter-spacing: 0.08em;
+		color: rgba(216, 220, 231, 0.66);
+		padding: 0.3rem 0.65rem;
+		border: 1px solid rgba(255, 255, 255, 0.09);
+		border-radius: 999px;
+		background: rgba(255, 255, 255, 0.015);
+	}
+
+	.id-manifesto {
+		margin: 0 0 2.25rem;
+		padding: 1.5rem 0 1.5rem 1.25rem;
+		border-left: 1px solid rgba(155, 140, 255, 0.3);
+	}
+	.id-manifesto p {
+		margin: 0;
+		font-size: 1.28rem;
+		font-weight: 500;
+		line-height: 1.75;
+		letter-spacing: 0.01em;
+		color: #d8dce7;
+	}
+	.id-manifesto em {
+		font-style: normal;
+		color: #b7acff;
+		text-shadow: 0 0 18px rgba(155, 140, 255, 0.35);
+	}
+
+	.id-signal {
+		padding-top: 1.5rem;
+		border-top: 1px solid rgba(255, 255, 255, 0.06);
+	}
+	.id-contacts {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.6rem;
+		margin-top: 0.9rem;
+	}
+	.contact-item {
+		appearance: none;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.45rem;
+		padding: 0.5rem 0.8rem;
+		font-size: 0.78rem;
+		color: rgba(216, 220, 231, 0.72);
+		text-decoration: none;
+		cursor: pointer;
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		border-radius: 0.7rem;
+		background: rgba(255, 255, 255, 0.015);
+		transition: transform 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+	}
+	.contact-item :global(svg) {
+		width: 15px;
+		height: 15px;
+	}
+	.contact-item:hover {
+		color: #f4f5fa;
+		transform: translateY(-2px);
+		border-color: rgba(155, 140, 255, 0.4);
+		box-shadow: 0 0 16px rgba(155, 140, 255, 0.14);
+	}
+
+	/* ============ 右侧区块 ============ */
+	.po-section {
+		margin-bottom: 3rem;
+	}
+	.po-section-head {
+		display: flex;
+		align-items: center;
+		gap: 0.8rem;
+		margin-bottom: 1.4rem;
+	}
+	.po-section-no {
+		font-family: "JetBrains Mono", monospace;
+		font-size: 0.7rem;
+		color: rgba(99, 216, 255, 0.55);
+		letter-spacing: 0.1em;
+		min-width: 1.4rem;
+	}
+	.po-section-en {
+		font-family: "JetBrains Mono", monospace;
+		font-size: 0.72rem;
+		letter-spacing: 0.2em;
+		color: rgba(255, 255, 255, 0.55);
+	}
+	.po-section-zh {
+		font-size: 0.95rem;
+		font-weight: 600;
+		color: #f4f5fa;
+	}
+	.po-section-line {
+		flex: 1;
+		height: 1px;
+		background: linear-gradient(90deg, rgba(255, 255, 255, 0.1), transparent);
+	}
+
+	.about-body p {
+		margin: 0 0 0.9rem;
+		font-size: 0.98rem;
+		line-height: 1.95;
+		color: #b9c0d0;
+		max-width: 640px;
+	}
+	.about-body p:last-child {
+		margin-bottom: 0;
+	}
+
+	/* Interest Signals */
+	.interest-list {
+		display: flex;
+		flex-direction: column;
+	}
+	.interest-item {
+		position: relative;
+		display: flex;
+		align-items: flex-start;
+		gap: 1rem;
+		padding: 1rem 0.5rem 1rem 0.75rem;
+		border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+		transition: transform 0.25s ease, background 0.25s ease;
+	}
+	.interest-item:last-child {
+		border-bottom: none;
+	}
+	.interest-item:hover {
+		transform: translateX(4px);
+		background: linear-gradient(90deg, rgba(155, 140, 255, 0.05), transparent 70%);
+	}
+	.interest-signal-line {
+		position: absolute;
+		left: 0;
+		top: 14%;
+		bottom: 14%;
+		width: 1px;
+		background: linear-gradient(180deg, rgba(155, 140, 255, 0.6), rgba(99, 216, 255, 0.2));
+		opacity: 0;
+		transition: opacity 0.25s ease;
+	}
+	.interest-item:hover .interest-signal-line {
+		opacity: 1;
+	}
+	.interest-no {
+		font-family: "JetBrains Mono", monospace;
+		font-size: 0.66rem;
+		letter-spacing: 0.1em;
+		color: rgba(255, 255, 255, 0.3);
+		padding-top: 0.25rem;
+		min-width: 1.6rem;
+	}
+	.interest-node {
+		margin-top: 0.45rem;
+		width: 7px;
+		height: 7px;
+		flex: none;
+		border-radius: 50%;
+		background: currentColor;
+	}
+	.tone-cyan .interest-node {
+		color: #63d8ff;
+		box-shadow: 0 0 8px rgba(99, 216, 255, 0.5);
+	}
+	.tone-violet .interest-node {
+		color: #9b8cff;
+		box-shadow: 0 0 8px rgba(155, 140, 255, 0.5);
+	}
+	.tone-blue .interest-node {
+		color: #7aa2ff;
+		box-shadow: 0 0 8px rgba(122, 162, 255, 0.5);
+	}
+	.interest-text {
+		flex: 1;
+	}
+	.interest-title {
+		display: flex;
+		align-items: baseline;
+		gap: 0.75rem;
+		margin-bottom: 0.25rem;
+	}
+	.interest-en {
+		font-size: 1.02rem;
+		font-weight: 600;
+		letter-spacing: 0.06em;
+		color: #f4f5fa;
+	}
+	.interest-zh {
+		font-size: 0.72rem;
+		color: rgba(255, 255, 255, 0.4);
+	}
+	.interest-desc {
+		margin: 0;
+		font-size: 0.84rem;
+		line-height: 1.7;
+		color: #8d96aa;
+	}
+
+	/* 兴趣节点色调（Interest Signals 共用） */
+	.tone-cyan {
+		color: #63d8ff;
+	}
+	.tone-violet {
+		color: #b0a4ff;
+	}
+	.tone-blue {
+		color: #8aa9ff;
+	}
+
+	/* About FreeX */
+	.freex-intro {
+		margin: 0 0 1.4rem;
+		font-size: 0.9rem;
+		line-height: 1.9;
+		color: #8d96aa;
+		max-width: 640px;
+	}
+	.freex-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+		gap: 0.8rem;
+	}
+	.freex-node {
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+		padding: 1.1rem 1.15rem;
+		text-decoration: none;
+		border: 1px solid rgba(255, 255, 255, 0.07);
+		border-radius: 0.9rem;
+		background: rgba(255, 255, 255, 0.012);
+		transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+	}
+	.freex-node-top {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+	.freex-node-code {
+		font-family: "JetBrains Mono", monospace;
+		font-size: 0.62rem;
+		letter-spacing: 0.16em;
+		color: rgba(99, 216, 255, 0.6);
+	}
+	.freex-node-arrow {
+		font-size: 0.85rem;
+		color: rgba(255, 255, 255, 0.28);
+		transition: transform 0.25s ease, color 0.25s ease;
+	}
+	.freex-node-name {
+		font-size: 1.05rem;
+		font-weight: 600;
+		color: #f4f5fa;
+	}
+	.freex-node-desc {
+		font-size: 0.78rem;
+		color: #7f8799;
+	}
+	.freex-node:hover {
+		transform: translateY(-3px);
+		border-color: rgba(155, 140, 255, 0.35);
+		box-shadow: 0 8px 24px rgba(10, 8, 30, 0.35);
+	}
+	.freex-node:hover .freex-node-arrow {
+		transform: translateX(3px);
+		color: #b7acff;
+	}
+
+	.po-end {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		margin-top: 1rem;
+	}
+	.po-end-line {
+		flex: 1;
+		height: 1px;
+		background: linear-gradient(90deg, rgba(255, 255, 255, 0.1), transparent);
+	}
+
+	/* ============ 动画 ============ */
+	@keyframes po-spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+	@keyframes po-breathe {
+		0%, 100% {
+			box-shadow:
+				0 0 0 4px rgba(5, 8, 17, 0.6),
+				0 0 24px rgba(155, 140, 255, 0.14),
+				inset 0 0 18px rgba(99, 216, 255, 0.06);
+		}
+		50% {
+			box-shadow:
+				0 0 0 4px rgba(5, 8, 17, 0.6),
+				0 0 34px rgba(155, 140, 255, 0.28),
+				inset 0 0 22px rgba(99, 216, 255, 0.1);
+		}
+	}
+	@keyframes po-pulse {
+		0%, 100% {
+			opacity: 0.5;
+			transform: scale(1);
+		}
+		50% {
+			opacity: 1;
+			transform: scale(1.25);
+		}
+	}
+
+	/* ============ 响应式 ============ */
+	@media (max-width: 960px) {
+		.po-grid {
+			grid-template-columns: 1fr;
+			gap: 2.75rem;
+		}
+		.po-identity {
+			position: static;
+			max-width: 520px;
+			margin: 0 auto;
+		}
+		.id-manifesto p {
+			font-size: 1.2rem;
+		}
+	}
+	@media (max-width: 640px) {
+		.po-container {
+			padding: 0 1.15rem;
+		}
+		.po-top {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 0.5rem;
+			margin-bottom: 2rem;
+		}
+		.po-top-status {
+			gap: 1rem;
+		}
+		.id-orb {
+			width: 148px;
+			height: 148px;
+		}
+		.id-orb-core {
+			width: 98px;
+			height: 98px;
+		}
+		.freex-grid {
+			grid-template-columns: 1fr 1fr;
+		}
+	}
+	@media (max-width: 380px) {
+		.freex-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	/* 降低动态偏好：关闭所有非必要动画 */
+	@media (prefers-reduced-motion: reduce) {
+		.id-orb-ring--rotate,
+		.id-orb-core,
+		.po-live-dot {
+			animation: none !important;
+		}
+	}
+</style>
+
+<script>
+	// 微信号点击复制
+	function setupWechatCopy() {
+		document.querySelectorAll<HTMLElement>(".contact-item[data-copy]").forEach((btn) => {
+			btn.addEventListener("click", async () => {
+				const val = btn.getAttribute("data-copy") || "";
+				const label = btn.querySelector("span");
+				const original = label?.textContent || "";
+				try {
+					await navigator.clipboard.writeText(val);
+					if (label) label.textContent = "已复制";
+				} catch {
+					if (label) label.textContent = val;
+				}
+				window.setTimeout(() => {
+					if (label) label.textContent = original;
+				}, 1600);
+			});
+		});
+	}
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", setupWechatCopy);
+	} else {
+		setupWechatCopy();
+	}
+</script>

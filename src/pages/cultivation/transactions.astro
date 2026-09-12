@@ -1,0 +1,113 @@
+---
+import CultivationLayout from "@layouts/CultivationLayout.astro";
+import CultNav from "@/components/cultivation/CultNav.svelte";
+---
+
+<CultivationLayout title="灵石流水" description="查看灵石收支记录">
+	<CultNav client:load />
+
+	<main class="cult-page">
+		<div class="cult-page-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+			<div>
+				<h1 class="cult-page-title">灵石流水</h1>
+				<p class="cult-page-desc">查看你的灵石收支记录</p>
+			</div>
+			<a href="/cultivation/shop/" class="cult-btn cult-btn-primary">去仙市</a>
+		</div>
+
+		<div id="auth-guard" style="display:none;">
+			<div class="cult-empty">
+				<div class="cult-empty-icon">
+						<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+					</div>
+				<h3 class="cult-empty-title">需要登录</h3>
+				<p class="cult-empty-desc">登录后才能查看流水</p>
+				<a href="/cultivation/login/" class="cult-btn cult-btn-primary" style="margin-top: 16px;">立即登录</a>
+			</div>
+		</div>
+
+		<div id="transactions-content" style="display:none;">
+			<div class="cult-card" style="margin-bottom: 20px; text-align: center;">
+				<div style="font-size: 13px; color: var(--cult-text-muted); margin-bottom: 8px;">当前余额</div>
+				<div style="font-size: 32px; font-weight: 700; color: var(--cult-gold-text); display: flex; align-items: center; gap: 8px; justify-content: center;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 13L2 9Z"/><path d="M11 3 8 9l4 13 4-13-3-6"/><path d="M2 9h20"/></svg> <span id="balance-amount">0</span></div>
+				<div style="font-size: 12px; color: var(--cult-text-muted); margin-top: 4px;">灵石</div>
+			</div>
+
+			<div id="transactions-list" class="cult-tx-list"></div>
+			<div id="transactions-empty" class="cult-empty" style="display:none;">
+				<div class="cult-empty-icon">
+						<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+					</div>
+				<h3 class="cult-empty-title">暂无流水记录</h3>
+				<p class="cult-empty-desc">完成任务或兑换仙货后会在这里显示</p>
+			</div>
+		</div>
+	</main>
+</CultivationLayout>
+
+<script>
+	import { getCurrentUser, getMyTransactions, getMyWallet } from "@/services/cultivation";
+
+	async function init() {
+		const user = await getCurrentUser();
+		const authGuard = document.getElementById("auth-guard");
+		const content = document.getElementById("transactions-content");
+
+		if (!user) {
+			if (authGuard) authGuard.style.display = "block";
+			return;
+		}
+
+		if (content) content.style.display = "block";
+
+		const [transactions, wallet] = await Promise.all([getMyTransactions(100), getMyWallet()]);
+
+		const balanceEl = document.getElementById("balance-amount");
+		if (balanceEl) balanceEl.textContent = String(wallet?.coins || 0);
+
+		const listEl = document.getElementById("transactions-list");
+		const emptyEl = document.getElementById("transactions-empty");
+
+		if (!listEl) return;
+
+		if (transactions.length === 0) {
+			if (emptyEl) emptyEl.style.display = "block";
+			return;
+		}
+
+		const typeMap: Record<string, { label: string; icon: string }> = {
+			task_reward: { label: "任务奖励", icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>` },
+			shop_redeem: { label: "仙市兑换", icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/></svg>` },
+			shop_sale: { label: "仙货售出", icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>` },
+			transfer_in: { label: "收到转赠", icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>` },
+			transfer_out: { label: "转赠出去", icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>` },
+			admin_adjust: { label: "管理员调整", icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>` },
+		};
+
+		listEl.innerHTML = transactions
+			.map((tx) => {
+				const type = typeMap[tx.type] || { label: tx.type, icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>` };
+				const isIncome = tx.amount > 0;
+				const date = new Date(tx.created_at);
+				const dateStr = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")} ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+
+				return `
+					<div class="cult-tx-item">
+						<div class="cult-tx-info">
+							<div class="cult-tx-icon ${isIncome ? "income" : "expense"}">${type.icon}</div>
+							<div class="cult-tx-details">
+								<p class="cult-tx-type">${type.label}</p>
+								<p class="cult-tx-meta">${tx.description || ""} · ${dateStr}</p>
+							</div>
+						</div>
+						<div class="cult-tx-amount ${isIncome ? "income" : "expense"}">
+							${isIncome ? "+" : ""}${tx.amount}
+						</div>
+					</div>
+				`;
+			})
+			.join("");
+	}
+
+	init();
+</script>

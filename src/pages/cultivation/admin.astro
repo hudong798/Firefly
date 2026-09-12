@@ -1,0 +1,850 @@
+---
+import CultivationLayout from "@layouts/CultivationLayout.astro";
+import CultNav from "@/components/cultivation/CultNav.svelte";
+---
+
+<CultivationLayout title="管理后台" description="修仙系统管理">
+	<CultNav client:load />
+
+	<main class="cult-page">
+		<div class="cult-page-header">
+			<h1 class="cult-page-title">管理后台</h1>
+			<p class="cult-page-desc">管理修仙系统的用户、任务和仙市</p>
+		</div>
+
+		<div id="auth-guard" style="display:none;">
+			<div class="cult-empty">
+				<div class="cult-empty-icon">
+						<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+					</div>
+				<h3 class="cult-empty-title">需要登录</h3>
+				<p class="cult-empty-desc">登录后才能访问管理后台</p>
+				<a href="/cultivation/login/" class="cult-btn cult-btn-primary" style="margin-top: 16px;">立即登录</a>
+			</div>
+		</div>
+
+		<div id="no-permission" style="display:none;">
+			<div class="cult-empty">
+				<div class="cult-empty-icon">
+						<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg>
+					</div>
+				<h3 class="cult-empty-title">没有权限</h3>
+				<p class="cult-empty-desc">只有管理员和宗主可以访问管理后台</p>
+			</div>
+		</div>
+
+		<div id="admin-content" style="display:none;">
+			<div class="cult-segmented">
+				<button class="cult-segmented-btn active" data-tab="users">用户管理</button>
+				<button class="cult-segmented-btn" data-tab="tasks">任务管理</button>
+				<button class="cult-segmented-btn" data-tab="reviews">任务审核</button>
+				<button class="cult-segmented-btn" data-tab="shop">仙市管理</button>
+				<button class="cult-segmented-btn" data-tab="orders">仙货审核</button>
+				<button class="cult-segmented-btn" data-tab="invitation">邀请码</button>
+			</div>
+
+			<!-- 用户管理 -->
+			<div id="tab-users" class="admin-tab-content">
+				<div id="users-list" class="admin-list"></div>
+			</div>
+
+			<!-- 任务管理 -->
+			<div id="tab-tasks" class="admin-tab-content" style="display:none;">
+				<div class="cult-card" style="margin-bottom: 20px;">
+					<h3 class="cult-card-title" style="margin-bottom: 16px;">发布新任务</h3>
+					<div style="display: flex; flex-direction: column; gap: 12px;">
+						<div>
+							<label class="cult-form-label">任务名称 *</label>
+							<input type="text" class="cult-form-input" id="new-task-title" placeholder="输入任务名称" />
+						</div>
+						<div>
+							<label class="cult-form-label">任务描述</label>
+							<textarea class="cult-form-textarea" id="new-task-desc" rows="2" placeholder="输入任务描述"></textarea>
+						</div>
+						<div>
+							<label class="cult-form-label">任务种类 *</label>
+							<select class="cult-form-input" id="new-task-category">
+								<option value="">请选择任务种类</option>
+								<option value="顶级任务">顶级任务</option>
+								<option value="中级任务">中级任务</option>
+								<option value="初级任务">初级任务</option>
+							</select>
+						</div>
+						<div>
+							<label class="cult-form-label">灵石奖励 *</label>
+							<input type="number" class="cult-form-input" id="new-task-reward" placeholder="输入灵石奖励" min="1" />
+						</div>
+						<div>
+							<label class="cult-form-label">领取人数限制（0表示不限制）</label>
+							<input type="number" class="cult-form-input" id="new-task-max-claimants" placeholder="输入最大领取人数，0表示不限制" min="0" value="0" />
+						</div>
+						<button class="cult-btn cult-btn-primary" id="create-task-btn">发布任务</button>
+					</div>
+				</div>
+				<div id="tasks-admin-list" class="admin-list"></div>
+			</div>
+
+			<!-- 任务审核 -->
+			<div id="tab-reviews" class="admin-tab-content" style="display:none;">
+				<div id="reviews-list" class="admin-list"></div>
+				<div id="reviews-empty" class="cult-empty" style="display:none;">
+					<div class="cult-empty-icon">
+							<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+						</div>
+					<h3 class="cult-empty-title">暂无待审核任务</h3>
+					<p class="cult-empty-desc">所有任务都已审核完成</p>
+				</div>
+			</div>
+
+			<!-- 仙市管理 -->
+			<div id="tab-shop" class="admin-tab-content" style="display:none;">
+				<div class="cult-card" style="margin-bottom: 20px;">
+					<h3 class="cult-card-title" style="margin-bottom: 16px;">添加仙货</h3>
+					<div style="display: flex; flex-direction: column; gap: 12px;">
+						<div>
+							<label class="cult-form-label">仙货名称 *</label>
+							<input type="text" class="cult-form-input" id="new-product-name" placeholder="输入仙货名称" />
+						</div>
+						<div>
+							<label class="cult-form-label">仙货描述</label>
+							<textarea class="cult-form-textarea" id="new-product-desc" rows="2" placeholder="输入仙货描述"></textarea>
+						</div>
+						<div>
+							<label class="cult-form-label">价格（灵石）*</label>
+							<input type="number" class="cult-form-input" id="new-product-price" placeholder="输入价格" min="1" />
+						</div>
+						<div>
+							<label class="cult-form-label">库存数量 *</label>
+							<input type="number" class="cult-form-input" id="new-product-stock" placeholder="输入库存数量" min="1" value="1" />
+						</div>
+						<button class="cult-btn cult-btn-primary" id="create-product-btn">添加仙货</button>
+					</div>
+				</div>
+				<div id="products-admin-list" class="admin-list"></div>
+			</div>
+
+			<!-- 仙货审核 -->
+			<div id="tab-orders" class="admin-tab-content" style="display:none;">
+				<div id="orders-list" class="admin-list"></div>
+				<div id="orders-empty" class="cult-empty" style="display:none;">
+					<div class="cult-empty-icon">
+						<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+					</div>
+					<h3 class="cult-empty-title">暂无订单</h3>
+					<p class="cult-empty-desc">还没有用户兑换仙货</p>
+				</div>
+			</div>
+
+			<!-- 邀请码管理 -->
+			<div id="tab-invitation" class="admin-tab-content" style="display:none;">
+				<div class="cult-card" style="margin-bottom: 20px;">
+					<h3 class="cult-card-title" style="margin-bottom: 16px;">生成邀请码</h3>
+					<p style="font-size: 13px; color: var(--cult-text-secondary); margin-bottom: 16px;">邀请码有效期为24小时，仅限使用一次</p>
+					<button class="cult-btn cult-btn-primary" id="generate-invitation-btn">生成邀请码</button>
+					<div id="invitation-result" style="margin-top: 16px;"></div>
+				</div>
+				<div id="invitation-list" class="admin-list"></div>
+				<div id="invitation-empty" class="cult-empty" style="display:none;">
+					<div class="cult-empty-icon">
+						<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+					</div>
+					<h3 class="cult-empty-title">暂无邀请码</h3>
+					<p class="cult-empty-desc">点击上方按钮生成邀请码</p>
+				</div>
+			</div>
+		</div>
+	</main>
+</CultivationLayout>
+
+<script>
+	import {
+		getCurrentUser,
+		getMyProfile,
+		getAllProfiles,
+		updateUserRole,
+		updateUserStatus,
+		deleteUser,
+		resetUserPassword,
+		getAllTasks,
+		createTask,
+		updateTaskStatus,
+		getPendingReviews,
+		approveTaskWithQi,
+		rejectTaskClaim,
+		getAllProducts,
+		createProduct,
+		updateProductStatus,
+		getAllOrders,
+		shipOrder,
+		refundOrder,
+		generateInvitationCode,
+		getInvitationCodes,
+	} from "@/services/cultivation";
+
+	let currentTab = "users";
+
+	const gemIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 2px;"><path d="M6 3h12l4 6-10 13L2 9Z"/><path d="M11 3 8 9l4 13 4-13-3-6"/><path d="M2 9h20"/></svg>`;
+
+	async function init() {
+		const user = await getCurrentUser();
+		const authGuard = document.getElementById("auth-guard");
+		const noPermission = document.getElementById("no-permission");
+		const content = document.getElementById("admin-content");
+
+		if (!user) {
+			if (authGuard) authGuard.style.display = "block";
+			return;
+		}
+
+		const profile = await getMyProfile();
+		if (!profile || (profile.role !== "admin" && profile.role !== "owner")) {
+			if (noPermission) noPermission.style.display = "block";
+			return;
+		}
+
+		if (content) content.style.display = "block";
+
+		// Tab 切换
+		document.querySelectorAll(".cult-segmented-btn").forEach((tab) => {
+			tab.addEventListener("click", (e) => {
+				document.querySelectorAll(".cult-segmented-btn").forEach((t) => t.classList.remove("active"));
+				(e.target as HTMLElement).classList.add("active");
+				currentTab = (e.target as HTMLElement).dataset.tab || "users";
+				document.querySelectorAll(".admin-tab-content").forEach((c) => (c.style.display = "none"));
+				const tabEl = document.getElementById(`tab-${currentTab}`);
+				if (tabEl) tabEl.style.display = "block";
+				loadTabData();
+			});
+		});
+
+		// 绑定创建按钮
+		document.getElementById("create-task-btn")?.addEventListener("click", handleCreateTask);
+		document.getElementById("create-product-btn")?.addEventListener("click", handleCreateProduct);
+		document.getElementById("generate-invitation-btn")?.addEventListener("click", handleGenerateInvitation);
+
+		loadTabData();
+	}
+
+	async function handleGenerateInvitation() {
+		const btn = document.getElementById("generate-invitation-btn") as HTMLButtonElement;
+		const resultEl = document.getElementById("invitation-result");
+		if (!btn || !resultEl) return;
+
+		btn.disabled = true;
+		btn.textContent = "生成中...";
+		resultEl.innerHTML = "";
+
+		const result = await generateInvitationCode();
+
+		btn.disabled = false;
+		btn.textContent = "生成邀请码";
+
+		if (result.success && result.code) {
+			const expiresAt = result.expires_at ? new Date(result.expires_at).toLocaleString() : "24小时后";
+			resultEl.innerHTML = `
+				<div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; padding: 16px;">
+					<div style="font-size: 13px; color: var(--cult-text-secondary); margin-bottom: 8px;">邀请码已生成（有效期至 ${expiresAt}）：</div>
+					<div style="display: flex; align-items: center; gap: 12px;">
+						<code style="font-size: 20px; font-weight: 700; color: #34d399; letter-spacing: 2px; background: rgba(16, 185, 129, 0.1); padding: 8px 16px; border-radius: 8px;">${result.code}</code>
+						<button class="cult-btn cult-btn-sm" onclick="navigator.clipboard.writeText('${result.code}'); this.textContent='已复制';">复制</button>
+					</div>
+				</div>
+			`;
+			// 刷新邀请码列表
+			loadInvitationCodes();
+		} else {
+			resultEl.innerHTML = `<div style="color: #f87171; font-size: 14px;">${result.error || "生成失败"}</div>`;
+		}
+	}
+
+	async function loadTabData() {
+		if (currentTab === "users") loadUsers();
+		else if (currentTab === "tasks") loadAdminTasks();
+		else if (currentTab === "reviews") loadReviews();
+		else if (currentTab === "shop") loadAdminProducts();
+		else if (currentTab === "orders") loadOrders();
+		else if (currentTab === "invitation") loadInvitationCodes();
+	}
+
+	async function loadUsers() {
+		const users = await getAllProfiles();
+		const listEl = document.getElementById("users-list");
+		if (!listEl) return;
+
+		const myProfile = await getMyProfile();
+
+		listEl.innerHTML = users
+			.map((u) => {
+				const roleMap: Record<string, string> = { owner: "宗主", admin: "管理员", user: "普通用户" };
+				const isOwner = myProfile?.role === "owner";
+				const isSelf = myProfile?.id === u.id;
+
+				return `
+					<div class="cult-card admin-item">
+						<div class="admin-item-header">
+							<div style="display: flex; align-items: center; gap: 12px;">
+								<div class="admin-avatar">${u.avatar ? `<img src="${u.avatar}" alt="头像" class="admin-avatar-img" />` : u.username.charAt(0).toUpperCase()}</div>
+								<div>
+									<div style="font-size: 15px; font-weight: 600; color: var(--cult-text);">${u.username}</div>
+									<div style="display: flex; gap: 8px; margin-top: 4px;">
+										<span class="cult-badge ${u.role === "owner" ? "cult-badge-warning" : u.role === "admin" ? "cult-badge-info" : "cult-badge-muted"}">${roleMap[u.role] || u.role}</span>
+										<span class="cult-badge ${u.status === "active" ? "cult-badge-success" : "cult-badge-danger"}">${u.status === "active" ? "正常" : "已停用"}</span>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="admin-item-actions">
+							${isOwner && !isSelf && u.role !== "owner" ? `
+								<button class="cult-btn ${u.role === "admin" ? "cult-btn-secondary" : "cult-btn-primary"} cult-btn-sm admin-action" data-action="role" data-user-id="${u.id}" data-role="${u.role === "admin" ? "user" : "admin"}">
+									${u.role === "admin" ? "取消管理员" : "设为管理员"}
+								</button>
+							` : ""}
+							${!isSelf && (isOwner || (myProfile?.role === "admin" && u.role === "user")) ? `
+								<button class="cult-btn ${u.status === "active" ? "cult-btn-danger" : "cult-btn-success"} cult-btn-sm admin-action" data-action="status" data-user-id="${u.id}" data-status="${u.status === "active" ? "disabled" : "active"}">
+									${u.status === "active" ? "停用" : "恢复"}
+								</button>
+							` : ""}
+							${!isSelf && (isOwner || (myProfile?.role === "admin" && u.role === "user")) ? `
+								<button class="cult-btn cult-btn-secondary cult-btn-sm admin-action" data-action="reset-password" data-user-id="${u.id}" data-username="${u.username}">
+									重置密码
+								</button>
+							` : ""}
+							${isOwner && !isSelf && u.role !== "owner" ? `
+								<button class="cult-btn cult-btn-danger cult-btn-sm admin-action" data-action="delete" data-user-id="${u.id}" data-username="${u.username}">
+									删除
+								</button>
+							` : ""}
+						</div>
+					</div>
+				`;
+			})
+			.join("");
+
+		// 绑定操作按钮
+		listEl.querySelectorAll(".admin-action").forEach((btn) => {
+			btn.addEventListener("click", async (e) => {
+				const userId = (e.target as HTMLElement).dataset.userId;
+				const action = (e.target as HTMLElement).dataset.action;
+				if (!userId || !action) return;
+
+				if (action === "role") {
+					const role = (e.target as HTMLElement).dataset.role as any;
+					if (confirm(`确定要${role === "admin" ? "设为管理员" : "取消管理员"}吗？`)) {
+						await updateUserRole(userId, role);
+						loadUsers();
+					}
+				} else if (action === "status") {
+					const status = (e.target as HTMLElement).dataset.status as any;
+					if (confirm(`确定要${status === "active" ? "恢复" : "停用"}该用户吗？`)) {
+						await updateUserStatus(userId, status);
+						loadUsers();
+					}
+				} else if (action === "reset-password") {
+					const username = (e.target as HTMLElement).dataset.username || "";
+					const newPassword = prompt(`请输入用户「${username}」的新密码：`, "");
+					if (newPassword && newPassword.length >= 6) {
+						const result = await resetUserPassword(userId, newPassword);
+						if (result.success) {
+							alert(`密码已重置为：${newPassword}`);
+						} else {
+							alert(`重置失败：${result.error || "未知错误"}`);
+						}
+						loadUsers();
+					} else if (newPassword) {
+						alert("密码长度至少6位");
+					}
+				} else if (action === "delete") {
+					const username = (e.target as HTMLElement).dataset.username || "";
+					if (confirm(`确定要删除用户「${username}」吗？\n此操作不可恢复，将同时删除该用户的所有数据！`)) {
+						const result = await deleteUser(userId);
+						if (result.success) {
+							alert("用户已删除");
+						} else {
+							alert(`删除失败：${result.error || "未知错误"}`);
+						}
+						loadUsers();
+					}
+				}
+			});
+		});
+	}
+
+	async function handleCreateTask() {
+		const title = (document.getElementById("new-task-title") as HTMLInputElement)?.value.trim();
+		const desc = (document.getElementById("new-task-desc") as HTMLTextAreaElement)?.value.trim();
+		const category = (document.getElementById("new-task-category") as HTMLSelectElement)?.value;
+		const rewardStr = (document.getElementById("new-task-reward") as HTMLInputElement)?.value;
+		const maxClaimantsStr = (document.getElementById("new-task-max-claimants") as HTMLInputElement)?.value;
+
+		if (!title || !rewardStr || !category) {
+			alert("请填写任务名称、任务种类和灵石奖励");
+			return;
+		}
+
+		const reward = parseInt(rewardStr, 10);
+		if (reward <= 0) {
+			alert("灵石奖励必须大于0");
+			return;
+		}
+
+		const maxClaimants = parseInt(maxClaimantsStr || "0", 10);
+		if (maxClaimants < 0) {
+			alert("领取人数限制不能小于0");
+			return;
+		}
+
+		const btn = document.getElementById("create-task-btn") as HTMLButtonElement;
+		if (btn) {
+			btn.disabled = true;
+			btn.textContent = "发布中...";
+		}
+
+		const result = await createTask(title, desc, reward, category, maxClaimants);
+		if (result.success) {
+			alert("任务发布成功！");
+			(document.getElementById("new-task-title") as HTMLInputElement).value = "";
+			(document.getElementById("new-task-desc") as HTMLTextAreaElement).value = "";
+			(document.getElementById("new-task-category") as HTMLSelectElement).value = "";
+			(document.getElementById("new-task-reward") as HTMLInputElement).value = "";
+			(document.getElementById("new-task-max-claimants") as HTMLInputElement).value = "0";
+			loadAdminTasks();
+		} else {
+			alert(result.error || "发布失败");
+		}
+
+		if (btn) {
+			btn.disabled = false;
+			btn.textContent = "发布任务";
+		}
+	}
+
+	async function loadAdminTasks() {
+		const tasks = await getAllTasks();
+		const listEl = document.getElementById("tasks-admin-list");
+		if (!listEl) return;
+
+		listEl.innerHTML = tasks
+			.map((t: any) => {
+				const statusMap: Record<string, string> = { draft: "草稿", published: "已发布", offline: "已下架" };
+				const categoryClass = t.category === "顶级任务" ? "cult-task-category-top"
+					: t.category === "中级任务" ? "cult-task-category-mid"
+					: "cult-task-category-low";
+				return `
+					<div class="cult-card admin-item">
+						<div class="admin-item-header">
+							<div>
+								<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+									<span style="font-size: 15px; font-weight: 600; color: var(--cult-text);">${t.title}</span>
+									<span class="cult-task-category ${categoryClass}">${t.category || "初级任务"}</span>
+								</div>
+								<div style="font-size: 13px; color: var(--cult-text-secondary); margin-bottom: 8px;">${t.description || "暂无描述"}</div>
+								<div style="display: flex; gap: 8px;">
+									<span class="cult-badge cult-badge-warning">${gemIcon}${t.reward_coins}</span>
+									<span class="cult-badge ${t.status === "published" ? "cult-badge-success" : "cult-badge-muted"}">${statusMap[t.status] || t.status}</span>
+								</div>
+							</div>
+						</div>
+						<div class="admin-item-actions">
+							${t.status === "published" ? `
+								<button class="cult-btn cult-btn-secondary cult-btn-sm admin-action" data-action="offline" data-task-id="${t.id}">下架</button>
+							` : `
+								<button class="cult-btn cult-btn-success cult-btn-sm admin-action" data-action="publish" data-task-id="${t.id}">上架</button>
+							`}
+						</div>
+					</div>
+				`;
+			})
+			.join("");
+
+		listEl.querySelectorAll(".admin-action").forEach((btn) => {
+			btn.addEventListener("click", async (e) => {
+				const taskId = (e.target as HTMLElement).dataset.taskId;
+				const action = (e.target as HTMLElement).dataset.action;
+				if (!taskId || !action) return;
+				const status = action === "publish" ? "published" : "offline";
+				await updateTaskStatus(taskId, status as any);
+				loadAdminTasks();
+			});
+		});
+	}
+
+	async function loadReviews() {
+		const reviews = await getPendingReviews();
+		const listEl = document.getElementById("reviews-list");
+		const emptyEl = document.getElementById("reviews-empty");
+		if (!listEl) return;
+
+		if (reviews.length === 0) {
+			listEl.innerHTML = "";
+			if (emptyEl) emptyEl.style.display = "block";
+			return;
+		}
+
+		if (emptyEl) emptyEl.style.display = "none";
+
+		// 获取任务信息
+		const tasks = await getAllTasks();
+		const taskMap = new Map(tasks.map((t) => [t.id, t]));
+
+		listEl.innerHTML = reviews
+			.map((r) => {
+				const task = taskMap.get(r.task_id);
+				return `
+					<div class="cult-card admin-item">
+						<div class="admin-item-header">
+							<div>
+								<div style="font-size: 15px; font-weight: 600; color: var(--cult-text); margin-bottom: 8px;">${task?.title || "未知任务"}</div>
+								${r.proof_text ? `<div style="font-size: 13px; color: var(--cult-text-secondary); background: var(--cult-bg-soft); padding: 12px; border-radius: 8px; margin-bottom: 8px;">${r.proof_text}</div>` : ""}
+								<div style="font-size: 12px; color: var(--cult-text-muted);">提交时间：${new Date(r.submitted_at || r.created_at).toLocaleString()}</div>
+							</div>
+						</div>
+						<div class="admin-item-actions">
+							<button class="cult-btn cult-btn-success cult-btn-sm admin-action" data-action="approve" data-claim-id="${r.id}">通过</button>
+							<button class="cult-btn cult-btn-danger cult-btn-sm admin-action" data-action="reject" data-claim-id="${r.id}">驳回</button>
+						</div>
+					</div>
+				`;
+			})
+			.join("");
+
+		listEl.querySelectorAll(".admin-action").forEach((btn) => {
+			btn.addEventListener("click", async (e) => {
+				const claimId = (e.target as HTMLElement).dataset.claimId;
+				const action = (e.target as HTMLElement).dataset.action;
+				if (!claimId || !action) return;
+
+				if (action === "approve") {
+					if (confirm("确定通过该任务吗？将发放灵石奖励和随机灵气。")) {
+						const result = await approveTaskWithQi(claimId);
+						if (result.success) {
+							alert(`审核通过！已发放 ${result.reward} 灵石，获得 ${result.qi_earned} 灵气！`);
+						} else {
+							alert(result.error || "审核失败");
+						}
+						loadReviews();
+					}
+				} else if (action === "reject") {
+					const note = prompt("请输入驳回原因：");
+					if (note !== null) {
+						await rejectTaskClaim(claimId, note || "不符合要求");
+						loadReviews();
+					}
+				}
+			});
+		});
+	}
+
+	async function handleCreateProduct() {
+		const name = (document.getElementById("new-product-name") as HTMLInputElement)?.value.trim();
+		const desc = (document.getElementById("new-product-desc") as HTMLTextAreaElement)?.value.trim();
+		const priceStr = (document.getElementById("new-product-price") as HTMLInputElement)?.value;
+		const stockStr = (document.getElementById("new-product-stock") as HTMLInputElement)?.value;
+
+		if (!name || !priceStr) {
+			alert("请填写仙货名称和价格");
+			return;
+		}
+
+		const price = parseInt(priceStr, 10);
+		if (price <= 0) {
+			alert("价格必须大于0");
+			return;
+		}
+
+		const stock = parseInt(stockStr || "1", 10);
+		if (stock <= 0) {
+			alert("库存数量必须大于0");
+			return;
+		}
+
+		const btn = document.getElementById("create-product-btn") as HTMLButtonElement;
+		if (btn) {
+			btn.disabled = true;
+			btn.textContent = "添加中...";
+		}
+
+		const result = await createProduct(name, desc, price, stock);
+		if (result.success) {
+			alert("仙货添加成功！");
+			(document.getElementById("new-product-name") as HTMLInputElement).value = "";
+			(document.getElementById("new-product-desc") as HTMLTextAreaElement).value = "";
+			(document.getElementById("new-product-price") as HTMLInputElement).value = "";
+			(document.getElementById("new-product-stock") as HTMLInputElement).value = "1";
+			loadAdminProducts();
+		} else {
+			alert(result.error || "添加失败");
+		}
+
+		if (btn) {
+			btn.disabled = false;
+			btn.textContent = "添加仙货";
+		}
+	}
+
+	async function loadAdminProducts() {
+		const products = await getAllProducts();
+		const listEl = document.getElementById("products-admin-list");
+		if (!listEl) return;
+
+		listEl.innerHTML = products
+			.map((p) => {
+				return `
+					<div class="cult-card admin-item">
+						<div class="admin-item-header">
+							<div>
+								<div style="font-size: 15px; font-weight: 600; color: var(--cult-text); margin-bottom: 4px;">${p.name}</div>
+								<div style="font-size: 13px; color: var(--cult-text-secondary); margin-bottom: 8px;">${p.description || "暂无描述"}</div>
+								<div style="display: flex; gap: 8px;">
+									<span class="cult-badge cult-badge-warning">${gemIcon}${p.price}</span>
+									<span class="cult-badge ${p.status === "active" ? "cult-badge-success" : "cult-badge-muted"}">${p.status === "active" ? "上架中" : "已下架"}</span>
+								</div>
+							</div>
+						</div>
+						<div class="admin-item-actions">
+							${p.status === "active" ? `
+								<button class="cult-btn cult-btn-secondary cult-btn-sm admin-action" data-action="inactive" data-product-id="${p.id}">下架</button>
+							` : `
+								<button class="cult-btn cult-btn-success cult-btn-sm admin-action" data-action="active" data-product-id="${p.id}">上架</button>
+							`}
+						</div>
+					</div>
+				`;
+			})
+			.join("");
+
+		listEl.querySelectorAll(".admin-action").forEach((btn) => {
+			btn.addEventListener("click", async (e) => {
+				const productId = (e.target as HTMLElement).dataset.productId;
+				const action = (e.target as HTMLElement).dataset.action;
+				if (!productId || !action) return;
+				await updateProductStatus(productId, action as any);
+				loadAdminProducts();
+			});
+		});
+	}
+
+	async function loadOrders() {
+		const orders = await getAllOrders();
+		const listEl = document.getElementById("orders-list");
+		const emptyEl = document.getElementById("orders-empty");
+		if (!listEl || !emptyEl) return;
+
+		if (orders.length === 0) {
+			listEl.innerHTML = "";
+			emptyEl.style.display = "block";
+			return;
+		}
+
+		emptyEl.style.display = "none";
+
+		const statusMap: Record<string, { label: string; class: string }> = {
+			pending: { label: "待发货", class: "cult-badge-warning" },
+			shipped: { label: "待收货", class: "cult-badge-info" },
+			completed: { label: "已完成", class: "cult-badge-success" },
+			refunded: { label: "已退款", class: "cult-badge-muted" },
+			cancelled: { label: "已取消", class: "cult-badge-muted" },
+		};
+
+		listEl.innerHTML = orders
+			.map((order: any) => {
+				const status = statusMap[order.status] || { label: order.status, class: "cult-badge-muted" };
+				const product = order.products || {};
+				const profile = order.profiles || {};
+				const date = new Date(order.created_at).toLocaleString("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+
+				let actionBtns = "";
+				if (order.status === "pending") {
+					actionBtns = `
+						<button class="cult-btn cult-btn-primary cult-btn-sm order-action" data-action="ship" data-order-id="${order.id}">发货</button>
+						<button class="cult-btn cult-btn-danger cult-btn-sm order-action" data-action="refund" data-order-id="${order.id}">退款</button>
+					`;
+				} else if (order.status === "shipped") {
+					actionBtns = `
+						<button class="cult-btn cult-btn-danger cult-btn-sm order-action" data-action="refund" data-order-id="${order.id}">退款</button>
+					`;
+				}
+
+				return `
+					<div class="cult-card admin-item">
+						<div class="admin-item-header">
+							<div>
+								<div style="font-size: 15px; font-weight: 600; color: var(--cult-text); margin-bottom: 4px;">${product.name || "未知仙货"}</div>
+								<div style="font-size: 13px; color: var(--cult-text-secondary); margin-bottom: 8px;">
+									兑换用户：${profile.username || "未知"} · ${date}
+								</div>
+								<div style="display: flex; gap: 8px; align-items: center;">
+									<span class="cult-badge cult-badge-warning">${gemIcon}${order.price}</span>
+									<span class="cult-badge ${status.class}">${status.label}</span>
+								</div>
+							</div>
+						</div>
+						${actionBtns ? `<div class="admin-item-actions">${actionBtns}</div>` : ""}
+					</div>
+				`;
+			})
+			.join("");
+
+		listEl.querySelectorAll(".order-action").forEach((btn) => {
+			btn.addEventListener("click", async (e) => {
+				const orderId = (e.target as HTMLElement).dataset.orderId;
+				const action = (e.target as HTMLElement).dataset.action;
+				if (!orderId || !action) return;
+
+				if (action === "ship") {
+					const result = await shipOrder(orderId);
+					if (result.success) {
+						loadOrders();
+					} else {
+						alert(result.error || "发货失败");
+					}
+				} else if (action === "refund") {
+					if (!confirm("确定要退款吗？灵石将退还给用户。")) return;
+					const result = await refundOrder(orderId);
+					if (result.success) {
+						loadOrders();
+					} else {
+						alert(result.error || "退款失败");
+					}
+				}
+			});
+		});
+	}
+
+
+	async function loadInvitationCodes() {
+		const codes = await getInvitationCodes();
+		const listEl = document.getElementById("invitation-list");
+		const emptyEl = document.getElementById("invitation-empty");
+		if (!listEl || !emptyEl) return;
+
+		if (codes.length === 0) {
+			listEl.innerHTML = "";
+			emptyEl.style.display = "block";
+			return;
+		}
+
+		emptyEl.style.display = "none";
+
+		listEl.innerHTML = codes
+			.map((code) => {
+				const isExpired = new Date(code.expires_at) < new Date();
+				const statusText = code.is_used ? "已使用" : isExpired ? "已过期" : "未使用";
+				const statusClass = code.is_used ? "cult-badge-muted" : isExpired ? "cult-badge-danger" : "cult-badge-success";
+				const expiresAt = new Date(code.expires_at).toLocaleString();
+				const createdAt = new Date(code.created_at).toLocaleString();
+
+				return `
+					<div class="admin-item">
+						<div class="admin-item-info">
+							<div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+								<code style="font-size: 18px; font-weight: 700; color: var(--cult-primary); letter-spacing: 2px; background: rgba(99, 102, 241, 0.1); padding: 6px 12px; border-radius: 8px;">${code.code}</code>
+								<span class="cult-badge ${statusClass}">${statusText}</span>
+							</div>
+							<div style="font-size: 13px; color: var(--cult-text-secondary); line-height: 1.8;">
+								<div>创建时间：${createdAt}</div>
+								<div>过期时间：${expiresAt}</div>
+								${code.used_by ? `<div>使用者：${code.used_by}</div>` : ""}
+							</div>
+						</div>
+					</div>
+				`;
+			})
+			.join("");
+	}
+
+	init();
+</script>
+
+<style is:global>
+	.admin-list {
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+	}
+
+	.admin-item {
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+	}
+
+	.admin-item-header {
+		flex: 1;
+	}
+
+	.admin-item-actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+		padding-top: 12px;
+		border-top: 1px solid var(--cult-border);
+	}
+
+	.admin-avatar {
+		width: 40px;
+		height: 40px;
+		border-radius: 50%;
+		background: linear-gradient(135deg, #6366f1, #8b5cf6);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 16px;
+		font-weight: 600;
+		color: white;
+		flex-shrink: 0;
+		overflow: hidden;
+	}
+
+	.admin-avatar-img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		border-radius: 50%;
+	}
+
+	.cult-form-label {
+		display: block;
+		font-size: 13px;
+		font-weight: 500;
+		color: var(--cult-text-secondary);
+		margin-bottom: 6px;
+	}
+
+	.cult-form-input,
+	.cult-form-textarea {
+		width: 100%;
+		padding: 10px 12px;
+		background: var(--cult-bg-soft);
+		border: 1px solid var(--cult-border);
+		border-radius: 8px;
+		color: var(--cult-text);
+		font-size: 14px;
+		font-family: inherit;
+		transition: border-color 0.15s;
+		resize: vertical;
+	}
+
+	.cult-form-input:focus,
+	.cult-form-textarea:focus {
+		outline: none;
+		border-color: var(--cult-primary);
+	}
+
+	.cult-form-input::placeholder,
+	.cult-form-textarea::placeholder {
+		color: var(--cult-text-muted);
+	}
+
+	@media (min-width: 768px) {
+		.admin-item {
+			flex-direction: row;
+			align-items: flex-start;
+		}
+
+		.admin-item-actions {
+			padding-top: 0;
+			border-top: none;
+			justify-content: flex-end;
+		}
+	}
+</style>

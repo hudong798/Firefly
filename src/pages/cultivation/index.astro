@@ -1,0 +1,843 @@
+---
+import CultivationLayout from "@layouts/CultivationLayout.astro";
+import CultNav from "@/components/cultivation/CultNav.svelte";
+---
+
+<CultivationLayout title="仙途榜" description="查看修仙者灵石与境界排名">
+	<CultNav client:load />
+
+	<main class="cult-page cult-dashboard">
+		<!-- 内容（未登录也可查看排行榜） -->
+		<div id="cult-content">
+			<!-- 页面标题 -->
+			<div class="cult-dashboard-header">
+				<div class="cult-dashboard-header-left">
+					<h1 class="cult-dashboard-title">仙途榜</h1>
+					<p class="cult-dashboard-desc">查看修仙者灵石与境界排名</p>
+				</div>
+				<!-- 标题右侧：修行进度条 -->
+				<div class="cult-header-progress" id="header-progress" style="display: none;">
+					<span class="cult-header-realm" id="header-realm">初入修仙</span>
+					<div class="cult-header-progress-bar">
+						<div class="cult-progress-fill" id="header-progress-fill"></div>
+					</div>
+					<div class="cult-header-progress-text">
+						<span class="cult-header-progress-qi" id="header-qi-progress">0/100</span>
+						<span class="cult-header-progress-label">灵气</span>
+					</div>
+				</div>
+				<div class="cult-header-max" id="header-max" style="display: none;">
+					<span class="cult-realm-max-text">已达最高境界</span>
+				</div>
+			</div>
+
+			<!-- 左右两列：修行状态 + 排名 -->
+			<div class="cult-dashboard-grid">
+				<!-- 左列：我的修仙状态（已隐藏） -->
+				<div class="cult-dashboard-left" style="display: none;">
+					<h2 class="cult-section-title">修仙状态</h2>
+					<div class="cult-profile-card cult-realm-card">
+						<div class="cult-realm-card-top">
+							<div class="cult-avatar-core" id="user-avatar">?</div>
+							<div class="cult-realm-user-info">
+								<div class="cult-realm-username" id="user-name">加载中...</div>
+								<div class="cult-realm-user-role" id="user-role">普通修仙者</div>
+							</div>
+						</div>
+
+						<div class="cult-realm-highlight">
+							<span class="cult-realm-label">当前境界</span>
+							<span class="cult-realm-name-gold" id="user-realm">初入修仙</span>
+						</div>
+					</div>
+				</div>
+
+				<!-- 右列：仙途榜（占据全宽） -->
+				<div class="cult-dashboard-right cult-dashboard-full">
+					<div class="cult-ranking-card">
+						<div class="cult-ranking-tabs">
+							<button class="cult-ranking-tab active" data-tab="coins">灵石排名</button>
+							<button class="cult-ranking-tab" data-tab="realm">境界排名</button>
+						</div>
+
+						<!-- 灵石排名 -->
+						<div id="ranking-coins-panel" class="cult-ranking-panel">
+							<div class="cult-ranking-header">
+								<span class="cult-ranking-col-rank">名次</span>
+								<span class="cult-ranking-col-name">修行者</span>
+								<span class="cult-ranking-col-value">灵石</span>
+							</div>
+							<div id="ranking-coins" class="cult-ranking-list">
+								<div class="cult-ranking-loading">加载中...</div>
+							</div>
+							<div class="cult-ranking-pagination" id="coins-pagination">
+								<button class="cult-page-btn" id="coins-prev" disabled>上一页</button>
+								<span class="cult-page-info" id="coins-page-info">1/1</span>
+								<button class="cult-page-btn" id="coins-next" disabled>下一页</button>
+							</div>
+						</div>
+
+						<!-- 境界排名 -->
+						<div id="ranking-realm-panel" class="cult-ranking-panel" style="display: none;">
+							<div class="cult-ranking-header">
+								<span class="cult-ranking-col-rank">名次</span>
+								<span class="cult-ranking-col-name">修行者</span>
+								<span class="cult-ranking-col-value">境界</span>
+							</div>
+							<div id="ranking-realm" class="cult-ranking-list">
+								<div class="cult-ranking-loading">加载中...</div>
+							</div>
+							<div class="cult-ranking-pagination" id="realm-pagination">
+								<button class="cult-page-btn" id="realm-prev" disabled>上一页</button>
+								<span class="cult-page-info" id="realm-page-info">1/1</span>
+								<button class="cult-page-btn" id="realm-next" disabled>下一页</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- 底部：快捷导航 -->
+			<div class="cult-section">
+				<h2 class="cult-section-title">快捷导航</h2>
+				<div class="cult-stats-grid cult-stats-4col">
+					<a href="/cultivation/inventory/" class="cult-stat-card cult-nav-card">
+						<div class="cult-stat-icon" style="color: #60a5fa;">
+							<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg>
+						</div>
+						<div class="cult-stat-label">储物袋</div>
+					</a>
+					<a href="/cultivation/shop/mine/" class="cult-stat-card cult-nav-card">
+						<div class="cult-stat-icon" style="color: #34d399;">
+							<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/><path d="M22 7v3a2 2 0 0 1-2 2v0a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12v0a2 2 0 0 1-2-2V7"/></svg>
+						</div>
+						<div class="cult-stat-label">我的仙铺</div>
+					</a>
+					<a href="/cultivation/orders/" class="cult-stat-card cult-nav-card">
+						<div class="cult-stat-icon" style="color: #fbbf24;">
+							<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
+						</div>
+						<div class="cult-stat-label">我的订单</div>
+					</a>
+					<a href="/cultivation/resell/" class="cult-stat-card cult-nav-card">
+						<div class="cult-stat-icon" style="color: #f87171;">
+							<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+						</div>
+						<div class="cult-stat-label">炒币市场</div>
+					</a>
+				</div>
+			</div>
+		</div>
+	</main>
+</CultivationLayout>
+
+<script>
+	import { getCurrentUser, getMyProfile, getMyWallet, getMyTaskClaims, getCoinRanking, getRealmRanking } from "@/services/cultivation";
+	import { getRealm, getRealmProgress } from "@/services/cultivation/types";
+
+	const gemIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px;"><path d="M6 3h12l4 6-10 13L2 9Z"/><path d="M11 3 8 9l4 13 4-13-3-6"/><path d="M2 9h20"/></svg>`;
+
+	const PAGE_SIZE = 5;
+	let coinsPage = 1;
+	let realmPage = 1;
+	let coinRankingData: any[] = [];
+	let realmRankingData: any[] = [];
+
+	async function init() {
+		const user = await getCurrentUser();
+		const content = document.getElementById("cult-content");
+
+		// 未登录也显示排行榜内容
+		if (content) content.style.display = "block";
+
+		// 加载排行榜（公开数据，不需要登录）
+		const [coinRanking, realmRanking] = await Promise.all([
+			getCoinRanking(20),
+			getRealmRanking(20),
+		]);
+
+		// 已登录用户：加载个人数据
+		if (user) {
+			const [profile, wallet, claims] = await Promise.all([
+				getMyProfile(),
+				getMyWallet(),
+				getMyTaskClaims(),
+			]);
+
+			if (profile) {
+				const nameEl = document.getElementById("user-name");
+				const roleEl = document.getElementById("user-role");
+				const avatarEl = document.getElementById("user-avatar");
+				if (nameEl) nameEl.textContent = profile.username;
+				if (roleEl) {
+					const roleMap = { owner: "宗主", admin: "管理员", user: "普通修仙者" };
+					roleEl.textContent = roleMap[profile.role] || "普通修仙者";
+				}
+				if (avatarEl) {
+						if (profile.avatar) {
+							avatarEl.innerHTML = `<img src="${profile.avatar}" alt="头像" class="cult-avatar-img" />`;
+						} else {
+							avatarEl.textContent = profile.username.charAt(0).toUpperCase();
+						}
+					}
+			}
+
+			const tasksCompleted = claims.filter((c) => c.status === "approved").length;
+			const coins = wallet?.coins || 0;
+			const qi = profile?.qi || 0;
+			const realm = getRealm(qi);
+
+			const realmEl = document.getElementById("user-realm");
+			if (realmEl) realmEl.textContent = realm;
+
+			// 更新境界进度条（基于灵气）- 标题右侧
+			const progress = getRealmProgress(qi);
+			const headerProgressEl = document.getElementById("header-progress");
+			const headerMaxEl = document.getElementById("header-max");
+
+			if (progress.isMaxLevel) {
+				if (headerProgressEl) headerProgressEl.style.display = "none";
+				if (headerMaxEl) headerMaxEl.style.display = "block";
+			} else {
+				if (headerProgressEl) headerProgressEl.style.display = "flex";
+				if (headerMaxEl) headerMaxEl.style.display = "none";
+
+				const headerFillEl = document.getElementById("header-progress-fill");
+				const headerQiProgressEl = document.getElementById("header-qi-progress");
+				const headerRealmEl = document.getElementById("header-realm");
+
+				if (headerFillEl) headerFillEl.style.width = `${progress.progress}%`;
+				if (headerQiProgressEl) headerQiProgressEl.textContent = `${progress.currentQi}/${progress.requiredQi}`;
+				if (headerRealmEl) {
+					headerRealmEl.textContent = realm;
+					headerRealmEl.className = `cult-header-realm realm-${realm}`;
+				}
+			}
+		}
+
+		const coinsEl = document.getElementById("stat-coins");
+		const qiEl = document.getElementById("stat-qi");
+		const tasksEl = document.getElementById("stat-tasks");
+		const reviewEl = document.getElementById("stat-review");
+
+		if (coinsEl) coinsEl.textContent = String(coins);
+		if (qiEl) qiEl.textContent = String(qi);
+		if (tasksEl) tasksEl.textContent = String(tasksCompleted);
+		if (reviewEl) reviewEl.textContent = String(claims.filter((c) => c.status === "submitted").length);
+
+		// 保存排名数据
+		coinRankingData = coinRanking;
+		realmRankingData = realmRanking;
+
+		// 渲染灵石排名（第一页）
+		coinsPage = 1;
+		renderCoinRanking();
+		// 渲染境界排名（第一页）
+		realmPage = 1;
+		renderRealmRanking();
+
+		// 绑定分页事件
+		bindPaginationEvents();
+
+		// 绑定Tab切换
+		document.querySelectorAll(".cult-ranking-tab").forEach((tab) => {
+			tab.addEventListener("click", (e) => {
+				document.querySelectorAll(".cult-ranking-tab").forEach((t) => t.classList.remove("active"));
+				(e.target as HTMLElement).classList.add("active");
+				const tabType = (e.target as HTMLElement).dataset.tab;
+				document.getElementById("ranking-coins-panel")!.style.display = tabType === "coins" ? "block" : "none";
+				document.getElementById("ranking-realm-panel")!.style.display = tabType === "realm" ? "block" : "none";
+			});
+		});
+	}
+
+	function renderCoinRanking() {
+		const container = document.getElementById("ranking-coins");
+		if (!container) return;
+
+		if (coinRankingData.length === 0) {
+			container.innerHTML = '<div class="cult-ranking-empty">暂无修行者数据</div>';
+			updatePagination("coins", 0);
+			return;
+		}
+
+		const totalPages = Math.ceil(coinRankingData.length / PAGE_SIZE);
+		const start = (coinsPage - 1) * PAGE_SIZE;
+		const pageData = coinRankingData.slice(start, start + PAGE_SIZE);
+
+		container.innerHTML = pageData
+			.map((item) => `
+				<div class="cult-ranking-row rank-${item.rank} ${item.isMe ? "is-me" : ""}">
+					<span class="cult-ranking-col-rank">${String(item.rank).padStart(2, "0")}</span>
+					<span class="cult-ranking-col-name">${item.username}</span>
+					<span class="cult-ranking-col-value">${item.coins} <span class="cult-ranking-gem">${gemIcon}</span></span>
+				</div>
+			`)
+			.join("");
+
+		updatePagination("coins", totalPages);
+	}
+
+	function renderRealmRanking() {
+		const container = document.getElementById("ranking-realm");
+		if (!container) return;
+
+		if (realmRankingData.length === 0) {
+			container.innerHTML = '<div class="cult-ranking-empty">暂无修行者数据</div>';
+			updatePagination("realm", 0);
+			return;
+		}
+
+		const totalPages = Math.ceil(realmRankingData.length / PAGE_SIZE);
+		const start = (realmPage - 1) * PAGE_SIZE;
+		const pageData = realmRankingData.slice(start, start + PAGE_SIZE);
+
+		container.innerHTML = pageData
+			.map((item) => `
+				<div class="cult-ranking-row rank-${item.rank} ${item.isMe ? "is-me" : ""}">
+					<span class="cult-ranking-col-rank">${String(item.rank).padStart(2, "0")}</span>
+					<span class="cult-ranking-col-name">${item.username}</span>
+					<span class="cult-ranking-col-value realm-${item.realm}">${item.realm}</span>
+				</div>
+			`)
+			.join("");
+
+		updatePagination("realm", totalPages);
+	}
+
+	function updatePagination(type: "coins" | "realm", totalPages: number) {
+		const page = type === "coins" ? coinsPage : realmPage;
+		const prevBtn = document.getElementById(`${type}-prev`) as HTMLButtonElement;
+		const nextBtn = document.getElementById(`${type}-next`) as HTMLButtonElement;
+		const infoEl = document.getElementById(`${type}-page-info`);
+		const paginationEl = document.getElementById(`${type}-pagination`);
+
+		if (paginationEl) {
+			paginationEl.style.display = "flex";
+		}
+		if (prevBtn) prevBtn.disabled = page <= 1;
+		if (nextBtn) nextBtn.disabled = page >= totalPages || totalPages <= 1;
+		if (infoEl) infoEl.textContent = `${page}/${Math.max(totalPages, 1)}`;
+	}
+
+	function bindPaginationEvents() {
+		const coinsPrev = document.getElementById("coins-prev");
+		const coinsNext = document.getElementById("coins-next");
+		const realmPrev = document.getElementById("realm-prev");
+		const realmNext = document.getElementById("realm-next");
+
+		if (coinsPrev) {
+			coinsPrev.addEventListener("click", () => {
+				if (coinsPage > 1) {
+					coinsPage--;
+					renderCoinRanking();
+				}
+			});
+		}
+		if (coinsNext) {
+			coinsNext.addEventListener("click", () => {
+				const totalPages = Math.ceil(coinRankingData.length / PAGE_SIZE);
+				if (coinsPage < totalPages) {
+					coinsPage++;
+					renderCoinRanking();
+				}
+			});
+		}
+		if (realmPrev) {
+			realmPrev.addEventListener("click", () => {
+				if (realmPage > 1) {
+					realmPage--;
+					renderRealmRanking();
+				}
+			});
+		}
+		if (realmNext) {
+			realmNext.addEventListener("click", () => {
+				const totalPages = Math.ceil(realmRankingData.length / PAGE_SIZE);
+				if (realmPage < totalPages) {
+					realmPage++;
+					renderRealmRanking();
+				}
+			});
+		}
+	}
+
+	init();
+</script>
+
+<style is:global>
+	.cult-dashboard {
+		max-width: 1100px;
+		margin: 0 auto;
+	}
+
+	.cult-dashboard-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 16px;
+		margin-bottom: 16px;
+	}
+
+	.cult-dashboard-left,
+	.cult-dashboard-right {
+		min-width: 0;
+	}
+
+	.cult-dashboard-full {
+		grid-column: 1 / -1;
+	}
+
+	@media (max-width: 768px) {
+		.cult-dashboard-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	.cult-dashboard-header {
+		margin-bottom: 16px;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 16px;
+		flex-wrap: wrap;
+	}
+
+	.cult-dashboard-header-left {
+		flex: 1;
+		min-width: 200px;
+	}
+
+	/* 标题右侧进度条 */
+	.cult-header-progress {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		min-width: 300px;
+		max-width: 500px;
+		flex: 1;
+	}
+
+	.cult-header-realm {
+		font-size: 14px;
+		font-weight: 600;
+		white-space: nowrap;
+	}
+
+	.cult-header-progress-bar {
+		flex: 1;
+		height: 8px;
+		background: rgba(139, 92, 246, 0.15);
+		border-radius: 999px;
+		overflow: hidden;
+		min-width: 120px;
+	}
+
+	.cult-header-progress-text {
+		display: flex;
+		align-items: baseline;
+		gap: 4px;
+		white-space: nowrap;
+	}
+
+	.cult-header-progress-qi {
+		font-size: 14px;
+		font-weight: 600;
+		color: #a78bfa;
+		font-family: monospace;
+	}
+
+	.cult-header-progress-label {
+		font-size: 12px;
+		color: var(--cult-text-muted);
+	}
+
+	.cult-header-max {
+		text-align: right;
+	}
+
+	@media (max-width: 640px) {
+		.cult-dashboard-header {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+		.cult-header-progress {
+			width: 100%;
+			max-width: none;
+		}
+		.cult-header-realm {
+			font-size: 13px;
+			padding: 3px 8px;
+		}
+	}
+
+	.cult-dashboard-title {
+		font-size: 28px;
+		font-weight: 700;
+		color: var(--cult-text-primary);
+		margin: 0 0 6px 0;
+	}
+
+	.cult-dashboard-desc {
+		font-size: 14px;
+		color: var(--cult-text-muted);
+		margin: 0;
+	}
+
+	.cult-section {
+		margin-bottom: 16px;
+	}
+
+	.cult-section-title {
+		font-size: 16px;
+		font-weight: 600;
+		color: var(--cult-text-secondary);
+		margin: 0 0 12px 0;
+	}
+
+	/* 境界卡片 */
+	.cult-realm-card {
+		padding: 24px;
+	}
+
+	.cult-realm-card-top {
+		display: flex;
+		align-items: center;
+		gap: 16px;
+		margin-bottom: 20px;
+	}
+
+	.cult-realm-user-info {
+		flex: 1;
+	}
+
+	.cult-realm-username {
+		font-size: 20px;
+		font-weight: 700;
+		color: var(--cult-text-primary);
+		margin-bottom: 4px;
+	}
+
+	.cult-realm-user-role {
+		font-size: 13px;
+		color: var(--cult-text-muted);
+	}
+
+	.cult-realm-highlight {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		padding: 20px;
+		background: rgba(245, 196, 81, 0.06);
+		border: 1px solid rgba(245, 196, 81, 0.15);
+		border-radius: 12px;
+		margin-bottom: 20px;
+	}
+
+	.cult-realm-highlight .cult-realm-label {
+		font-size: 12px;
+		color: var(--cult-text-muted);
+		margin-bottom: 8px;
+		letter-spacing: 1px;
+	}
+
+	.cult-realm-name-gold {
+		font-size: 28px;
+		font-weight: 700;
+		color: #f5c451;
+		text-shadow: 0 0 20px rgba(245, 196, 81, 0.3);
+	}
+
+	/* 统计卡片 4列 */
+	.cult-stats-4col {
+		grid-template-columns: repeat(4, 1fr);
+	}
+
+	/* 导航卡片 */
+	.cult-nav-card {
+		text-decoration: none;
+		cursor: pointer;
+		transition: all 0.2s ease;
+	}
+
+	.cult-nav-card:hover {
+		transform: translateY(-2px);
+		border-color: rgba(139, 92, 246, 0.4);
+		box-shadow: 0 8px 24px rgba(139, 92, 246, 0.15);
+	}
+
+	.cult-nav-card .cult-stat-label {
+		margin-top: 8px;
+		font-weight: 500;
+		color: var(--cult-text-primary);
+	}
+
+	@media (max-width: 640px) {
+		.cult-stats-4col {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
+	/* 排名卡片 */
+	.cult-ranking-card {
+		background: var(--cult-card-bg);
+		border: 1px solid var(--cult-border-color);
+		border-radius: 16px;
+		padding: 16px;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.cult-ranking-tabs {
+		display: flex;
+		gap: 8px;
+		margin-bottom: 16px;
+	}
+
+	.cult-ranking-tab {
+		padding: 8px 16px;
+		border: none;
+		background: transparent;
+		color: var(--cult-text-muted);
+		font-size: 14px;
+		font-weight: 500;
+		border-radius: 8px;
+		cursor: pointer;
+		transition: all 0.2s ease;
+	}
+
+	.cult-ranking-tab:hover {
+		color: var(--cult-text-primary);
+		background: rgba(139, 92, 246, 0.1);
+	}
+
+	.cult-ranking-tab.active {
+		color: #fff;
+		background: rgba(139, 92, 246, 0.3);
+	}
+
+	/* 排行榜面板 */
+	.cult-ranking-panel {
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+		min-height: 0;
+	}
+
+	/* 表头 - 固定不滚动 */
+	.cult-ranking-header {
+		display: grid;
+		grid-template-columns: 50px 1fr 100px;
+		align-items: center;
+		padding: 0 12px 10px 12px;
+		border-bottom: 1px solid var(--cult-border-color);
+		margin-bottom: 4px;
+		flex-shrink: 0;
+	}
+
+	.cult-ranking-header span {
+		font-size: 13px;
+		color: var(--cult-text-muted);
+		font-weight: 500;
+		letter-spacing: 0.5px;
+	}
+
+	.cult-ranking-header .cult-ranking-col-value {
+		text-align: right;
+	}
+
+	/* 数据列表区域 */
+	.cult-ranking-list {
+		padding-right: 4px;
+		flex: 1;
+	}
+
+	/* 分页控件 */
+	.cult-ranking-pagination {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 12px;
+		padding-top: 12px;
+		margin-top: 4px;
+		border-top: 1px solid var(--cult-border-color);
+	}
+
+	.cult-page-btn {
+		padding: 6px 14px;
+		background: rgba(139, 92, 246, 0.1);
+		border: 1px solid rgba(139, 92, 246, 0.2);
+		border-radius: 6px;
+		color: var(--cult-text-secondary);
+		font-size: 13px;
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	.cult-page-btn:hover:not(:disabled) {
+		background: rgba(139, 92, 246, 0.2);
+		color: #a78bfa;
+	}
+
+	.cult-page-btn:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
+
+	.cult-page-info {
+		font-size: 13px;
+		color: var(--cult-text-muted);
+		font-family: monospace;
+		min-width: 40px;
+		text-align: center;
+	}
+
+	/* 数据行 - Grid三列布局 */
+	.cult-ranking-row {
+		display: grid;
+		grid-template-columns: 50px 1fr 100px;
+		align-items: center;
+		height: 44px;
+		padding: 0 12px;
+		border-radius: 8px;
+		transition: background 0.15s ease;
+		flex-shrink: 0;
+		position: relative;
+	}
+
+	.cult-ranking-row:hover {
+		background: rgba(139, 92, 246, 0.05);
+	}
+
+	/* 列样式 */
+	.cult-ranking-col-rank {
+		font-size: 15px;
+		font-weight: 600;
+		color: var(--cult-text-muted);
+		font-family: monospace;
+	}
+
+	.cult-ranking-col-name {
+		font-size: 15px;
+		color: var(--cult-text-primary);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.cult-ranking-col-value {
+		font-size: 15px;
+		font-weight: 600;
+		color: var(--cult-gold-text);
+		text-align: right;
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+		gap: 4px;
+		flex-wrap: nowrap;
+		white-space: nowrap;
+	}
+
+	.cult-ranking-gem {
+		display: inline-flex;
+		align-items: center;
+		opacity: 0.8;
+		flex-shrink: 0;
+		line-height: 1;
+	}
+
+	.cult-ranking-realm-text {
+		color: #a78bfa;
+		font-weight: 500;
+	}
+
+	/* 境界颜色 - 段位越高颜色越深/越鲜艳 */
+	.realm-初入修仙 {
+		color: #94a3b8 !important;
+		font-weight: 400;
+	}
+
+	.realm-炼气期 {
+		color: #60a5fa !important;
+		font-weight: 500;
+	}
+
+	.realm-筑基期 {
+		color: #34d399 !important;
+		font-weight: 500;
+	}
+
+	.realm-金丹期 {
+		color: #fbbf24 !important;
+		font-weight: 600;
+	}
+
+	.realm-元婴期 {
+		color: #f87171 !important;
+		font-weight: 600;
+	}
+
+	.realm-化神期 {
+		color: #c084fc !important;
+		font-weight: 700;
+		text-shadow: 0 0 10px rgba(192, 132, 252, 0.4);
+	}
+
+	/* 当前用户高亮 */
+	.cult-ranking-row.is-me {
+		background: rgba(124, 92, 255, 0.08);
+	}
+
+	.cult-ranking-row.is-me::before {
+		content: "";
+		position: absolute;
+		left: 0;
+		top: 8px;
+		bottom: 8px;
+		width: 3px;
+		background: #7c5cff;
+		border-radius: 0 2px 2px 0;
+	}
+
+	.cult-ranking-row.is-me .cult-ranking-col-name {
+		color: #a78bfa;
+		font-weight: 600;
+	}
+
+	/* 前三名逐渐变浅 */
+	.cult-ranking-row.rank-1 .cult-ranking-col-rank,
+	.cult-ranking-row.rank-1 .cult-ranking-col-name {
+		color: #f5c451;
+		font-weight: 700;
+	}
+
+	.cult-ranking-row.rank-2 .cult-ranking-col-rank,
+	.cult-ranking-row.rank-2 .cult-ranking-col-name {
+		color: #d4d4d8;
+		font-weight: 600;
+	}
+
+	.cult-ranking-row.rank-3 .cult-ranking-col-rank,
+	.cult-ranking-row.rank-3 .cult-ranking-col-name {
+		color: #cd9b6e;
+		font-weight: 500;
+	}
+
+	/* 空数据和加载 */
+	.cult-ranking-loading,
+	.cult-ranking-empty {
+		text-align: center;
+		padding: 40px 20px;
+		color: var(--cult-text-muted);
+		font-size: 14px;
+	}
+
+	@media (max-width: 640px) {
+		.cult-ranking-header {
+			grid-template-columns: 40px 1fr 90px;
+		}
+		.cult-ranking-row {
+			grid-template-columns: 40px 1fr 90px;
+			height: 48px;
+		}
+	}
+</style>

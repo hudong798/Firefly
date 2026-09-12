@@ -1,0 +1,126 @@
+---
+// 社区板块：常用/有趣的社区站点卡片墙
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import { communities } from "@/data/communities";
+
+const title = "社区";
+const description = "常用社区与论坛导航";
+---
+
+<MainGridLayout title={title} description={description}>
+	<div class="community-intro">
+		<h1 class="community-title">社区</h1>
+		<p class="community-subtitle">常逛的社区与论坛，点击卡片直达</p>
+	</div>
+
+	<div class="community-grid">
+		{
+			communities.map((c) => (
+				<a
+					class="community-card"
+					href={c.url}
+					target="_blank"
+					rel="noopener"
+				>
+					<span class="community-icon">{c.icon}</span>
+					<div class="community-info">
+						<span class="community-name">{c.name}</span>
+						<span class="community-desc">{c.desc}</span>
+					</div>
+					<span class="community-arrow">↗</span>
+				</a>
+			))
+		}
+	</div>
+</MainGridLayout>
+
+<style>
+	.community-intro {
+		text-align: center;
+		margin-bottom: 1.4rem;
+	}
+	.community-title {
+		font-size: 1.6rem;
+		font-weight: 700;
+		margin: 0 0 0.25rem;
+		color: var(--deep-text);
+	}
+	.community-subtitle {
+		margin: 0;
+		font-size: 0.9rem;
+		color: var(--content-meta);
+	}
+
+	.community-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+		gap: 0.9rem;
+	}
+
+	.community-card {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 0.9rem 1rem;
+		border-radius: var(--radius-large, 14px);
+		background: var(--card-bg, rgba(255, 255, 255, 0.04));
+		border: 1px solid var(--line-divider, rgba(255, 255, 255, 0.08));
+		text-decoration: none;
+		color: inherit;
+		transition:
+			transform 0.18s ease,
+			border-color 0.18s ease,
+			background 0.18s ease;
+	}
+	.community-card:hover {
+		transform: translateY(-3px);
+		border-color: var(--primary);
+		background: var(--card-bg-hover, rgba(255, 255, 255, 0.08));
+	}
+	.community-icon {
+		font-size: 1.6rem;
+		line-height: 1;
+		flex-shrink: 0;
+	}
+	.community-info {
+		display: flex;
+		flex-direction: column;
+		gap: 0.15rem;
+		min-width: 0;
+		flex: 1;
+	}
+	.community-name {
+		font-size: 0.95rem;
+		font-weight: 600;
+		color: var(--text-90, #e6edf3);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.community-desc {
+		font-size: 0.78rem;
+		color: var(--content-meta);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.community-arrow {
+		color: var(--content-meta);
+		font-size: 0.85rem;
+		transition: color 0.18s ease;
+		flex-shrink: 0;
+	}
+	.community-card:hover .community-arrow {
+		color: var(--primary);
+	}
+
+	@media (max-width: 640px) {
+		.community-grid {
+			grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+			gap: 0.7rem;
+		}
+		.community-card {
+			padding: 0.75rem 0.85rem;
+		}
+	}
+</style>

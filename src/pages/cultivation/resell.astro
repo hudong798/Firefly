@@ -1,0 +1,340 @@
+---
+import CultivationLayout from "@layouts/CultivationLayout.astro";
+import CultNav from "@/components/cultivation/CultNav.svelte";
+---
+
+<CultivationLayout title="炒币市场" description="竞价购买其他修士转售的丹药">
+	<CultNav client:load />
+
+	<main class="cult-page">
+		<div class="cult-page-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+			<div>
+				<h1 class="cult-page-title">炒币市场</h1>
+				<p class="cult-page-desc">竞价购买其他修士转售的丹药，价高者得</p>
+			</div>
+			<a href="/cultivation/shop/" class="cult-btn cult-btn-primary">去仙市</a>
+		</div>
+
+		<div id="auth-guard" style="display:none;">
+			<div class="cult-empty">
+				<div class="cult-empty-icon">
+					<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+				</div>
+				<h3 class="cult-empty-title">需要登录</h3>
+				<p class="cult-empty-desc">登录后才能参与竞价</p>
+				<a href="/cultivation/login/" class="cult-btn cult-btn-primary" style="margin-top: 16px;">立即登录</a>
+			</div>
+		</div>
+
+		<div id="resell-content" style="display:none;">
+			<div id="resell-list" class="cult-grid-2"></div>
+			<div id="resell-empty" class="cult-empty" style="display:none;">
+				<div class="cult-empty-icon">
+					<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+				</div>
+				<h3 class="cult-empty-title">暂无转售丹药</h3>
+				<p class="cult-empty-desc">还没有修士上架丹药，稍后再来看看吧</p>
+			</div>
+		</div>
+	</main>
+</CultivationLayout>
+
+<script>
+	import { getCurrentUser, getResellListings, placeResellBid, endResellBidding, cancelResellBid, getResellBidInfo } from "@/services/cultivation";
+
+	const gemIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 13L2 9Z"/><path d="M11 3 8 9l4 13 4-13-3-6"/><path d="M2 9h20"/></svg>`;
+	const qiIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="m16.2 7.8 2.9-2.9"/><path d="M18 12h4"/><path d="m16.2 16.2 2.9 2.9"/><path d="M12 18v4"/><path d="m4.9 19.1 2.9-2.9"/><path d="M2 12h4"/><path d="m4.9 4.9 2.9 2.9"/></svg>`;
+	const usersIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`;
+
+	const gradeColors: Record<number, string> = {
+		1: "#94a3b8",
+		2: "#60a5fa",
+		3: "#a78bfa",
+		4: "#fbbf24",
+		5: "#f87171",
+	};
+
+	const gradeNames: Record<number, string> = {
+		1: "一品",
+		2: "二品",
+		3: "三品",
+		4: "四品",
+		5: "五品",
+	};
+
+	async function init() {
+		const user = await getCurrentUser();
+		const authGuard = document.getElementById("auth-guard");
+		const content = document.getElementById("resell-content");
+
+		if (!user) {
+			if (authGuard) authGuard.style.display = "block";
+			return;
+		}
+
+		if (content) content.style.display = "block";
+
+		const listings = await getResellListings();
+		const listEl = document.getElementById("resell-list");
+		const emptyEl = document.getElementById("resell-empty");
+
+		if (!listEl) return;
+
+		if (listings.length === 0) {
+			if (emptyEl) emptyEl.style.display = "block";
+			return;
+		}
+
+		// 为每个商品获取竞价信息
+		const listingsWithInfo = await Promise.all(
+			listings.map(async (listing) => {
+				const info = await getResellBidInfo(listing.id);
+				return { listing, info };
+			})
+		);
+
+		listEl.innerHTML = listingsWithInfo
+			.map(({ listing, info }) => {
+				const gradeColor = gradeColors[listing.pill_grade] || "#94a3b8";
+				const gradeName = gradeNames[listing.pill_grade] || `${listing.pill_grade}品`;
+				const isOwn = info?.is_seller;
+				const hasMyBid = info?.has_my_bid;
+				const myBidPrice = info?.my_bid_price;
+				const activeBidCount = info?.active_bid_count || 0;
+				const maxBidders = info?.max_bidders || 5;
+				const isFull = activeBidCount >= maxBidders;
+
+				return `
+					<div class="cult-card resell-card" style="padding: 20px;" data-listing-id="${listing.id}">
+						<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+							<div>
+								<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+									<span style="font-size: 16px; font-weight: 600; color: var(--cult-text);">${listing.pill_name}</span>
+									<span style="font-size: 11px; padding: 2px 8px; border-radius: 4px; background: ${gradeColor}20; color: ${gradeColor}; font-weight: 600;">${gradeName}</span>
+								</div>
+								<div style="font-size: 13px; color: var(--cult-text-muted); display: flex; align-items: center; gap: 4px;">
+									${qiIcon}
+									<span>灵气 +${listing.pill_qi_bonus}</span>
+								</div>
+							</div>
+							<div style="text-align: right;">
+								<div style="font-size: 12px; color: var(--cult-text-muted); margin-bottom: 2px;">基础价格</div>
+								<div style="font-size: 20px; font-weight: 700; color: var(--cult-gold-text); display: flex; align-items: center; gap: 4px;">
+									${gemIcon}
+									<span>${listing.price}</span>
+								</div>
+							</div>
+						</div>
+						
+						<!-- 竞价状态 -->
+						<div class="bidding-status" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: rgba(139, 92, 246, 0.08); border-radius: 8px; margin-bottom: 12px;">
+							<div style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--cult-text-secondary);">
+								${usersIcon}
+								<span>竞价人数：<span style="color: #a78bfa; font-weight: 600;">${activeBidCount}</span>/${maxBidders}</span>
+							</div>
+							${hasMyBid ? `
+								<div style="font-size: 12px; color: #34d399;">
+									我的竞价：<span style="font-weight: 600;">${myBidPrice} 灵石</span>
+								</div>
+							` : ''}
+						</div>
+
+						<div style="font-size: 12px; color: var(--cult-text-muted); margin-bottom: 16px;">
+							上架时间：${new Date(listing.created_at).toLocaleString("zh-CN")}
+						</div>
+
+						${isOwn ? `
+							<!-- 卖家操作 -->
+							<div style="display: flex; gap: 8px;">
+								<button class="cult-btn cult-btn-primary end-bidding-btn" data-listing-id="${listing.id}" style="flex: 1;" ${activeBidCount === 0 ? 'disabled' : ''}>
+									${activeBidCount === 0 ? '暂无竞价' : '结束竞价'}
+								</button>
+							</div>
+						` : hasMyBid ? `
+							<!-- 已竞价买家操作 -->
+							<div style="display: flex; gap: 8px;">
+								<div class="bid-input-wrapper" style="flex: 1; display: flex; gap: 8px;">
+									<input type="number" class="cult-form-input bid-price-input" placeholder="加价" min="${(myBidPrice || 0) + 1}" style="flex: 1;" />
+									<button class="cult-btn cult-btn-primary increase-bid-btn" data-listing-id="${listing.id}">加价</button>
+								</div>
+								<button class="cult-btn cult-btn-secondary cancel-bid-btn" data-listing-id="${listing.id}">取消</button>
+							</div>
+						` : `
+							<!-- 未竞价买家操作 -->
+							<div class="bid-input-wrapper" style="display: flex; gap: 8px;">
+								<input type="number" class="cult-form-input bid-price-input" placeholder="输入竞价价格" min="${listing.price + 1}" style="flex: 1;" />
+								<button class="cult-btn cult-btn-primary place-bid-btn" data-listing-id="${listing.id}" ${isFull ? 'disabled' : ''}>
+									${isFull ? '竞价已满' : '参与竞价'}
+								</button>
+							</div>
+							${isFull ? '<div style="font-size: 12px; color: #f87171; margin-top: 8px; text-align: center;">竞价人数已满，请等待其他竞价者取消或竞价结束</div>' : ''}
+						`}
+					</div>
+				`;
+			})
+			.join("");
+
+		// 绑定参与竞价按钮
+		listEl.querySelectorAll(".place-bid-btn").forEach((btn) => {
+			btn.addEventListener("click", async (e) => {
+				const listingId = (e.target as HTMLElement).dataset.listingId;
+				if (!listingId) return;
+
+				const card = (e.target as HTMLElement).closest(".resell-card");
+				const input = card?.querySelector(".bid-price-input") as HTMLInputElement;
+				const bidPrice = parseInt(input?.value || "0");
+
+				if (!bidPrice || bidPrice <= 0) {
+					alert("请输入有效的竞价价格");
+					return;
+				}
+
+				if (!confirm(`确定要以 ${bidPrice} 灵石参与竞价吗？竞价后灵石将被冻结。`)) return;
+
+				(e.target as HTMLButtonElement).disabled = true;
+				(e.target as HTMLButtonElement).textContent = "竞价中...";
+
+				const result = await placeResellBid(listingId, bidPrice);
+				if (result.success) {
+					alert(result.message || "竞价成功！");
+					window.location.reload();
+				} else {
+					alert(result.error || "竞价失败");
+					(e.target as HTMLButtonElement).disabled = false;
+					(e.target as HTMLButtonElement).textContent = "参与竞价";
+				}
+			});
+		});
+
+		// 绑定加价按钮
+		listEl.querySelectorAll(".increase-bid-btn").forEach((btn) => {
+			btn.addEventListener("click", async (e) => {
+				const listingId = (e.target as HTMLElement).dataset.listingId;
+				if (!listingId) return;
+
+				const card = (e.target as HTMLElement).closest(".resell-card");
+				const input = card?.querySelector(".bid-price-input") as HTMLInputElement;
+				const increaseAmount = parseInt(input?.value || "0");
+
+				if (!increaseAmount || increaseAmount <= 0) {
+					alert("请输入加价金额");
+					return;
+				}
+
+				if (!confirm(`确定要加价 ${increaseAmount} 灵石吗？`)) return;
+
+				(e.target as HTMLButtonElement).disabled = true;
+				(e.target as HTMLButtonElement).textContent = "处理中...";
+
+				// 先获取当前竞价，然后计算新价格
+				// 实际上 place_resell_bid 函数会自动处理更新竞价
+				// 我们需要传入新的总价格，而不是加价金额
+				// 这里简化处理：直接调用 placeResellBid，传入当前竞价+加价
+				// 但我们不知道当前竞价，所以需要先获取
+				const info = await getResellBidInfo(listingId);
+				const currentBid = info?.my_bid_price || 0;
+				const newBidPrice = currentBid + increaseAmount;
+
+				const result = await placeResellBid(listingId, newBidPrice);
+				if (result.success) {
+					alert(result.message || "加价成功！");
+					window.location.reload();
+				} else {
+					alert(result.error || "加价失败");
+					(e.target as HTMLButtonElement).disabled = false;
+					(e.target as HTMLButtonElement).textContent = "加价";
+				}
+			});
+		});
+
+		// 绑定取消竞价按钮
+		listEl.querySelectorAll(".cancel-bid-btn").forEach((btn) => {
+			btn.addEventListener("click", async (e) => {
+				const listingId = (e.target as HTMLElement).dataset.listingId;
+				if (!listingId) return;
+
+				if (!confirm("确定要取消竞价吗？灵石将退回。")) return;
+
+				(e.target as HTMLButtonElement).disabled = true;
+				(e.target as HTMLButtonElement).textContent = "取消中...";
+
+				const result = await cancelResellBid(listingId);
+				if (result.success) {
+					alert(result.message || "已取消竞价");
+					window.location.reload();
+				} else {
+					alert(result.error || "取消失败");
+					(e.target as HTMLButtonElement).disabled = false;
+					(e.target as HTMLButtonElement).textContent = "取消";
+				}
+			});
+		});
+
+		// 绑定结束竞价按钮
+		listEl.querySelectorAll(".end-bidding-btn").forEach((btn) => {
+			btn.addEventListener("click", async (e) => {
+				const listingId = (e.target as HTMLElement).dataset.listingId;
+				if (!listingId) return;
+
+				if (!confirm("确定要结束竞价吗？价高者将获得商品，其他竞价者的灵石将退回。")) return;
+
+				(e.target as HTMLButtonElement).disabled = true;
+				(e.target as HTMLButtonElement).textContent = "结束中...";
+
+				const result = await endResellBidding(listingId);
+				if (result.success) {
+					alert(result.message || "竞价已结束");
+					window.location.reload();
+				} else {
+					alert(result.error || "结束竞价失败");
+					(e.target as HTMLButtonElement).disabled = false;
+					(e.target as HTMLButtonElement).textContent = "结束竞价";
+				}
+			});
+		});
+	}
+
+	init();
+</script>
+
+<style is:global>
+	.cult-grid-2 {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 16px;
+	}
+
+	@media (max-width: 640px) {
+		.cult-grid-2 {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	.resell-card {
+		transition: all 0.2s ease;
+	}
+
+	.resell-card:hover {
+		border-color: rgba(139, 92, 246, 0.3);
+	}
+
+	.bid-input-wrapper .cult-form-input {
+		height: 40px;
+		padding: 0 12px;
+		background: rgba(15, 20, 40, 0.6);
+		border: 1px solid rgba(139, 92, 246, 0.2);
+		border-radius: 8px;
+		color: var(--cult-text-primary);
+		font-size: 14px;
+		outline: none;
+		transition: border-color 0.2s;
+	}
+
+	.bid-input-wrapper .cult-form-input:focus {
+		border-color: rgba(139, 92, 246, 0.5);
+	}
+
+	.bid-input-wrapper .cult-form-input::placeholder {
+		color: var(--cult-text-muted);
+	}
+</style>

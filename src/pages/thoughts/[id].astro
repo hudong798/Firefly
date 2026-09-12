@@ -1,0 +1,279 @@
+---
+// 回声详情页：单条回声的完整内容
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import { getThoughts, getThoughtBySlug } from "@/services/echo.service";
+
+export async function getStaticPaths() {
+	const thoughts = await getThoughts();
+	return thoughts.map((m) => ({
+		params: { id: m.id },
+		props: { moment: m },
+	}));
+}
+
+const { moment } = Astro.props;
+
+// 计算 Echo 编号（需要重新获取列表用于编号）
+const allThoughts = await getThoughts();
+const echoIndex = allThoughts.findIndex((m) => m.id === moment.id);
+const echoNum = String(allThoughts.length - echoIndex).padStart(3, "0");
+
+// 格式化日期
+function formatDate(dateStr: string) {
+	const d = new Date(dateStr.replace(" ", "T"));
+	if (isNaN(d.getTime())) return dateStr.split(" ")[0];
+	const y = d.getFullYear();
+	const m = String(d.getMonth() + 1).padStart(2, "0");
+	const day = String(d.getDate()).padStart(2, "0");
+	return `${y}.${m}.${day}`;
+}
+
+function formatTime(dateStr: string) {
+	const parts = dateStr.split(" ");
+	if (parts.length < 2) return "";
+	return parts[1].slice(0, 5);
+}
+
+function isNight(dateStr: string) {
+	const time = formatTime(dateStr);
+	if (!time) return false;
+	const hour = parseInt(time.split(":")[0], 10);
+	return hour < 6 || hour >= 18;
+}
+
+const title = "回声 · " + moment.date;
+const description = moment.content.slice(0, 60);
+const night = isNight(moment.date);
+---
+
+<MainGridLayout title={title} description={description}>
+	<!-- Reading Quiet Zone -->
+	<div class="echo-detail-vignette" aria-hidden="true"></div>
+
+	<div class="echo-detail-container">
+		<!-- 返回 -->
+		<a class="echo-detail-back" href="/thoughts/">← 返回回声</a>
+
+		<!-- 单条回声 -->
+		<article class="echo-detail">
+			{/* 左侧：Echo 编号 + 时间坐标 */}
+			<div class="echo-detail-meta">
+				<span class="echo-detail-number">ECHO / {echoNum}</span>
+				<span class="echo-detail-date">{formatDate(moment.date)}</span>
+				<span class="echo-detail-time">
+					{night && <span class="echo-detail-night">☾</span>}
+					{formatTime(moment.date)}
+				</span>
+			</div>
+
+			{/* 中间：内容主体 */}
+			<div class="echo-detail-body">
+				{/* Hover 信号线 */}
+				<span class="echo-detail-signal" aria-hidden="true"></span>
+
+				{/* 正文 */}
+				<div class="echo-detail-content">{moment.content}</div>
+
+				{/* 标签 */}
+				{moment.tags && moment.tags.length > 0 && (
+					<div class="echo-detail-tags">
+						{moment.tags.map((t) => (
+							<span class="echo-detail-tag">#{t}</span>
+						))}
+					</div>
+				)}
+			</div>
+		</article>
+	</div>
+</MainGridLayout>
+
+<style>
+	/* Reading Quiet Zone */
+	.echo-detail-vignette {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		z-index: 1;
+		pointer-events: none;
+		background:
+			radial-gradient(ellipse 65% 55% at 45% 40%, rgba(3, 5, 10, 0.5) 0%, rgba(3, 5, 10, 0.25) 50%, transparent 80%),
+			linear-gradient(180deg, rgba(3, 5, 10, 0.15) 0%, transparent 12%, transparent 88%, rgba(3, 5, 10, 0.2) 100%);
+	}
+
+	.echo-detail-container {
+		position: relative;
+		z-index: 2;
+		max-width: 1000px;
+		margin: 0 auto;
+		padding: 0 1.5rem;
+	}
+
+	/* 返回按钮 */
+	.echo-detail-back {
+		display: inline-block;
+		margin-bottom: 2rem;
+		padding-top: 1rem;
+		font-size: 0.78rem;
+		font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+		color: rgba(255, 255, 255, 0.4);
+		text-decoration: none;
+		letter-spacing: 0.02em;
+		transition: color 0.2s ease, transform 0.2s ease;
+	}
+
+	.echo-detail-back:hover {
+		color: rgba(155, 140, 255, 0.8);
+		transform: translateX(-3px);
+	}
+
+	/* 单条回声：Editorial Layout */
+	.echo-detail {
+		display: grid;
+		grid-template-columns: 140px 1fr;
+		gap: 2rem;
+		padding: 1rem 0 2.5rem;
+		position: relative;
+		animation: echo-detail-in 0.5s ease-out both;
+	}
+
+	@keyframes echo-detail-in {
+		from {
+			opacity: 0;
+			transform: translateY(10px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	/* 左侧：Echo 编号 + 时间坐标 */
+	.echo-detail-meta {
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+		padding-top: 0.2rem;
+		font-family: "JetBrains Mono", "Fira Code", "Space Mono", ui-monospace, monospace;
+	}
+
+	.echo-detail-number {
+		font-size: 0.55rem;
+		letter-spacing: 0.12em;
+		color: rgba(255, 255, 255, 0.25);
+		text-transform: uppercase;
+	}
+
+	.echo-detail-date {
+		font-size: 0.7rem;
+		color: rgba(255, 255, 255, 0.4);
+		letter-spacing: 0.02em;
+	}
+
+	.echo-detail-time {
+		font-size: 0.65rem;
+		color: rgba(255, 255, 255, 0.25);
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3rem;
+	}
+
+	.echo-detail-night {
+		font-size: 0.6rem;
+		opacity: 0.6;
+	}
+
+	/* 中间：内容主体 */
+	.echo-detail-body {
+		position: relative;
+		min-width: 0;
+		max-width: 720px;
+	}
+
+	/* Hover 信号线 */
+	.echo-detail-signal {
+		position: absolute;
+		left: -1rem;
+		top: 0.2rem;
+		bottom: 0.2rem;
+		width: 1px;
+		background: linear-gradient(to bottom, rgba(155, 140, 255, 0.6), rgba(155, 140, 255, 0.1));
+		opacity: 0;
+		transition: opacity 0.2s ease;
+		pointer-events: none;
+	}
+
+	.echo-detail:hover .echo-detail-signal {
+		opacity: 1;
+	}
+
+	/* 正文 */
+	.echo-detail-content {
+		font-size: 1rem;
+		line-height: 2;
+		font-weight: 400;
+		color: #D8DCE7;
+		white-space: pre-wrap;
+		word-break: break-word;
+	}
+
+	/* 标签 */
+	.echo-detail-tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem;
+		margin-top: 1.25rem;
+	}
+
+	.echo-detail-tag {
+		font-size: 0.68rem;
+		color: rgba(255, 255, 255, 0.32);
+		font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+		letter-spacing: 0.02em;
+	}
+
+	/* 响应式 */
+	@media (max-width: 768px) {
+		.echo-detail-container {
+			padding: 0 1.25rem;
+		}
+
+		.echo-detail {
+			grid-template-columns: 1fr;
+			gap: 0.75rem;
+			padding: 0.5rem 0 2rem;
+		}
+
+		.echo-detail-meta {
+			flex-direction: row;
+			align-items: center;
+			gap: 0.75rem;
+			flex-wrap: wrap;
+		}
+
+		.echo-detail-signal {
+			display: none;
+		}
+
+		.echo-detail-content {
+			font-size: 0.95rem;
+			line-height: 1.9;
+		}
+
+		.echo-detail-body {
+			max-width: 100%;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.echo-detail {
+			animation: none;
+		}
+
+		.echo-detail-back,
+		.echo-detail-signal {
+			transition: none;
+		}
+	}
+</style>

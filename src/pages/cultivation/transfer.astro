@@ -1,0 +1,394 @@
+---
+import CultivationLayout from "@layouts/CultivationLayout.astro";
+import CultNav from "@/components/cultivation/CultNav.svelte";
+---
+
+<CultivationLayout title="灵石转赠" description="给道友转赠灵石">
+	<CultNav client:load />
+
+	<main class="transfer-page">
+		<div class="transfer-container">
+			<div class="page-header">
+				<h1>灵石转赠</h1>
+				<p>给其他道友转赠灵石</p>
+			</div>
+
+			<div id="auth-guard" style="display:none;">
+				<div class="auth-required">
+					<div class="auth-required-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+					<h2>需要登录</h2>
+					<a href="/cultivation/login/" class="auth-login-btn">立即登录</a>
+				</div>
+			</div>
+
+			<div id="transfer-content" style="display:none;">
+				<div class="transfer-card">
+					<div class="balance-info">
+						<span class="balance-label">我的余额</span>
+						<span class="balance-amount" id="my-balance">0</span>
+						<span class="balance-unit">灵石</span>
+					</div>
+
+					<div class="form-group">
+						<label for="receiver-username">接收者道号 *</label>
+						<input type="text" id="receiver-username" placeholder="输入接收者的道号" autocomplete="off" />
+						<div id="receiver-info" class="receiver-info" style="display:none;"></div>
+					</div>
+
+					<div class="form-group">
+						<label for="transfer-amount">转赠数量 *</label>
+						<input type="number" id="transfer-amount" placeholder="输入转赠数量" min="1" />
+					</div>
+
+					<div class="form-group">
+						<label for="transfer-note">备注（可选）</label>
+						<input type="text" id="transfer-note" placeholder="输入备注信息" maxlength="100" />
+					</div>
+
+					<div id="transfer-error" class="error-message" style="display:none;"></div>
+					<div id="transfer-success" class="success-message" style="display:none;"></div>
+
+					<button class="transfer-btn" id="transfer-btn">确认转赠</button>
+				</div>
+
+				<div class="recent-transfers">
+					<h3>最近转赠记录</h3>
+					<div id="recent-transfers-list"></div>
+				</div>
+			</div>
+		</div>
+	</main>
+</CultivationLayout>
+
+<script>
+	import {
+		getCurrentUser,
+		getMyWallet,
+		getProfileByUsername,
+		transferCoins,
+	} from "@/services/cultivation";
+
+	let myBalance = 0;
+
+	async function init() {
+		const user = await getCurrentUser();
+		const authGuard = document.getElementById("auth-guard");
+		const content = document.getElementById("transfer-content");
+
+		if (!user) {
+			if (authGuard) authGuard.style.display = "block";
+			return;
+		}
+
+		if (content) content.style.display = "block";
+
+		const wallet = await getMyWallet();
+		myBalance = wallet?.coins || 0;
+
+		const balanceEl = document.getElementById("my-balance");
+		if (balanceEl) balanceEl.textContent = String(myBalance);
+
+		// 绑定转赠按钮
+		document.getElementById("transfer-btn")?.addEventListener("click", handleTransfer);
+
+		// 接收者输入时查询
+		let debounceTimer: any;
+		document.getElementById("receiver-username")?.addEventListener("input", (e) => {
+			clearTimeout(debounceTimer);
+			const username = (e.target as HTMLInputElement).value.trim();
+			if (!username) {
+				const info = document.getElementById("receiver-info");
+				if (info) info.style.display = "none";
+				return;
+			}
+			debounceTimer = setTimeout(() => checkReceiver(username), 500);
+		});
+	}
+
+	async function checkReceiver(username: string) {
+		const profile = await getProfileByUsername(username);
+		const infoEl = document.getElementById("receiver-info");
+		if (!infoEl) return;
+
+		if (profile) {
+			infoEl.style.display = "block";
+			infoEl.innerHTML = `<span class="receiver-found"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M20 6 9 17l-5-5"/></svg>找到道友：${profile.username}（${profile.role === "owner" ? "宗主" : profile.role === "admin" ? "管理员" : "普通修仙者"}）</span>`;
+		} else {
+			infoEl.style.display = "block";
+			infoEl.innerHTML = `<span class="receiver-not-found"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>未找到该道号</span>`;
+		}
+	}
+
+	async function handleTransfer() {
+		const receiverUsername = (document.getElementById("receiver-username") as HTMLInputElement)?.value.trim();
+		const amountStr = (document.getElementById("transfer-amount") as HTMLInputElement)?.value;
+		const note = (document.getElementById("transfer-note") as HTMLInputElement)?.value.trim();
+		const errorEl = document.getElementById("transfer-error");
+		const successEl = document.getElementById("transfer-success");
+
+		if (errorEl) errorEl.style.display = "none";
+		if (successEl) successEl.style.display = "none";
+
+		if (!receiverUsername) {
+			showError("请输入接收者道号");
+			return;
+		}
+
+		const amount = parseInt(amountStr, 10);
+		if (!amount || amount <= 0) {
+			showError("请输入有效的转赠数量");
+			return;
+		}
+
+		if (amount > myBalance) {
+			showError("灵石余额不足");
+			return;
+		}
+
+		// 查找接收者
+		const receiver = await getProfileByUsername(receiverUsername);
+		if (!receiver) {
+			showError("未找到该道号的用户");
+			return;
+		}
+
+		const btn = document.getElementById("transfer-btn") as HTMLButtonElement;
+		if (btn) {
+			btn.disabled = true;
+			btn.textContent = "转赠中...";
+		}
+
+		const result = await transferCoins(receiver.id, amount, note || undefined);
+
+		if (result.success) {
+			if (successEl) {
+				successEl.style.display = "block";
+				successEl.textContent = `转赠成功！已向 ${receiverUsername} 转赠 ${amount} 灵石`;
+			}
+			// 刷新余额
+			const wallet = await getMyWallet();
+			myBalance = wallet?.coins || 0;
+			const balanceEl = document.getElementById("my-balance");
+			if (balanceEl) balanceEl.textContent = String(myBalance);
+			// 清空输入
+			(document.getElementById("receiver-username") as HTMLInputElement).value = "";
+			(document.getElementById("transfer-amount") as HTMLInputElement).value = "";
+			(document.getElementById("transfer-note") as HTMLInputElement).value = "";
+			const info = document.getElementById("receiver-info");
+			if (info) info.style.display = "none";
+		} else {
+			showError(result.error || "转赠失败");
+		}
+
+		if (btn) {
+			btn.disabled = false;
+			btn.textContent = "确认转赠";
+		}
+	}
+
+	function showError(msg: string) {
+		const errorEl = document.getElementById("transfer-error");
+		if (errorEl) {
+			errorEl.style.display = "block";
+			errorEl.textContent = msg;
+		}
+	}
+
+	init();
+</script>
+
+<style>
+	.transfer-page {
+		min-height: calc(100vh - 60px);
+		padding: 2rem 1.5rem;
+	}
+
+	.transfer-container {
+		max-width: 600px;
+		margin: 0 auto;
+	}
+
+	.page-header {
+		margin-bottom: 2rem;
+	}
+
+	.page-header h1 {
+		font-size: 1.75rem;
+		font-weight: 600;
+		color: #f1f5f9;
+		margin: 0 0 0.5rem 0;
+	}
+
+	.page-header p {
+		color: #94a3b8;
+		margin: 0;
+	}
+
+	.auth-required {
+		text-align: center;
+		padding: 4rem 2rem;
+	}
+
+	.auth-required-icon {
+		font-size: 3rem;
+		margin-bottom: 1rem;
+	}
+
+	.auth-required h2 {
+		font-size: 1.5rem;
+		color: #f1f5f9;
+		margin: 0 0 1rem 0;
+	}
+
+	.auth-login-btn {
+		display: inline-block;
+		padding: 0.75rem 2rem;
+		background: linear-gradient(135deg, #6366f1, #8b5cf6);
+		color: white;
+		border-radius: 10px;
+		font-weight: 600;
+		text-decoration: none;
+	}
+
+	.transfer-card {
+		padding: 2rem;
+		background: rgba(15, 23, 42, 0.6);
+		border: 1px solid rgba(99, 102, 241, 0.2);
+		border-radius: 16px;
+		margin-bottom: 2rem;
+	}
+
+	.balance-info {
+		display: flex;
+		align-items: baseline;
+		gap: 0.5rem;
+		padding: 1rem 1.25rem;
+		background: rgba(251, 191, 36, 0.08);
+		border: 1px solid rgba(251, 191, 36, 0.15);
+		border-radius: 10px;
+		margin-bottom: 1.5rem;
+	}
+
+	.balance-label {
+		font-size: 0.85rem;
+		color: #94a3b8;
+	}
+
+	.balance-amount {
+		font-size: 1.5rem;
+		font-weight: 700;
+		color: #fbbf24;
+	}
+
+	.balance-unit {
+		font-size: 0.85rem;
+		color: #94a3b8;
+	}
+
+	.form-group {
+		margin-bottom: 1.25rem;
+	}
+
+	.form-group label {
+		display: block;
+		font-size: 0.85rem;
+		color: #cbd5e1;
+		margin-bottom: 0.5rem;
+		font-weight: 500;
+	}
+
+	.form-group input {
+		width: 100%;
+		padding: 0.75rem 1rem;
+		background: rgba(30, 41, 59, 0.8);
+		border: 1px solid rgba(148, 163, 184, 0.25);
+		border-radius: 10px;
+		color: #f1f5f9;
+		font-size: 0.95rem;
+		box-sizing: border-box;
+		transition: all 0.2s;
+	}
+
+	.form-group input:focus {
+		outline: none;
+		border-color: #6366f1;
+		box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+	}
+
+	.form-group input::placeholder {
+		color: #64748b;
+	}
+
+	.receiver-info {
+		margin-top: 0.5rem;
+		font-size: 0.8rem;
+	}
+
+	.receiver-found {
+		color: #34d399;
+	}
+
+	.receiver-not-found {
+		color: #f87171;
+	}
+
+	.error-message {
+		padding: 0.75rem 1rem;
+		background: rgba(239, 68, 68, 0.15);
+		color: #f87171;
+		border: 1px solid rgba(239, 68, 68, 0.3);
+		border-radius: 8px;
+		font-size: 0.85rem;
+		margin-bottom: 1rem;
+	}
+
+	.success-message {
+		padding: 0.75rem 1rem;
+		background: rgba(16, 185, 129, 0.15);
+		color: #34d399;
+		border: 1px solid rgba(16, 185, 129, 0.3);
+		border-radius: 8px;
+		font-size: 0.85rem;
+		margin-bottom: 1rem;
+	}
+
+	.transfer-btn {
+		width: 100%;
+		padding: 0.85rem;
+		background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+		color: white;
+		border: none;
+		border-radius: 10px;
+		font-size: 0.95rem;
+		font-weight: 600;
+		cursor: pointer;
+		transition: all 0.2s;
+	}
+
+	.transfer-btn:hover:not(:disabled) {
+		opacity: 0.92;
+		transform: translateY(-1px);
+		box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+	}
+
+	.transfer-btn:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	.recent-transfers h3 {
+		font-size: 1.1rem;
+		color: #f1f5f9;
+		margin: 0 0 1rem 0;
+	}
+
+	@media (max-width: 640px) {
+		.transfer-page {
+			padding: 1rem;
+		}
+
+		.transfer-card {
+			padding: 1.5rem;
+		}
+	}
+</style>

@@ -1,0 +1,300 @@
+---
+import FloatingControls from "@/components/common/controls/FloatingControls.astro";
+import StatusBar from "@/components/workbench/StatusBar.astro";
+import SiteNav from "@/components/workbench/SiteNav.astro";
+import StarField from "@/components/workbench/StarField.astro";
+import { profileConfig, siteConfig } from "@/config";
+import { Icon } from "astro-icon/components";
+import type { MarkdownHeading } from "astro";
+import Layout from "./Layout.astro";
+
+import "@/styles/workbench.css";
+import "@/styles/glass-theme.css";
+
+interface Props {
+	title?: string;
+	description?: string;
+	lang?: string;
+	setOGTypeArticle?: boolean;
+	postSlug?: string;
+	headings?: MarkdownHeading[];
+}
+
+const { title, description, lang, setOGTypeArticle, postSlug, headings = [] } =
+	Astro.props;
+---
+
+<Layout
+	title={title}
+	description={description}
+	lang={lang}
+	setOGTypeArticle={setOGTypeArticle}
+	postSlug={postSlug}
+>
+	<div class="wb-shell" id="wb-shell">
+		{/* Digital Observatory - Canvas 动态星空背景 */}
+		<StarField />
+
+		{/* 全站统一导航栏 */}
+		<SiteNav />
+
+		{/* 主体：聊天区（左侧会话栏已移除） */}
+		<div class="wb-body">
+			<main id="swup-container" class="wb-main transition-main">
+				{/* swup 需要的容器 */}
+				<div id="right-sidebar-dynamic"></div>
+				<div id="floating-toc-wrapper"></div>
+				<div id="content-wrapper" class="wb-chat onload-animation transition-leaving">
+					<slot slot="head" name="head"></slot>
+					<slot />
+				</div>
+			</main>
+		</div>
+
+		<StatusBar />
+	</div>
+
+	<FloatingControls headings={headings} />
+</Layout>
+
+<script>
+	// 工作台布局：主内容在 .wb-main 内部滚动，
+	// swup 切换页面后把滚动容器拉回顶部（window.scrollTo 已失效）
+	function setupWorkbenchScroll() {
+		const main = document.querySelector(".wb-main");
+		const scrollTop = () => {
+			if (main) main.scrollTo({ top: 0, behavior: "smooth" });
+		};
+		if (window.swup?.hooks) {
+			window.swup.hooks.on("page:view", scrollTop);
+		} else {
+			document.addEventListener("swup:enable", () => {
+				window.swup?.hooks.on("page:view", scrollTop);
+			});
+		}
+	}
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", setupWorkbenchScroll);
+	} else {
+		setupWorkbenchScroll();
+	}
+
+	// 顶栏跨板块搜索（数据来自构建时生成的 /api/search-index.json）
+	// 顶栏在 swup 容器外、跨页面持久存在，因此只需初始化一次
+	function setupTitlebarSearch() {
+		const root = document.getElementById("wb-site-search");
+		if (!root || root.dataset.wbSearchInit) return;
+		root.dataset.wbSearchInit = "1";
+
+		const input = document.getElementById("wb-search-input");
+		const resultsEl = document.getElementById("wb-search-results");
+		if (!input || !resultsEl) return;
+
+		// 统一搜索索引：覆盖 文章/说说/旅游/影视/AI/工具/游戏 七个板块
+		let index: any[] | null = null;
+
+		const loadIndex = () => {
+			if (index) return Promise.resolve(index);
+			return fetch("/api/search-index.json")
+				.then((r) => {
+					if (!r.ok) throw new Error("索引加载失败");
+					return r.json();
+				})
+				.then((data: any[]) => {
+					index = data;
+					return index;
+				})
+				.catch(() => {
+					index = [];
+					return index;
+				});
+		};
+
+		// 跨板块匹配：标题/标签/摘要/正文加权，板块名命中整组上浮
+		const matchItems = (query: string, list: any[]) => {
+			const q = query.trim().toLowerCase();
+			if (!q) return [];
+			const scored = list.map((p) => {
+				const title = (p.title || "").toLowerCase();
+				const tags = (p.tags || []).join(" ").toLowerCase();
+				const snippet = (p.snippet || "").toLowerCase();
+				const search = (p.search || "").toLowerCase();
+				const section = (p.sectionLabel || "").toLowerCase();
+				let score = 0;
+				if (title.includes(q)) score += 10;
+				if (tags.includes(q)) score += 4;
+				if (section.includes(q)) score += 6; // 搜板块名 → 整组上浮
+				if (snippet.includes(q)) score += 2;
+				if (search.includes(q)) score += 1;
+				return { p, score };
+			});
+			return scored
+				.filter((x) => x.score > 0)
+				.sort((a, b) => b.score - a.score)
+				.slice(0, 12)
+				.map((x) => x.p);
+		};
+
+		// 结果按板块分组渲染，每个结果带彩色板块标签
+		const renderResults = (items: any[]) => {
+			resultsEl.innerHTML = "";
+			if (items.length === 0) {
+				const empty = document.createElement("div");
+				empty.className = "wb-search-empty";
+				empty.textContent = "没有匹配的板块内容，换个关键词试试";
+				resultsEl.appendChild(empty);
+				resultsEl.hidden = false;
+				return;
+			}
+
+			// 按板块聚合
+			const groups: Record<string, any[]> = {};
+			for (const it of items) {
+				const key = it.sectionLabel || "其他";
+				(groups[key] ||= []).push(it);
+			}
+
+			for (const [label, list] of Object.entries(groups)) {
+				const head = document.createElement("div");
+				head.className = "wb-search-group";
+				head.innerHTML = `<span class="wb-search-group-label">${label}</span><span class="wb-search-group-count">${list.length}</span>`;
+				resultsEl.appendChild(head);
+
+				for (const p of list) {
+					const a = document.createElement("a");
+					a.className = "wb-search-item";
+					a.href = p.url;
+					if (p.external) {
+						a.target = "_blank";
+						a.rel = "noopener noreferrer";
+					}
+
+					const titleRow = document.createElement("div");
+					titleRow.className = "wb-search-item-title";
+					titleRow.textContent = p.title;
+					if (p.external) {
+						const ext = document.createElement("span");
+						ext.className = "wb-search-item-ext";
+						ext.textContent = "↗";
+						titleRow.appendChild(ext);
+					}
+
+					const meta = document.createElement("div");
+					meta.className = "wb-search-item-meta";
+					meta.textContent = p.snippet || "";
+
+					a.appendChild(titleRow);
+					a.appendChild(meta);
+					resultsEl.appendChild(a);
+				}
+			}
+			resultsEl.hidden = false;
+		};
+
+		const hideResults = () => {
+			resultsEl.hidden = true;
+		};
+
+		// 移动端：放大镜按钮点击展开/收起
+		const isMobile = () => window.innerWidth <= 860;
+		const header = document.querySelector(".wb-titlebar");
+		const collapseSearch = () => {
+			root.classList.remove("is-expanded");
+			header?.classList.remove("is-search-expanded");
+			hideResults();
+		};
+		const bar = root.querySelector(".wb-composer--bar");
+		bar?.addEventListener("click", (e) => {
+			if (!isMobile()) return;
+			// 点击结果链接或输入框本身时不切换展开状态
+			const target = e.target as Element;
+			if (target.closest(".wb-search-item") || target === input) return;
+			e.preventDefault();
+			const expanded = root.classList.toggle("is-expanded");
+			header?.classList.toggle("is-search-expanded", expanded);
+			if (expanded) {
+				setTimeout(() => input.focus(), 50);
+			} else {
+				hideResults();
+			}
+		});
+
+		const setupSwupCollapse = () => {
+			window.swup?.hooks.on("page:view", collapseSearch);
+		};
+		if (window.swup?.hooks) {
+			setupSwupCollapse();
+		} else {
+			document.addEventListener("swup:enable", setupSwupCollapse);
+		}
+
+		let timer: number;
+		input.addEventListener("input", () => {
+			clearTimeout(timer);
+			const q = input.value.trim();
+			if (!q) {
+				hideResults();
+				return;
+			}
+			timer = window.setTimeout(() => {
+				loadIndex().then((list) => renderResults(matchItems(q, list)));
+			}, 150);
+		});
+
+		input.addEventListener("focus", () => {
+			if (input.value.trim()) {
+				loadIndex().then((list) =>
+					renderResults(matchItems(input.value, list)),
+				);
+			}
+		});
+
+		input.addEventListener("keydown", (e) => {
+			if (e.key === "Enter") {
+				const first = resultsEl.querySelector(".wb-search-item");
+				if (first) {
+					e.preventDefault();
+					window.location.href = first.getAttribute("href") || "/";
+				}
+			}
+			if (e.key === "Escape") {
+				hideResults();
+				if (isMobile()) collapseSearch();
+			}
+		});
+
+		document.addEventListener("click", (e) => {
+			if (!root.contains(e.target as Node)) {
+				hideResults();
+				if (isMobile() && root.classList.contains("is-expanded")) {
+					collapseSearch();
+				}
+			}
+		});
+	}
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", setupTitlebarSearch);
+	} else {
+		setupTitlebarSearch();
+	}
+
+	// 资源页 tab 切换：事件委托，在 swup 容器外绑定一次，跨页面持久有效
+	document.addEventListener("click", (e) => {
+		const tab = e.target.closest(".res-tab");
+		if (!tab) return;
+		const name = tab.dataset.tab;
+		if (!name) return;
+		const root = tab.closest(".res-tabs");
+		if (!root) return;
+		const tabs = root.querySelectorAll(".res-tab");
+		const panels = document.querySelectorAll(".res-panel");
+		tabs.forEach((t) => {
+			const active = t === tab;
+			t.classList.toggle("is-active", active);
+			t.setAttribute("aria-selected", String(active));
+		});
+		panels.forEach((p) =>
+			p.classList.toggle("is-active", p.dataset.panel === name),
+		);
+	});
+</script>

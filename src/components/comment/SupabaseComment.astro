@@ -1,0 +1,12 @@
+---
+import SupabaseComment from "./SupabaseComment.svelte";
+
+interface Props {
+	path: string;
+	title?: string;
+}
+
+const { path, title = "评论" } = Astro.props;
+---
+
+<SupabaseComment postPath={path} title={title} client:only="svelte" />

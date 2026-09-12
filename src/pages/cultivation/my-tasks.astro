@@ -1,0 +1,349 @@
+---
+import CultivationLayout from "@layouts/CultivationLayout.astro";
+import CultNav from "@/components/cultivation/CultNav.svelte";
+---
+
+<CultivationLayout title="我的任务" description="查看和提交任务">
+	<CultNav client:load />
+
+	<main class="cult-page">
+		<div class="cult-page-header">
+			<h1 class="cult-page-title">我的任务</h1>
+			<p class="cult-page-desc">查看任务进度，提交任务证明</p>
+		</div>
+
+		<div id="auth-guard" style="display:none;">
+			<div class="cult-empty">
+				<div class="cult-empty-icon">
+						<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+					</div>
+				<h3 class="cult-empty-title">需要登录</h3>
+				<p class="cult-empty-desc">登录后才能查看任务</p>
+				<a href="/cultivation/login/" class="cult-btn cult-btn-primary" style="margin-top: 16px;">立即登录</a>
+			</div>
+		</div>
+
+		<div id="my-tasks-content" style="display:none;">
+			<div class="cult-segmented">
+				<button class="cult-segmented-btn active" data-tab="all">全部</button>
+				<button class="cult-segmented-btn" data-tab="claimed">进行中</button>
+				<button class="cult-segmented-btn" data-tab="submitted">待审核</button>
+				<button class="cult-segmented-btn" data-tab="approved">已完成</button>
+				<button class="cult-segmented-btn" data-tab="rejected">已驳回</button>
+			</div>
+			<div id="my-tasks-list"></div>
+			<div id="my-tasks-empty" class="cult-empty" style="display:none;">
+				<div class="cult-empty-icon">
+						<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6"/><path d="M9 16h6"/></svg>
+					</div>
+				<h3 class="cult-empty-title">暂无任务</h3>
+				<p class="cult-empty-desc">去任务大厅领取任务吧</p>
+				<a href="/cultivation/tasks/" class="cult-btn cult-btn-primary" style="margin-top: 16px;">去任务大厅</a>
+			</div>
+		</div>
+	</main>
+
+	<!-- 提交任务弹窗 -->
+	<div id="submit-modal" class="cult-modal-overlay" style="display:none;">
+		<div class="cult-modal">
+			<div class="cult-modal-header">
+				<h3 class="cult-modal-title">提交任务</h3>
+				<button class="cult-modal-close" id="modal-close">×</button>
+			</div>
+			<div class="cult-modal-body">
+				<div class="cult-form-group">
+					<label class="cult-form-label">文字说明</label>
+					<textarea class="cult-form-textarea" id="submit-text" rows="4" placeholder="描述你完成任务的情况..."></textarea>
+				</div>
+				<div class="cult-form-group">
+					<label class="cult-form-label">图片证明（可选）</label>
+					<input type="text" class="cult-form-input" id="submit-images" placeholder="可粘贴图片链接，多个用逗号分隔" />
+				</div>
+			</div>
+			<div class="cult-modal-footer">
+				<button class="cult-btn cult-btn-secondary" id="submit-cancel">取消</button>
+				<button class="cult-btn cult-btn-primary" id="submit-confirm">提交审核</button>
+			</div>
+		</div>
+	</div>
+</CultivationLayout>
+
+<script>
+	import { getCurrentUser, getMyTaskClaims, getPublishedTasks, submitTask } from "@/services/cultivation";
+
+	const gemIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 13L2 9Z"/><path d="M11 3 8 9l4 13 4-13-3-6"/><path d="M2 9h20"/></svg>`;
+
+	let currentTab = "all";
+	let allClaims: any[] = [];
+	let taskMap: Map<string, any> = new Map();
+	let currentClaimId: string | null = null;
+
+	async function init() {
+		const user = await getCurrentUser();
+		const authGuard = document.getElementById("auth-guard");
+		const content = document.getElementById("my-tasks-content");
+
+		if (!user) {
+			if (authGuard) authGuard.style.display = "block";
+			return;
+		}
+
+		if (content) content.style.display = "block";
+
+		const [claims, tasks] = await Promise.all([getMyTaskClaims(), getPublishedTasks()]);
+		allClaims = claims;
+		taskMap = new Map(tasks.map((t) => [t.id, t]));
+
+		renderList();
+
+		// Tab 切换
+		document.querySelectorAll(".cult-segmented-btn").forEach((tab) => {
+			tab.addEventListener("click", (e) => {
+				document.querySelectorAll(".cult-segmented-btn").forEach((t) => t.classList.remove("active"));
+				(e.target as HTMLElement).classList.add("active");
+				currentTab = (e.target as HTMLElement).dataset.tab || "all";
+				renderList();
+			});
+		});
+
+		// 弹窗关闭
+		document.getElementById("modal-close")?.addEventListener("click", closeModal);
+		document.getElementById("submit-cancel")?.addEventListener("click", closeModal);
+		document.getElementById("submit-confirm")?.addEventListener("click", handleSubmit);
+
+		// 点击遮罩关闭
+		document.getElementById("submit-modal")?.addEventListener("click", (e) => {
+			if ((e.target as HTMLElement).id === "submit-modal") closeModal();
+		});
+	}
+
+	function renderList() {
+		const listEl = document.getElementById("my-tasks-list");
+		const emptyEl = document.getElementById("my-tasks-empty");
+		if (!listEl) return;
+
+		let filtered = allClaims;
+		if (currentTab !== "all") {
+			filtered = allClaims.filter((c) => c.status === currentTab);
+		}
+
+		if (filtered.length === 0) {
+			listEl.innerHTML = "";
+			if (emptyEl) emptyEl.style.display = "block";
+			return;
+		}
+
+		if (emptyEl) emptyEl.style.display = "none";
+
+		const statusMap: Record<string, { label: string; class: string }> = {
+			claimed: { label: "进行中", class: "cult-badge-info" },
+			submitted: { label: "待审核", class: "cult-badge-warning" },
+			approved: { label: "已完成", class: "cult-badge-success" },
+			rejected: { label: "已驳回", class: "cult-badge-danger" },
+		};
+
+		listEl.innerHTML = filtered
+			.map((claim) => {
+				const task = taskMap.get(claim.task_id);
+				const status = statusMap[claim.status] || { label: claim.status, class: "cult-badge-muted" };
+				let actionBtn = "";
+
+				if (claim.status === "claimed") {
+					actionBtn = `<button class="cult-btn cult-btn-primary cult-btn-sm action-submit" data-claim-id="${claim.id}">提交任务</button>`;
+				} else if (claim.status === "rejected") {
+					actionBtn = `<button class="cult-btn cult-btn-secondary cult-btn-sm action-resubmit" data-claim-id="${claim.id}">重新提交</button>`;
+				}
+
+				return `
+					<div class="cult-task-card">
+						<div class="cult-task-header">
+							<div>
+								<div class="cult-task-category ${(task as any)?.category === '顶级任务' ? 'cult-task-category-top' : (task as any)?.category === '中级任务' ? 'cult-task-category-mid' : 'cult-task-category-low'}">${(task as any)?.category || '初级任务'}</div>
+								<h3 class="cult-task-title">${task?.title || "未知任务"}</h3>
+							</div>
+							<span class="cult-badge ${status.class}">${status.label}</span>
+						</div>
+						<p class="cult-task-desc">${task?.description || ""}</p>
+						<div class="cult-task-footer">
+							<div class="cult-task-reward">
+								${gemIcon}
+								<span>${task?.reward_coins || 0} 灵石</span>
+							</div>
+							${actionBtn}
+						</div>
+					</div>
+				`;
+			})
+			.join("");
+
+		// 绑定提交按钮
+		listEl.querySelectorAll(".action-submit, .action-resubmit").forEach((btn) => {
+			btn.addEventListener("click", (e) => {
+				currentClaimId = (e.target as HTMLElement).dataset.claimId || null;
+				openModal();
+			});
+		});
+	}
+
+	function openModal() {
+		const modal = document.getElementById("submit-modal");
+		if (modal) modal.style.display = "flex";
+	}
+
+	function closeModal() {
+		const modal = document.getElementById("submit-modal");
+		if (modal) modal.style.display = "none";
+		currentClaimId = null;
+		const textEl = document.getElementById("submit-text") as HTMLTextAreaElement;
+		const imgEl = document.getElementById("submit-images") as HTMLInputElement;
+		if (textEl) textEl.value = "";
+		if (imgEl) imgEl.value = "";
+	}
+
+	async function handleSubmit() {
+		if (!currentClaimId) return;
+
+		const text = (document.getElementById("submit-text") as HTMLTextAreaElement)?.value.trim();
+		const images = (document.getElementById("submit-images") as HTMLInputElement)?.value.trim();
+
+		if (!text) {
+			alert("请填写文字说明");
+			return;
+		}
+
+		const btn = document.getElementById("submit-confirm") as HTMLButtonElement;
+		if (btn) {
+			btn.disabled = true;
+			btn.textContent = "提交中...";
+		}
+
+		const result = await submitTask(currentClaimId, text, images || undefined);
+
+		if (result.success) {
+			alert("提交成功，等待审核");
+			closeModal();
+			window.location.reload();
+		} else {
+			alert(result.error || "提交失败");
+			if (btn) {
+				btn.disabled = false;
+				btn.textContent = "提交审核";
+			}
+		}
+	}
+
+	init();
+</script>
+
+<style is:global>
+	.cult-modal-overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: rgba(0, 0, 0, 0.7);
+		backdrop-filter: blur(4px);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 1000;
+		padding: 16px;
+	}
+
+	.cult-modal {
+		background: #0a0f1e;
+		border: 1px solid rgba(139, 92, 246, 0.2);
+		border-radius: 16px;
+		width: 100%;
+		max-width: 440px;
+		overflow: hidden;
+	}
+
+	.cult-modal-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 16px 20px;
+		border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+	}
+
+	.cult-modal-title {
+		font-size: 16px;
+		font-weight: 600;
+		margin: 0;
+		color: #f1f5f9;
+	}
+
+	.cult-modal-close {
+		background: none;
+		border: none;
+		color: #64748b;
+		font-size: 20px;
+		cursor: pointer;
+		padding: 4px 8px;
+		border-radius: 6px;
+		transition: all 0.15s;
+	}
+
+	.cult-modal-close:hover {
+		background: rgba(139, 92, 246, 0.1);
+		color: #f1f5f9;
+	}
+
+	.cult-modal-body {
+		padding: 20px;
+	}
+
+	.cult-modal-footer {
+		display: flex;
+		gap: 12px;
+		padding: 16px 20px;
+		border-top: 1px solid rgba(139, 92, 246, 0.1);
+	}
+
+	.cult-modal-footer .cult-btn {
+		flex: 1;
+	}
+
+	.cult-form-group {
+		margin-bottom: 16px;
+	}
+
+	.cult-form-group:last-child {
+		margin-bottom: 0;
+	}
+
+	.cult-form-label {
+		display: block;
+		font-size: 13px;
+		font-weight: 500;
+		color: #94a3b8;
+		margin-bottom: 8px;
+	}
+
+	.cult-form-input,
+	.cult-form-textarea {
+		width: 100%;
+		padding: 10px 12px;
+		background: rgba(15, 20, 40, 0.75);
+		border: 1px solid rgba(139, 92, 246, 0.15);
+		border-radius: 8px;
+		color: #f1f5f9;
+		font-size: 14px;
+		font-family: inherit;
+		transition: border-color 0.15s;
+		resize: vertical;
+	}
+
+	.cult-form-input:focus,
+	.cult-form-textarea:focus {
+		outline: none;
+		border-color: rgba(139, 92, 246, 0.5);
+	}
+
+	.cult-form-input::placeholder,
+	.cult-form-textarea::placeholder {
+		color: #475569;
+	}
+</style>

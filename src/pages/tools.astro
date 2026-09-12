@@ -1,0 +1,55 @@
+---
+// 工具板块：按分组展示一个个工具网站链接
+import LinkRows from "@/components/workbench/LinkRows.astro";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import { toolGroups } from "@/data/tools";
+
+const title = "工具";
+const description = "好用的工具网站导航";
+
+// 按分类分组展示工具网站链接（数据见 src/data/tools.ts）
+const groups = toolGroups;
+---
+
+<MainGridLayout title={title} description={description}>
+	<p class="section-hint">好用的工具让人事半功倍，点击直达官网。</p>
+
+	{
+		groups.map((g) => (
+			<section class="tool-group">
+				<h2 class="section-h2">{g.title}</h2>
+				<LinkRows items={g.items} />
+			</section>
+		))
+	}
+
+	<p class="section-tip">💡 有好用的工具推荐？欢迎去<a href="/guestbook/">讨论区</a>留言！</p>
+</MainGridLayout>
+
+<style>
+	.section-hint {
+		color: var(--content-meta);
+		font-size: 0.88rem;
+		margin: 0 0 1.1rem;
+	}
+	.tool-group {
+		margin-bottom: 1.4rem;
+	}
+	.section-h2 {
+		font-size: 1.1rem;
+		font-weight: 700;
+		margin: 0 0 0.6rem;
+	}
+	.section-tip {
+		margin-top: 0.4rem;
+		font-size: 0.85rem;
+		color: var(--content-meta);
+	}
+	.section-tip a {
+		color: var(--primary);
+		text-decoration: none;
+	}
+	.section-tip a:hover {
+		text-decoration: underline;
+	}
+</style>

@@ -1,0 +1,532 @@
+---
+// 首页舞台：Digital Observatory 数字观测站
+// 左侧个人信息 + 右侧抽象数字宇宙视觉，极简深空风格
+import { profileConfig } from "@/config";
+import AnnouncementBar from "@/components/workbench/AnnouncementBar.svelte";
+
+// 职业标签（打字机轮播效果）
+const roles = ["把爱留在798", "西格玛男人", "内容创作者", "终身学习者"];
+---
+
+<!-- 全屏首页舞台：深空背景 + 极简个人名片 + 数字观测站视觉 -->
+<div class="hero-stage">
+  <!-- 公告栏：导航栏下面，显示最新2条公告 -->
+  <div class="hero-announcement">
+    <AnnouncementBar client:only="svelte" />
+  </div>
+
+  <!-- 主内容：左右两栏 -->
+  <div class="hero-content">
+    <!-- 左侧：个人名片 -->
+    <div class="hero-profile">
+      <p class="hero-greeting">你好，我是</p>
+      <h1 class="hero-name">{profileConfig.name}</h1>
+      <div class="hero-role">
+        <span class="hero-role-prefix">{">}_"}</span>
+        <span class="hero-role-text" id="hero-role-text">{roles[0]}</span>
+        <span class="hero-role-cursor">|</span>
+      </div>
+      <p class="hero-bio">{profileConfig.bio}</p>
+      <div class="hero-actions">
+        <a href="/ai/" class="hero-btn hero-btn--primary">
+          <span class="hero-btn-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/>
+              <path d="M18.5 15l.7 1.9 1.9.7-1.9.7-.7 1.9-.7-1.9-1.9-.7 1.9-.7z"/>
+            </svg>
+          </span>
+          <span class="hero-btn-text">AI</span>
+        </a>
+        <a href="https://zt.huya.com/92d8003a/mobile/index.html" target="_blank" rel="noopener noreferrer" class="hero-btn hero-btn--ghost">
+          <span class="hero-btn-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 3v18h18"/>
+              <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/>
+            </svg>
+          </span>
+          <span class="hero-btn-text">流水榜</span>
+        </a>
+        <a href="/cultivation/" class="hero-btn hero-btn--ghost">
+          <span class="hero-btn-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M12 2v4m0 12v4m10-10h-4M6 12H2m15.5-7.5l-2.8 2.8m-5.4 5.4l-2.8 2.8m0-11l2.8 2.8m5.4 5.4l2.8 2.8"/>
+            </svg>
+          </span>
+          <span class="hero-btn-text">修仙界</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- 右侧：Digital Observatory 数字观测站视觉（若隐若现） -->
+    <div class="hero-observatory" aria-hidden="true">
+      <div class="obs-grid"></div>
+      <div class="obs-ring obs-ring--1"></div>
+      <div class="obs-ring obs-ring--2"></div>
+      <div class="obs-ring obs-ring--3"></div>
+      <div class="obs-center">
+        <div class="obs-center-dot"></div>
+      </div>
+      <div class="obs-coord obs-coord--tl">
+        <span class="obs-coord-label">IDONG</span>
+      </div>
+      <div class="obs-coord obs-coord--br">
+        <span class="obs-coord-label">OBS-01 / 2026</span>
+      </div>
+      <div class="obs-node obs-node--1"></div>
+      <div class="obs-node obs-node--2"></div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* 首页：聊天容器全宽无内边距 */
+  :global(.wb-chat:has(.hero-stage)) {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    opacity: 1 !important;
+    transform: none !important;
+    will-change: auto !important;
+    animation: none !important;
+  }
+
+  .hero-stage {
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    background-image: url('/assets/images/bg-desktop.webp');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    padding: 20px 0 60px;
+  }
+
+  .hero-announcement {
+    position: relative;
+    z-index: 3;
+    width: 100%;
+    max-width: 800px;
+    padding: 1rem 1.5rem 0;
+  }
+
+  .hero-stage::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(5, 7, 13, 0.75) 0%, rgba(8, 11, 20, 0.65) 50%, rgba(5, 7, 13, 0.8) 100%);
+    z-index: 1;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 1200px;
+    padding: 2rem 3rem;
+    gap: 3rem;
+    flex: 1;
+  }
+
+  /* ---------- 左侧：个人名片 ---------- */
+  .hero-profile {
+    flex: 1;
+    max-width: 560px;
+  }
+
+  .hero-greeting {
+    font-size: 1rem;
+    color: rgba(141, 150, 170, 0.9);
+    margin: 0 0 0.5rem;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+  }
+
+  .hero-name {
+    font-size: clamp(3rem, 7vw, 5.5rem);
+    font-weight: 700;
+    color: #F5F7FF;
+    margin: 0 0 1rem;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    font-family: "Space Grotesk", "Inter", system-ui, sans-serif;
+  }
+
+  .hero-role {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.2rem;
+    font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+  }
+
+  .hero-role-prefix {
+    color: #9B8CFF;
+    font-size: 0.95rem;
+  }
+
+  .hero-role-text {
+    color: #63D8FF;
+    font-size: 0.95rem;
+    font-weight: 500;
+  }
+
+  .hero-role-cursor {
+    color: #9B8CFF;
+    font-size: 0.95rem;
+    animation: cursor-blink 1s step-end infinite;
+  }
+
+  @keyframes cursor-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  .hero-bio {
+    font-size: 0.95rem;
+    line-height: 1.8;
+    color: rgba(141, 150, 170, 0.85);
+    margin: 0 0 1.8rem;
+    max-width: 480px;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+  }
+
+  .hero-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.4rem;
+    border-radius: 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    border: 1px solid transparent;
+  }
+
+  .hero-btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hero-btn-icon svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .hero-btn--primary {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(150, 150, 255, 0.18);
+    color: rgba(245, 247, 255, 0.9);
+    backdrop-filter: blur(12px);
+  }
+
+  .hero-btn--primary:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(155, 140, 255, 0.35);
+    color: #F5F7FF;
+    transform: translateY(-1px);
+  }
+
+  .hero-btn--ghost {
+    background: rgba(255, 255, 255, 0.02);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: rgba(245, 247, 255, 0.7);
+    backdrop-filter: blur(12px);
+  }
+
+  .hero-btn--ghost:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: rgba(245, 247, 255, 0.9);
+    transform: translateY(-1px);
+  }
+
+  /* ---------- 右侧：Digital Observatory 数字观测站视觉（若隐若现） ---------- */
+  .hero-observatory {
+    position: relative;
+    width: 400px;
+    height: 400px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.7;
+  }
+
+  /* 背景网格（极淡） */
+  .obs-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(155, 140, 255, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(155, 140, 255, 0.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(circle at center, black 25%, transparent 70%);
+    -webkit-mask-image: radial-gradient(circle at center, black 25%, transparent 70%);
+  }
+
+  /* 同心圆环（不完整、不规则透明度） */
+  .obs-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid transparent;
+  }
+
+  /* 圆环1：最内圈，约70%可见 */
+  .obs-ring--1 {
+    width: 180px;
+    height: 180px;
+    border-top-color: rgba(155, 140, 255, 0.12);
+    border-right-color: rgba(155, 140, 255, 0.06);
+    border-bottom-color: transparent;
+    border-left-color: rgba(155, 140, 255, 0.03);
+    animation: ring-rotate 50s linear infinite;
+  }
+
+  /* 圆环2：中圈，约50%可见，偏青色 */
+  .obs-ring--2 {
+    width: 280px;
+    height: 280px;
+    border-top-color: rgba(99, 216, 255, 0.08);
+    border-right-color: transparent;
+    border-bottom-color: rgba(99, 216, 255, 0.04);
+    border-left-color: transparent;
+    animation: ring-rotate 70s linear infinite reverse;
+  }
+
+  /* 圆环3：最外圈，约30%可见 */
+  .obs-ring--3 {
+    width: 380px;
+    height: 380px;
+    border-top-color: rgba(155, 140, 255, 0.05);
+    border-right-color: transparent;
+    border-bottom-color: transparent;
+    border-left-color: rgba(155, 140, 255, 0.02);
+    animation: ring-rotate 90s linear infinite;
+  }
+
+  @keyframes ring-rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  /* 中心光点（极淡） */
+  .obs-center {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .obs-center-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: rgba(200, 195, 255, 0.7);
+    box-shadow: 0 0 12px rgba(155, 140, 255, 0.25);
+    animation: center-pulse 6s ease-in-out infinite;
+  }
+
+  @keyframes center-pulse {
+    0%, 100% { transform: scale(1); opacity: 0.6; }
+    50% { transform: scale(1.15); opacity: 0.85; }
+  }
+
+  /* 坐标标签（极小、极淡） */
+  .obs-coord {
+    position: absolute;
+    font-family: "JetBrains Mono", "Fira Code", "Space Mono", ui-monospace, monospace;
+  }
+
+  .obs-coord--tl {
+    top: 8%;
+    left: 4%;
+  }
+
+  .obs-coord--br {
+    bottom: 8%;
+    right: 4%;
+  }
+
+  .obs-coord-label {
+    font-size: 0.6rem;
+    color: rgba(180, 190, 220, 0.3);
+    font-weight: 500;
+    letter-spacing: 0.12em;
+  }
+
+  /* 轨道节点（极少量） */
+  .obs-node {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+  }
+
+  .obs-node--1 {
+    background: rgba(99, 216, 255, 0.5);
+    box-shadow: 0 0 6px rgba(99, 216, 255, 0.2);
+    animation: node-orbit-1 25s linear infinite;
+  }
+
+  .obs-node--2 {
+    background: rgba(155, 140, 255, 0.4);
+    box-shadow: 0 0 6px rgba(155, 140, 255, 0.15);
+    animation: node-orbit-2 40s linear infinite reverse;
+  }
+
+  @keyframes node-orbit-1 {
+    from { transform: rotate(30deg) translateX(90px) rotate(-30deg); }
+    to { transform: rotate(390deg) translateX(90px) rotate(-390deg); }
+  }
+
+  @keyframes node-orbit-2 {
+    from { transform: rotate(-20deg) translateX(140px) rotate(20deg); }
+    to { transform: rotate(-380deg) translateX(140px) rotate(380deg); }
+  }
+
+  /* ---------- 响应式 ---------- */
+  @media (max-width: 900px) {
+    .hero-stage {
+      background-image: url('/assets/images/bg-mobile.webp');
+    }
+
+    .hero-content {
+      flex-direction: column;
+      text-align: center;
+      padding: 2rem 1.5rem;
+      gap: 2rem;
+    }
+
+    .hero-profile {
+      max-width: 100%;
+    }
+
+    .hero-bio {
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .hero-actions {
+      justify-content: center;
+    }
+
+    .hero-observatory {
+      width: 280px;
+      height: 280px;
+      order: -1;
+    }
+
+    .obs-ring--1 { width: 130px; height: 130px; }
+    .obs-ring--2 { width: 200px; height: 200px; }
+    .obs-ring--3 { width: 270px; height: 270px; }
+
+    @keyframes node-orbit-1 {
+      from { transform: rotate(30deg) translateX(65px) rotate(-30deg); }
+      to { transform: rotate(390deg) translateX(65px) rotate(-390deg); }
+    }
+
+    @keyframes node-orbit-2 {
+      from { transform: rotate(-20deg) translateX(100px) rotate(20deg); }
+      to { transform: rotate(-380deg) translateX(100px) rotate(380deg); }
+    }
+  }
+
+  @media (max-width: 480px) {
+    .hero-name {
+      font-size: 2.5rem;
+    }
+
+    .hero-observatory {
+      width: 220px;
+      height: 220px;
+    }
+
+    .obs-ring--1 { width: 100px; height: 100px; }
+    .obs-ring--2 { width: 160px; height: 160px; }
+    .obs-ring--3 { width: 210px; height: 210px; }
+
+    .obs-coord--tl { top: 5%; left: 2%; }
+    .obs-coord--br { bottom: 5%; right: 2%; }
+
+    @keyframes node-orbit-1 {
+      from { transform: rotate(30deg) translateX(50px) rotate(-30deg); }
+      to { transform: rotate(390deg) translateX(50px) rotate(-390deg); }
+    }
+
+    @keyframes node-orbit-2 {
+      from { transform: rotate(-20deg) translateX(80px) rotate(20deg); }
+      to { transform: rotate(-380deg) translateX(80px) rotate(380deg); }
+    }
+  }
+
+  /* Reduced Motion */
+  @media (prefers-reduced-motion: reduce) {
+    .obs-ring,
+    .obs-node,
+    .obs-center-dot,
+    .hero-role-cursor {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  // 打字机轮播效果
+  (function () {
+    const roles = ["把爱留在798", "西格玛男人", "内容创作者", "终身学习者"];
+    const el = document.getElementById("hero-role-text");
+    if (!el) return;
+
+    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReduced) return;
+
+    let roleIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    let typingTimer;
+
+    function type() {
+      const current = roles[roleIndex];
+      if (isDeleting) {
+        charIndex--;
+        el.textContent = current.substring(0, charIndex);
+        if (charIndex === 0) {
+          isDeleting = false;
+          roleIndex = (roleIndex + 1) % roles.length;
+          typingTimer = setTimeout(type, 500);
+          return;
+        }
+        typingTimer = setTimeout(type, 40);
+      } else {
+        charIndex++;
+        el.textContent = current.substring(0, charIndex);
+        if (charIndex === current.length) {
+          isDeleting = true;
+          typingTimer = setTimeout(type, 2000);
+          return;
+        }
+        typingTimer = setTimeout(type, 100);
+      }
+    }
+
+    typingTimer = setTimeout(type, 1500);
+  })();
+</script>

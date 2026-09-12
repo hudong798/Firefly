@@ -1,0 +1,305 @@
+---
+// 回声 / ECHOES：思想从数字宇宙中发出，经过时间留下的回声
+// Editorial Signal Stream 风格：轻、静、克制、有时间感
+import type { ThoughtMoment } from "@/data/thoughts";
+import { MOMENT_PREVIEW_LIMIT } from "@/data/thoughts";
+
+interface Props {
+	moments: ThoughtMoment[];
+}
+
+const { moments } = Astro.props;
+
+// 截断预览
+function previewOf(content: string) {
+	const isLong = content.length > MOMENT_PREVIEW_LIMIT;
+	return {
+		isLong,
+		text: isLong ? content.slice(0, MOMENT_PREVIEW_LIMIT) + "…" : content,
+	};
+}
+
+// 格式化日期：2026.08.25
+function formatDate(dateStr: string) {
+	const d = new Date(dateStr.replace(" ", "T"));
+	if (isNaN(d.getTime())) return dateStr.split(" ")[0];
+	const y = d.getFullYear();
+	const m = String(d.getMonth() + 1).padStart(2, "0");
+	const day = String(d.getDate()).padStart(2, "0");
+	return `${y}.${m}.${day}`;
+}
+
+// 格式化时间：02:05
+function formatTime(dateStr: string) {
+	const parts = dateStr.split(" ");
+	if (parts.length < 2) return "";
+	return parts[1].slice(0, 5);
+}
+
+// 判断昼夜
+function isNight(dateStr: string) {
+	const time = formatTime(dateStr);
+	if (!time) return false;
+	const hour = parseInt(time.split(":")[0], 10);
+	return hour < 6 || hour >= 18;
+}
+---
+
+<div class="echoes">
+	{
+		moments.map((m, index) => {
+			const p = previewOf(m.content);
+			const detailHref = `/thoughts/${m.id}/`;
+			const echoNum = String(moments.length - index).padStart(3, "0");
+			const night = isNight(m.date);
+			return (
+				<article class="echo" style={`--echo-index: ${index};`}>
+					{/* 左侧：Echo 编号 + 时间坐标 */}
+					<div class="echo-meta">
+						<span class="echo-number">ECHO / {echoNum}</span>
+						<span class="echo-date">{formatDate(m.date)}</span>
+						<span class="echo-time">
+							{night && <span class="echo-night-icon">☾</span>}
+							{formatTime(m.date)}
+						</span>
+					</div>
+
+					{/* 中间：内容主体 */}
+					<div class="echo-body">
+						{/* Hover 信号线 */}
+						<span class="echo-signal-line" aria-hidden="true"></span>
+
+						{/* 正文 */}
+						<p class="echo-content">{p.text}</p>
+
+						{/* 标签 */}
+						{m.tags && m.tags.length > 0 && (
+							<div class="echo-tags">
+								{m.tags.map((t) => (
+									<span class="echo-tag">#{t}</span>
+								))}
+							</div>
+						)}
+
+						{/* 继续阅读 */}
+						{p.isLong && (
+							<a class="echo-more" href={detailHref}>继续阅读 →</a>
+						)}
+					</div>
+				</article>
+			);
+		})
+	}
+
+	{moments.length === 0 && (
+		<div class="echo-empty">
+			<div class="echo-empty-dot"></div>
+			<p class="echo-empty-title">NO ECHOES YET</p>
+			<p class="echo-empty-sub">还没有留下任何回声。</p>
+		</div>
+	)}
+</div>
+
+<style>
+	.echoes {
+		display: flex;
+		flex-direction: column;
+	}
+
+	/* 单条回声：Editorial Layout */
+	.echo {
+		display: grid;
+		grid-template-columns: 140px 1fr;
+		gap: 2rem;
+		padding: 2rem 0;
+		position: relative;
+		animation: echo-in 0.4s ease-out both;
+		animation-delay: calc(var(--echo-index) * 50ms);
+	}
+
+	@keyframes echo-in {
+		from {
+			opacity: 0;
+			transform: translateY(12px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	.echo:nth-child(n+7) {
+		animation-delay: 0s;
+	}
+
+	/* 左侧：Echo 编号 + 时间坐标 */
+	.echo-meta {
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+		padding-top: 0.2rem;
+		font-family: "JetBrains Mono", "Fira Code", "Space Mono", ui-monospace, monospace;
+	}
+
+	.echo-number {
+		font-size: 0.55rem;
+		letter-spacing: 0.12em;
+		color: rgba(255, 255, 255, 0.25);
+		text-transform: uppercase;
+	}
+
+	.echo-date {
+		font-size: 0.7rem;
+		color: rgba(255, 255, 255, 0.4);
+		letter-spacing: 0.02em;
+	}
+
+	.echo-time {
+		font-size: 0.65rem;
+		color: rgba(255, 255, 255, 0.25);
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3rem;
+	}
+
+	.echo-night-icon {
+		font-size: 0.6rem;
+		opacity: 0.6;
+	}
+
+	/* 中间：内容主体 */
+	.echo-body {
+		position: relative;
+		min-width: 0;
+		max-width: 720px;
+	}
+
+	/* Hover 信号线 */
+	.echo-signal-line {
+		position: absolute;
+		left: -1rem;
+		top: 0.2rem;
+		bottom: 0.2rem;
+		width: 1px;
+		background: linear-gradient(to bottom, rgba(155, 140, 255, 0.6), rgba(155, 140, 255, 0.1));
+		opacity: 0;
+		transition: opacity 0.2s ease;
+		pointer-events: none;
+	}
+
+	.echo:hover .echo-signal-line {
+		opacity: 1;
+	}
+
+	/* 正文 */
+	.echo-content {
+		margin: 0;
+		font-size: 0.95rem;
+		line-height: 1.9;
+		font-weight: 400;
+		color: #D8DCE7;
+		white-space: pre-wrap;
+		word-break: break-word;
+	}
+
+	/* 标签 */
+	.echo-tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem;
+		margin-top: 0.85rem;
+	}
+
+	.echo-tag {
+		font-size: 0.68rem;
+		color: rgba(255, 255, 255, 0.32);
+		font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+		letter-spacing: 0.02em;
+	}
+
+	/* 继续阅读 */
+	.echo-more {
+		display: inline-block;
+		margin-top: 0.75rem;
+		font-size: 0.72rem;
+		color: rgba(255, 255, 255, 0.5);
+		text-decoration: none;
+		transition: color 0.2s ease, transform 0.2s ease;
+		font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+		letter-spacing: 0.02em;
+	}
+
+	.echo-more:hover {
+		color: #AFA4FF;
+		transform: translateX(3px);
+	}
+
+	/* 空状态 */
+	.echo-empty {
+		text-align: center;
+		padding: 4rem 1rem;
+	}
+
+	.echo-empty-dot {
+		width: 5px;
+		height: 5px;
+		border-radius: 50%;
+		background: rgba(155, 140, 255, 0.4);
+		margin: 0 auto 1.25rem;
+		box-shadow: 0 0 10px rgba(155, 140, 255, 0.2);
+	}
+
+	.echo-empty-title {
+		font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+		font-size: 0.7rem;
+		letter-spacing: 0.15em;
+		color: rgba(255, 255, 255, 0.3);
+		margin: 0 0 0.5rem;
+	}
+
+	.echo-empty-sub {
+		font-size: 0.85rem;
+		color: rgba(255, 255, 255, 0.25);
+		margin: 0;
+	}
+
+	/* 响应式 */
+	@media (max-width: 768px) {
+		.echo {
+			grid-template-columns: 1fr;
+			gap: 0.75rem;
+			padding: 1.5rem 0;
+		}
+
+		.echo-meta {
+			flex-direction: row;
+			align-items: center;
+			gap: 0.75rem;
+			flex-wrap: wrap;
+		}
+
+		.echo-signal-line {
+			display: none;
+		}
+
+		.echo-content {
+			font-size: 0.9rem;
+			line-height: 1.8;
+		}
+
+		.echo-body {
+			max-width: 100%;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.echo {
+			animation: none;
+		}
+
+		.echo-more,
+		.echo-signal-line {
+			transition: none;
+		}
+	}
+</style>

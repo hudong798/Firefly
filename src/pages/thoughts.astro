@@ -1,0 +1,187 @@
+---
+// 回声 / ECHOES：思想从这个数字宇宙中发出，经过时间之后留下的回声
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import ClientEchoes from "@/components/workbench/ClientEchoes.svelte";
+
+const title = "公告";
+const description = "一些想法经过时间，最终留下的痕迹。";
+---
+
+<MainGridLayout title={title} description={description}>
+	<!-- Reading Quiet Zone：回声页面局部暗层，降低星星密度 -->
+	<div class="echo-reading-vignette" aria-hidden="true"></div>
+
+	<!-- 统一内容容器 -->
+	<div class="echo-container">
+		<!-- 页面标题 -->
+		<header class="echo-header">
+			<div class="echo-header-label">
+				<span class="echo-header-observing">
+					<span class="echo-header-dot"></span>
+					OBSERVING
+				</span>
+				<span class="echo-header-text">ECHOES</span>
+				<span class="echo-header-line"></span>
+			</div>
+			<div class="echo-title-row">
+				<h1 class="echo-title">公告</h1>
+				<a href="/admin/echoes/" class="echo-admin-btn" target="_blank" rel="noopener">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="echo-admin-icon">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+					</svg>
+					写公告
+				</a>
+			</div>
+			<p class="echo-sub">一些想法经过时间，最终留下的痕迹。</p>
+		</header>
+
+		<!-- 回声列表（客户端动态加载 Supabase 数据） -->
+		<section class="echo-list">
+			<ClientEchoes client:only="svelte" />
+		</section>
+	</div>
+</MainGridLayout>
+
+<style>
+	/* Reading Quiet Zone：回声页面局部暗层 */
+	.echo-reading-vignette {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		z-index: 1;
+		pointer-events: none;
+		background:
+			radial-gradient(ellipse 65% 55% at 45% 40%, rgba(3, 5, 10, 0.5) 0%, rgba(3, 5, 10, 0.25) 50%, transparent 80%),
+			linear-gradient(180deg, rgba(3, 5, 10, 0.15) 0%, transparent 12%, transparent 88%, rgba(3, 5, 10, 0.2) 100%);
+	}
+
+	/* 统一内容容器 */
+	.echo-container {
+		position: relative;
+		z-index: 2;
+		max-width: 1000px;
+		margin: 0 auto;
+		padding: 0 1.5rem;
+	}
+
+	/* 页面标题 */
+	.echo-header {
+		margin-bottom: 3rem;
+		padding-top: 1rem;
+	}
+
+	.echo-header-label {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		margin-bottom: 1rem;
+	}
+
+	.echo-header-observing {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		font-family: "JetBrains Mono", "Fira Code", "Space Mono", ui-monospace, monospace;
+		font-size: 0.55rem;
+		letter-spacing: 0.15em;
+		color: rgba(255, 255, 255, 0.3);
+		text-transform: uppercase;
+	}
+
+	.echo-header-dot {
+		width: 4px;
+		height: 4px;
+		border-radius: 50%;
+		background: rgba(155, 140, 255, 0.5);
+		box-shadow: 0 0 6px rgba(155, 140, 255, 0.3);
+	}
+
+	.echo-header-text {
+		font-family: "JetBrains Mono", "Fira Code", "Space Mono", ui-monospace, monospace;
+		font-size: 0.65rem;
+		font-weight: 500;
+		letter-spacing: 0.18em;
+		color: rgba(155, 140, 255, 0.5);
+		text-transform: uppercase;
+	}
+
+	.echo-header-line {
+		flex: 1;
+		max-width: 100px;
+		height: 1px;
+		background: linear-gradient(90deg, rgba(155, 140, 255, 0.12), transparent);
+	}
+
+	.echo-title {
+		margin: 0 0 0.75rem;
+		font-size: 2.25rem;
+		font-weight: 600;
+		line-height: 1.2;
+		color: #F4F5FA;
+		letter-spacing: -0.01em;
+	}
+
+	.echo-title-row {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		margin-bottom: 0.75rem;
+	}
+
+	.echo-admin-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		padding: 0.4rem 0.85rem;
+		background: rgba(155, 140, 255, 0.1);
+		border: 1px solid rgba(155, 140, 255, 0.25);
+		border-radius: 999px;
+		color: rgba(155, 140, 255, 0.9);
+		font-size: 0.75rem;
+		font-weight: 500;
+		text-decoration: none;
+		transition: all 0.2s;
+		letter-spacing: 0.02em;
+	}
+
+	.echo-admin-btn:hover {
+		background: rgba(155, 140, 255, 0.2);
+		border-color: rgba(155, 140, 255, 0.5);
+		color: #fff;
+	}
+
+	.echo-admin-icon {
+		width: 0.85rem;
+		height: 0.85rem;
+	}
+
+	.echo-sub {
+		margin: 0;
+		font-size: 0.9rem;
+		color: #7F8799;
+		line-height: 1.7;
+		max-width: 480px;
+	}
+
+	/* 回声列表 */
+	.echo-list {
+		position: relative;
+	}
+
+	@media (max-width: 768px) {
+		.echo-container {
+			padding: 0 1.25rem;
+		}
+		.echo-header {
+			margin-bottom: 2rem;
+		}
+		.echo-title {
+			font-size: 1.75rem;
+		}
+		.echo-sub {
+			font-size: 0.85rem;
+		}
+	}
+</style>

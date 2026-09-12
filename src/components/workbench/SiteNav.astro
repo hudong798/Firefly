@@ -1,0 +1,250 @@
+---
+// 全站统一导航栏：头像 + 站点名 + 导航板块 + 搜索放大镜
+import { profileConfig, siteConfig } from "@/config";
+import NavSearch from "@/components/workbench/NavSearch.svelte";
+
+// 顶部导航板块
+const navItems = [
+  { name: "观测站", url: "/", icon: "home" },
+  { name: "公告", url: "/thoughts/", icon: "chat" },
+  { name: "轨迹", url: "/travel/", icon: "travel" },
+  { name: "信号", url: "/guestbook/", icon: "message" },
+  { name: "档案", url: "/resources/", icon: "box" },
+  { name: "修仙界", url: "/cultivation/", icon: "cultivation", hidden: true },
+];
+
+// 当前路径，用于高亮当前导航项
+const currentPath = Astro.url.pathname;
+---
+
+<nav class="site-nav">
+  <div class="site-nav__left">
+    <a href="/" class="site-nav__brand" id="site-nav-avatar-btn">
+      <img src={profileConfig.avatar} alt="avatar" class="site-nav__avatar" />
+      <span class="site-nav__brand-name">{siteConfig.title}</span>
+    </a>
+  </div>
+  <div class="site-nav__center">
+    {navItems.filter(item => !item.hidden).map((item) => {
+      const isActive = currentPath === item.url || (item.url !== "/" && currentPath.startsWith(item.url));
+      return (
+        <a href={item.url} data-nav-href={item.url} class={`site-nav__item${isActive ? " is-active" : ""}`}>
+          <span class="site-nav__icon">
+            {item.icon === "home" && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>}
+            {item.icon === "chat" && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>}
+            {item.icon === "ai" && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 10v6m11-11h-6M7 12H1m15.5-7.5l-4.2 4.2m-4.6 4.6l-4.2 4.2m0-13l4.2 4.2m4.6 4.6l4.2 4.2"/></svg>}
+            {item.icon === "travel" && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>}
+            {item.icon === "box" && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>}
+            {item.icon === "book" && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>}
+            {item.icon === "community" && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>}
+            {item.icon === "tool" && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>}
+            {item.icon === "user" && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>}
+            {item.icon === "message" && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>}
+            {item.icon === "cultivation" && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4m10-10h-4M6 12H2m15.5-7.5l-2.8 2.8m-5.4 5.4l-2.8 2.8m0-11l2.8 2.8m5.4 5.4l2.8 2.8"/></svg>}
+          </span>
+          <span class="site-nav__text">{item.name}</span>
+        </a>
+      );
+    })}
+  </div>
+  <div class="site-nav__right">
+    <NavSearch client:only="svelte" />
+  </div>
+</nav>
+
+<script>
+  // 根据当前路径更新导航高亮（兼容 swup 无刷新切换）
+  function updateSiteNavActive() {
+    const path = window.location.pathname;
+    document.querySelectorAll(".site-nav__item[data-nav-href]").forEach((el) => {
+      const href = el.getAttribute("data-nav-href") || "";
+      let active = false;
+      if (href === "/") {
+        active = path === "/" || path === "";
+      } else {
+        active = path === href || path.startsWith(href);
+      }
+      el.classList.toggle("is-active", active);
+    });
+  }
+
+  function bindSiteNav() {
+    // 点击时即时高亮，无需等待页面切换
+    document.querySelectorAll<HTMLElement>(".site-nav__item[data-nav-href]").forEach((el) => {
+      if (el.dataset.navBound) return;
+      el.dataset.navBound = "1";
+      el.addEventListener("click", () => {
+        document.querySelectorAll(".site-nav__item").forEach((n) => n.classList.remove("is-active"));
+        el.classList.add("is-active");
+      });
+    });
+  }
+
+  // 档案页分类切换：用 document 事件委托，兼容 swup 无刷新。
+  // 原因：resources.astro 的页面脚本位于 swup 容器 <main> 内，无刷新切换后不会重跑，
+  // 导致 01影视/02漫画/03社区/04工具 点击无反应。SiteNav 在 <main> 外，只注册一次即可。
+  if (!document.body.dataset.archTabDelegated) {
+    document.body.dataset.archTabDelegated = "1";
+    document.addEventListener("click", (e) => {
+      const tab = e.target.closest ? e.target.closest(".arch-index-item[data-tab]") : null;
+      if (!tab) return;
+      const root = tab.closest(".arch-container") || document;
+      const target = tab.getAttribute("data-tab");
+      root.querySelectorAll(".arch-index-item[data-tab]").forEach((t) => {
+        const on = t === tab;
+        t.classList.toggle("is-active", on);
+        t.setAttribute("aria-selected", String(on));
+      });
+      root.querySelectorAll(".arch-panel[data-panel]").forEach((p) => {
+        p.classList.toggle("is-active", p.getAttribute("data-panel") === target);
+      });
+    });
+  }
+
+  // 初始执行
+  bindSiteNav();
+  updateSiteNavActive();
+
+  // swup 无刷新切换后同步高亮（两种事件双保险）
+  document.addEventListener("swup:contentReplaced", () => {
+    bindSiteNav();
+    updateSiteNavActive();
+  });
+  if (window.swup?.hooks) {
+    window.swup.hooks.on("content:replace", updateSiteNavActive);
+  } else {
+    // swup 可能稍后初始化，轮询绑定一次
+    let tries = 0;
+    const timer = setInterval(() => {
+      tries++;
+      if (window.swup?.hooks) {
+        window.swup.hooks.on("content:replace", updateSiteNavActive);
+        clearInterval(timer);
+      } else if (tries > 20) {
+        clearInterval(timer);
+      }
+    }, 200);
+  }
+
+  // 浏览器前进 / 后退
+  window.addEventListener("popstate", updateSiteNavActive);
+</script>
+
+<style>
+  .site-nav {
+    position: relative;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 2rem;
+    background: rgba(5, 7, 13, 0.72);
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+  .site-nav__left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-shrink: 0;
+  }
+  .site-nav__brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-decoration: none;
+  }
+  .site-nav__avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(155, 140, 255, 0.4);
+    box-shadow: 0 0 12px rgba(155, 140, 255, 0.3);
+  }
+  .site-nav__brand-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #F5F7FF;
+    letter-spacing: 0.05em;
+  }
+  .site-nav__center {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex: 1;
+    justify-content: center;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .site-nav__center::-webkit-scrollbar {
+    display: none;
+  }
+  .site-nav__item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.6rem;
+    color: rgba(141, 150, 170, 0.9);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+  }
+  .site-nav__item:hover {
+    color: #F5F7FF;
+    background: rgba(255, 255, 255, 0.04);
+  }
+  .site-nav__item.is-active {
+    color: #F5F7FF;
+    font-weight: 600;
+    background: linear-gradient(135deg, rgba(155, 140, 255, 0.2), rgba(99, 216, 255, 0.12));
+    border: 1px solid rgba(155, 140, 255, 0.35);
+    box-shadow: 0 0 12px rgba(155, 140, 255, 0.2), inset 0 0 8px rgba(99, 216, 255, 0.1);
+  }
+  .site-nav__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+  }
+  .site-nav__icon svg {
+    width: 100%;
+    height: 100%;
+  }
+  .site-nav__right {
+    flex-shrink: 0;
+  }
+
+  /* 响应式 */
+  @media (max-width: 900px) {
+    .site-nav {
+      padding: 0.6rem 1rem;
+    }
+    .site-nav__brand-name {
+      display: none;
+    }
+  }
+  /* 手机端：导航项只显示图标，避免文字太宽溢出盖住头像 */
+  @media (max-width: 768px) {
+    .site-nav__center {
+      min-width: 0;
+      gap: 0.3rem;
+      justify-content: center;
+    }
+    .site-nav__text {
+      display: none;
+    }
+    .site-nav__item {
+      padding: 0.4rem 0.5rem;
+    }
+    .site-nav__icon {
+      width: 18px;
+      height: 18px;
+    }
+  }
+</style>
