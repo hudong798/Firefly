@@ -1,4 +1,4 @@
----
+﻿---
 /**
  * 修仙系统布局
  * 包含导航栏和内容区域
@@ -45,7 +45,7 @@ const { title, description = "修仙系统" } = Astro.props;
 		--cult-primary-hover: rgba(139, 92, 246, 0.25);
 		--cult-primary-text: #a78bfa;
 
-		/* 强调色 - 金色（灵石/境界） */
+		/* 强调色 - 金色（星辰币/境界） */
 		--cult-gold: #fbbf24;
 		--cult-gold-soft: rgba(251, 191, 36, 0.12);
 		--cult-gold-text: #fcd34d;
@@ -146,19 +146,24 @@ const { title, description = "修仙系统" } = Astro.props;
 	}
 
 	/* ============================================================
-	   可复用组件 - 卡片
+	   可复用组件 - 卡片（液态玻璃）
 	   ============================================================ */
 	.cult-card {
-		background: var(--cult-surface);
-		border: 1px solid var(--cult-border);
+		background: rgba(15, 20, 40, 0.45);
+		backdrop-filter: blur(16px);
+		-webkit-backdrop-filter: blur(16px);
+		border: 1px solid rgba(255, 255, 255, 0.12);
 		border-radius: var(--cult-radius-lg);
 		padding: var(--cult-space-5);
-		transition: background 0.2s, border-color 0.2s;
+		transition: all 0.2s;
+		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
 	}
 
 	.cult-card:hover {
-		background: var(--cult-surface-hover);
-		border-color: var(--cult-border-strong);
+		background: rgba(15, 20, 40, 0.55);
+		border-color: rgba(255, 255, 255, 0.2);
+		transform: translateY(-2px);
+		box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
 	}
 
 	.cult-card-title {
@@ -186,19 +191,24 @@ const { title, description = "修仙系统" } = Astro.props;
 	}
 
 	.cult-stat-card {
-		background: var(--cult-surface);
-		border: 1px solid var(--cult-border);
+		background: rgba(15, 20, 40, 0.45);
+		backdrop-filter: blur(16px);
+		-webkit-backdrop-filter: blur(16px);
+		border: 1px solid rgba(255, 255, 255, 0.12);
 		border-radius: var(--cult-radius-md);
 		padding: var(--cult-space-4);
 		display: flex;
 		flex-direction: column;
 		gap: var(--cult-space-1);
-		transition: background 0.2s, border-color 0.2s;
+		transition: all 0.2s;
+		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
 	}
 
 	.cult-stat-card:hover {
-		background: var(--cult-surface-hover);
-		border-color: var(--cult-border-strong);
+		background: rgba(15, 20, 40, 0.55);
+		border-color: rgba(255, 255, 255, 0.2);
+		transform: translateY(-2px);
+		box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
 	}
 
 	.cult-stat-icon {
@@ -244,12 +254,18 @@ const { title, description = "修仙系统" } = Astro.props;
 	}
 
 	.cult-btn-primary {
-		background: var(--cult-primary);
+		background: rgba(139, 92, 246, 0.6);
+		backdrop-filter: blur(10px);
+		-webkit-backdrop-filter: blur(10px);
+		border: 1px solid rgba(139, 92, 246, 0.4);
 		color: white;
+		box-shadow: 0 4px 16px rgba(139, 92, 246, 0.25);
 	}
 
 	.cult-btn-primary:hover {
-		background: #7c3aed;
+		background: rgba(139, 92, 246, 0.75);
+		border-color: rgba(139, 92, 246, 0.6);
+		box-shadow: 0 6px 20px rgba(139, 92, 246, 0.35);
 	}
 
 	.cult-btn-primary:disabled {
@@ -258,31 +274,38 @@ const { title, description = "修仙系统" } = Astro.props;
 	}
 
 	.cult-btn-secondary {
-		background: transparent;
-		border: 1px solid var(--cult-border-strong);
-		color: var(--cult-text-secondary);
+		background: rgba(15, 20, 40, 0.4);
+		backdrop-filter: blur(10px);
+		-webkit-backdrop-filter: blur(10px);
+		border: 1px solid rgba(255, 255, 255, 0.15);
+		color: var(--cult-text);
 	}
 
 	.cult-btn-secondary:hover {
-		background: var(--cult-primary-soft);
+		background: rgba(139, 92, 246, 0.25);
 		color: var(--cult-text);
-		border-color: var(--cult-primary);
+		border-color: rgba(139, 92, 246, 0.5);
 	}
 
 	.cult-btn-danger {
-		background: var(--cult-danger-soft);
+		background: rgba(248, 113, 113, 0.25);
+		backdrop-filter: blur(10px);
+		-webkit-backdrop-filter: blur(10px);
 		color: var(--cult-danger);
-		border: 1px solid rgba(248, 113, 113, 0.2);
+		border: 1px solid rgba(248, 113, 113, 0.35);
 	}
 
 	.cult-btn-danger:hover {
-		background: rgba(248, 113, 113, 0.2);
+		background: rgba(248, 113, 113, 0.35);
+		border-color: rgba(248, 113, 113, 0.5);
 	}
 
 	.cult-btn-success {
-		background: var(--cult-success-soft);
+		background: rgba(52, 211, 153, 0.25);
+		backdrop-filter: blur(10px);
+		-webkit-backdrop-filter: blur(10px);
 		color: var(--cult-success);
-		border: 1px solid rgba(52, 211, 153, 0.2);
+		border: 1px solid rgba(52, 211, 153, 0.35);
 	}
 
 	.cult-btn-sm {
@@ -339,12 +362,15 @@ const { title, description = "修仙系统" } = Astro.props;
 		display: flex;
 		gap: var(--cult-space-1);
 		padding: var(--cult-space-1);
-		background: var(--cult-surface);
-		border: 1px solid var(--cult-border);
+		background: rgba(15, 20, 40, 0.45);
+		backdrop-filter: blur(16px);
+		-webkit-backdrop-filter: blur(16px);
+		border: 1px solid rgba(255, 255, 255, 0.12);
 		border-radius: var(--cult-radius-md);
 		overflow-x: auto;
 		scrollbar-width: none;
 		margin-bottom: var(--cult-space-4);
+		box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 	}
 
 	.cult-segmented::-webkit-scrollbar {
@@ -376,17 +402,22 @@ const { title, description = "修仙系统" } = Astro.props;
 	   可复用组件 - 任务卡片
 	   ============================================================ */
 	.cult-task-card {
-		background: var(--cult-surface);
-		border: 1px solid var(--cult-border);
+		background: rgba(15, 20, 40, 0.45);
+		backdrop-filter: blur(16px);
+		-webkit-backdrop-filter: blur(16px);
+		border: 1px solid rgba(255, 255, 255, 0.12);
 		border-radius: var(--cult-radius-lg);
 		padding: var(--cult-space-5);
 		margin-bottom: var(--cult-space-3);
-		transition: background 0.2s, border-color 0.2s;
+		transition: all 0.2s;
+		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
 	}
 
 	.cult-task-card:hover {
-		background: var(--cult-surface-hover);
-		border-color: var(--cult-border-strong);
+		background: rgba(15, 20, 40, 0.55);
+		border-color: rgba(255, 255, 255, 0.2);
+		transform: translateY(-2px);
+		box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
 	}
 
 	.cult-task-header {
@@ -492,8 +523,10 @@ const { title, description = "修仙系统" } = Astro.props;
 	}
 
 	.cult-product-card {
-		background: var(--cult-surface);
-		border: 1px solid var(--cult-border);
+		background: rgba(15, 20, 40, 0.45);
+		backdrop-filter: blur(16px);
+		-webkit-backdrop-filter: blur(16px);
+		border: 1px solid rgba(255, 255, 255, 0.12);
 		border-radius: var(--cult-radius-lg);
 		padding: var(--cult-space-4);
 		display: flex;
@@ -501,12 +534,15 @@ const { title, description = "修仙系统" } = Astro.props;
 		align-items: center;
 		text-align: center;
 		gap: var(--cult-space-2);
-		transition: background 0.2s, border-color 0.2s;
+		transition: all 0.2s;
+		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
 	}
 
 	.cult-product-card:hover {
-		background: var(--cult-surface-hover);
-		border-color: var(--cult-border-strong);
+		background: rgba(15, 20, 40, 0.55);
+		border-color: rgba(255, 255, 255, 0.2);
+		transform: translateY(-2px);
+		box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
 	}
 
 	.cult-product-icon {
@@ -552,14 +588,17 @@ const { title, description = "修仙系统" } = Astro.props;
 	}
 
 	.cult-tx-item {
-		background: var(--cult-surface);
-		border: 1px solid var(--cult-border);
+		background: rgba(15, 20, 40, 0.45);
+		backdrop-filter: blur(16px);
+		-webkit-backdrop-filter: blur(16px);
+		border: 1px solid rgba(255, 255, 255, 0.12);
 		border-radius: var(--cult-radius-md);
 		padding: var(--cult-space-4);
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
 		gap: var(--cult-space-3);
+		box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 	}
 
 	.cult-tx-info {
@@ -624,14 +663,17 @@ const { title, description = "修仙系统" } = Astro.props;
 	   可复用组件 - 修行状态卡（首页）
 	   ============================================================ */
 	.cult-profile-card {
-		background: var(--cult-surface);
-		border: 1px solid var(--cult-border);
+		background: rgba(15, 20, 40, 0.45);
+		backdrop-filter: blur(16px);
+		-webkit-backdrop-filter: blur(16px);
+		border: 1px solid rgba(255, 255, 255, 0.12);
 		border-radius: var(--cult-radius-xl);
 		padding: var(--cult-space-6);
 		margin-bottom: var(--cult-space-5);
 		text-align: center;
 		position: relative;
 		overflow: hidden;
+		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
 	}
 
 	.cult-profile-card::before {
@@ -838,6 +880,19 @@ const { title, description = "修仙系统" } = Astro.props;
 		font-size: 13px;
 		color: var(--cult-text-muted);
 		margin: 0;
+	}
+
+	/* ============================================================
+	   移动端背景图
+	   ============================================================ */
+	@media (max-width: 767px) {
+		.cult-body {
+			background-image: url("/assets/images/cult-bg-mobile.webp");
+			background-size: cover;
+			background-position: center;
+			background-repeat: no-repeat;
+			background-attachment: fixed;
+		}
 	}
 
 	/* ============================================================

@@ -1,16 +1,16 @@
----
+﻿---
 import CultivationLayout from "@layouts/CultivationLayout.astro";
 import CultNav from "@/components/cultivation/CultNav.svelte";
 ---
 
-<CultivationLayout title="灵石流水" description="查看灵石收支记录">
+<CultivationLayout title="星辰币流水" description="查看星辰币收支记录">
 	<CultNav client:load />
 
 	<main class="cult-page">
 		<div class="cult-page-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
 			<div>
-				<h1 class="cult-page-title">灵石流水</h1>
-				<p class="cult-page-desc">查看你的灵石收支记录</p>
+				<h1 class="cult-page-title">星辰币流水</h1>
+				<p class="cult-page-desc">查看你的星辰币收支记录</p>
 			</div>
 			<a href="/cultivation/shop/" class="cult-btn cult-btn-primary">去仙市</a>
 		</div>
@@ -30,7 +30,7 @@ import CultNav from "@/components/cultivation/CultNav.svelte";
 			<div class="cult-card" style="margin-bottom: 20px; text-align: center;">
 				<div style="font-size: 13px; color: var(--cult-text-muted); margin-bottom: 8px;">当前余额</div>
 				<div style="font-size: 32px; font-weight: 700; color: var(--cult-gold-text); display: flex; align-items: center; gap: 8px; justify-content: center;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 13L2 9Z"/><path d="M11 3 8 9l4 13 4-13-3-6"/><path d="M2 9h20"/></svg> <span id="balance-amount">0</span></div>
-				<div style="font-size: 12px; color: var(--cult-text-muted); margin-top: 4px;">灵石</div>
+				<div style="font-size: 12px; color: var(--cult-text-muted); margin-top: 4px;">星辰币</div>
 			</div>
 
 			<div id="transactions-list" class="cult-tx-list"></div>

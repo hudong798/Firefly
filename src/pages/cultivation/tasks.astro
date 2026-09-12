@@ -1,15 +1,15 @@
----
+﻿---
 import CultivationLayout from "@layouts/CultivationLayout.astro";
 import CultNav from "@/components/cultivation/CultNav.svelte";
 ---
 
-<CultivationLayout title="任务大厅" description="领取任务赚取灵石">
+<CultivationLayout title="任务大厅" description="领取任务赚取星辰币">
 	<CultNav client:load />
 
 	<main class="cult-page">
 		<div class="cult-page-header">
 			<h1 class="cult-page-title">任务大厅</h1>
-			<p class="cult-page-desc">领取任务，完成后获得灵石奖励</p>
+			<p class="cult-page-desc">领取任务，完成后获得星辰币奖励</p>
 		</div>
 
 		<div id="tasks-content">
@@ -152,7 +152,7 @@ import CultNav from "@/components/cultivation/CultNav.svelte";
 							<div class="cult-task-footer">
 								<div class="cult-task-reward">
 									${gemIcon}
-									<span>${task.reward_coins} 灵石</span>
+									<span>${task.reward_coins} 星辰币</span>
 								</div>
 								<div style="font-size: 12px; color: ${isFull ? '#ef4444' : 'var(--cult-text-secondary)'}; margin-right: 8px;">${claimantsText}</div>
 								${btnHtml}

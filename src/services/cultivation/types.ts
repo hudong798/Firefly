@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 修仙系统类型定义
  */
 
@@ -107,7 +107,7 @@ export interface Transfer {
 	created_at: string;
 }
 
-/** 境界配置（基于灵气） */
+/** 境界配置（基于虎粮） */
 export interface RealmLevel {
 	name: string;
 	minQi: number;
@@ -132,7 +132,7 @@ export function getRealm(qi: number): string {
 	return current;
 }
 
-/** 获取境界进度信息（基于灵气） */
+/** 获取境界进度信息（基于虎粮） */
 export function getRealmProgress(qi: number): {
 	currentRealm: string;
 	nextRealm: string | null;

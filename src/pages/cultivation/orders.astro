@@ -1,4 +1,4 @@
----
+﻿---
 import CultivationLayout from "@layouts/CultivationLayout.astro";
 import CultNav from "@/components/cultivation/CultNav.svelte";
 ---
@@ -143,14 +143,14 @@ import CultNav from "@/components/cultivation/CultNav.svelte";
 				const orderId = (e.target).dataset.orderId;
 				if (!orderId) return;
 
-				if (!confirm("确定要退款吗？退款后灵石将退回到您的账户。")) return;
+				if (!confirm("确定要退款吗？退款后星辰币将退回到您的账户。")) return;
 
 				(e.target).disabled = true;
 				(e.target).textContent = "退款中...";
 
 				const result = await refundOrder(orderId);
 				if (result.success) {
-					alert(`退款成功！已退还 ${result.refundAmount} 灵石。`);
+					alert(`退款成功！已退还 ${result.refundAmount} 星辰币。`);
 					loadOrders();
 				} else {
 					alert(result.error || "退款失败");

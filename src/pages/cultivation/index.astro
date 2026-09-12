@@ -1,9 +1,9 @@
----
+﻿---
 import CultivationLayout from "@layouts/CultivationLayout.astro";
 import CultNav from "@/components/cultivation/CultNav.svelte";
 ---
 
-<CultivationLayout title="仙途榜" description="查看修仙者灵石与境界排名">
+<CultivationLayout title="仙途榜" description="查看修仙者星辰币与境界排名">
 	<CultNav client:load />
 
 	<main class="cult-page cult-dashboard">
@@ -13,7 +13,7 @@ import CultNav from "@/components/cultivation/CultNav.svelte";
 			<div class="cult-dashboard-header">
 				<div class="cult-dashboard-header-left">
 					<h1 class="cult-dashboard-title">仙途榜</h1>
-					<p class="cult-dashboard-desc">查看修仙者灵石与境界排名</p>
+					<p class="cult-dashboard-desc">查看修仙者星辰币与境界排名</p>
 				</div>
 				<!-- 标题右侧：修行进度条 -->
 				<div class="cult-header-progress" id="header-progress" style="display: none;">
@@ -23,7 +23,7 @@ import CultNav from "@/components/cultivation/CultNav.svelte";
 					</div>
 					<div class="cult-header-progress-text">
 						<span class="cult-header-progress-qi" id="header-qi-progress">0/100</span>
-						<span class="cult-header-progress-label">灵气</span>
+						<span class="cult-header-progress-label">虎粮</span>
 					</div>
 				</div>
 				<div class="cult-header-max" id="header-max" style="display: none;">
@@ -56,16 +56,16 @@ import CultNav from "@/components/cultivation/CultNav.svelte";
 				<div class="cult-dashboard-right cult-dashboard-full">
 					<div class="cult-ranking-card">
 						<div class="cult-ranking-tabs">
-							<button class="cult-ranking-tab active" data-tab="coins">灵石排名</button>
+							<button class="cult-ranking-tab active" data-tab="coins">星辰币排名</button>
 							<button class="cult-ranking-tab" data-tab="realm">境界排名</button>
 						</div>
 
-						<!-- 灵石排名 -->
+						<!-- 星辰币排名 -->
 						<div id="ranking-coins-panel" class="cult-ranking-panel">
 							<div class="cult-ranking-header">
 								<span class="cult-ranking-col-rank">名次</span>
 								<span class="cult-ranking-col-name">修行者</span>
-								<span class="cult-ranking-col-value">灵石</span>
+								<span class="cult-ranking-col-value">星辰币</span>
 							</div>
 							<div id="ranking-coins" class="cult-ranking-list">
 								<div class="cult-ranking-loading">加载中...</div>
@@ -190,7 +190,7 @@ import CultNav from "@/components/cultivation/CultNav.svelte";
 			const realmEl = document.getElementById("user-realm");
 			if (realmEl) realmEl.textContent = realm;
 
-			// 更新境界进度条（基于灵气）- 标题右侧
+			// 更新境界进度条（基于虎粮）- 标题右侧
 			const progress = getRealmProgress(qi);
 			const headerProgressEl = document.getElementById("header-progress");
 			const headerMaxEl = document.getElementById("header-max");
@@ -229,7 +229,7 @@ import CultNav from "@/components/cultivation/CultNav.svelte";
 		coinRankingData = coinRanking;
 		realmRankingData = realmRanking;
 
-		// 渲染灵石排名（第一页）
+		// 渲染星辰币排名（第一页）
 		coinsPage = 1;
 		renderCoinRanking();
 		// 渲染境界排名（第一页）
@@ -561,8 +561,9 @@ import CultNav from "@/components/cultivation/CultNav.svelte";
 
 	.cult-nav-card:hover {
 		transform: translateY(-2px);
-		border-color: rgba(139, 92, 246, 0.4);
-		box-shadow: 0 8px 24px rgba(139, 92, 246, 0.15);
+		background: rgba(15, 20, 40, 0.55);
+		border-color: rgba(255, 255, 255, 0.2);
+		box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
 	}
 
 	.cult-nav-card .cult-stat-label {
@@ -577,14 +578,17 @@ import CultNav from "@/components/cultivation/CultNav.svelte";
 		}
 	}
 
-	/* 排名卡片 */
+	/* 排名卡片（液态玻璃） */
 	.cult-ranking-card {
-		background: var(--cult-card-bg);
-		border: 1px solid var(--cult-border-color);
+		background: rgba(15, 20, 40, 0.45);
+		backdrop-filter: blur(16px);
+		-webkit-backdrop-filter: blur(16px);
+		border: 1px solid rgba(255, 255, 255, 0.12);
 		border-radius: 16px;
 		padding: 16px;
 		display: flex;
 		flex-direction: column;
+		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
 	}
 
 	.cult-ranking-tabs {

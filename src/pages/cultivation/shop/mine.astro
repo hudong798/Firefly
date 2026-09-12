@@ -1,4 +1,4 @@
----
+﻿---
 import CultivationLayout from "@layouts/CultivationLayout.astro";
 import CultNav from "@/components/cultivation/CultNav.svelte";
 ---
@@ -46,7 +46,7 @@ import CultNav from "@/components/cultivation/CultNav.svelte";
 							<textarea class="cult-form-textarea" id="new-product-desc" rows="2" placeholder="输入仙货描述"></textarea>
 						</div>
 						<div>
-							<label class="cult-form-label">价格（灵石）*</label>
+							<label class="cult-form-label">价格（星辰币）*</label>
 							<input type="number" class="cult-form-input" id="new-product-price" placeholder="输入价格" min="1" />
 						</div>
 						<div>
@@ -342,7 +342,7 @@ import CultNav from "@/components/cultivation/CultNav.svelte";
 						alert(result.error || "发货失败");
 					}
 				} else if (action === "refund") {
-					if (!confirm("确定要退款吗？灵石将退还给买家。")) return;
+					if (!confirm("确定要退款吗？星辰币将退还给买家。")) return;
 					const result = await refundOrder(orderId);
 					if (result.success) {
 						loadShopOrders();

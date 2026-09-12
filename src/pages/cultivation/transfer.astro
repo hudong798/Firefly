@@ -1,16 +1,16 @@
----
+﻿---
 import CultivationLayout from "@layouts/CultivationLayout.astro";
 import CultNav from "@/components/cultivation/CultNav.svelte";
 ---
 
-<CultivationLayout title="灵石转赠" description="给道友转赠灵石">
+<CultivationLayout title="星辰币转赠" description="给道友转赠星辰币">
 	<CultNav client:load />
 
 	<main class="transfer-page">
 		<div class="transfer-container">
 			<div class="page-header">
-				<h1>灵石转赠</h1>
-				<p>给其他道友转赠灵石</p>
+				<h1>星辰币转赠</h1>
+				<p>给其他道友转赠星辰币</p>
 			</div>
 
 			<div id="auth-guard" style="display:none;">
@@ -26,7 +26,7 @@ import CultNav from "@/components/cultivation/CultNav.svelte";
 					<div class="balance-info">
 						<span class="balance-label">我的余额</span>
 						<span class="balance-amount" id="my-balance">0</span>
-						<span class="balance-unit">灵石</span>
+						<span class="balance-unit">星辰币</span>
 					</div>
 
 					<div class="form-group">
@@ -141,7 +141,7 @@ import CultNav from "@/components/cultivation/CultNav.svelte";
 		}
 
 		if (amount > myBalance) {
-			showError("灵石余额不足");
+			showError("星辰币余额不足");
 			return;
 		}
 
@@ -163,7 +163,7 @@ import CultNav from "@/components/cultivation/CultNav.svelte";
 		if (result.success) {
 			if (successEl) {
 				successEl.style.display = "block";
-				successEl.textContent = `转赠成功！已向 ${receiverUsername} 转赠 ${amount} 灵石`;
+				successEl.textContent = `转赠成功！已向 ${receiverUsername} 转赠 ${amount} 星辰币`;
 			}
 			// 刷新余额
 			const wallet = await getMyWallet();

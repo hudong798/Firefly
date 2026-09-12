@@ -1,4 +1,4 @@
----
+﻿---
 import CultivationLayout from "@layouts/CultivationLayout.astro";
 import CultNav from "@/components/cultivation/CultNav.svelte";
 ---
@@ -26,7 +26,7 @@ import CultNav from "@/components/cultivation/CultNav.svelte";
 		<div id="inventory-content" style="display:none;">
 			<div class="cult-card" style="margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
 				<div>
-					<div style="font-size: 13px; color: var(--cult-text-muted); margin-bottom: 4px;">我的灵气</div>
+					<div style="font-size: 13px; color: var(--cult-text-muted); margin-bottom: 4px;">我的虎粮</div>
 					<div style="font-size: 24px; font-weight: 700; color: #a78bfa; display: flex; align-items: center; gap: 6px;">
 						<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="m16.2 7.8 2.9-2.9"/><path d="M18 12h4"/><path d="m16.2 16.2 2.9 2.9"/><path d="M12 18v4"/><path d="m4.9 19.1 2.9-2.9"/><path d="M2 12h4"/><path d="m4.9 4.9 2.9 2.9"/></svg>
 						<span id="user-qi">0</span>
@@ -168,7 +168,7 @@ import CultNav from "@/components/cultivation/CultNav.svelte";
 							<h3 class="cult-product-name">${item.pill_name}</h3>
 							<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12px;">
 								<span style="color: ${gradeColor}; font-weight: 600;">${item.pill_grade}品丹药</span>
-								<span style="color: #a78bfa; display: flex; align-items: center; gap: 4px;">${qiIcon} +${item.pill_qi_bonus} 灵气</span>
+								<span style="color: #a78bfa; display: flex; align-items: center; gap: 4px;">${qiIcon} +${item.pill_qi_bonus} 虎粮</span>
 							</div>
 							<div style="font-size: 12px; color: var(--cult-text-secondary); margin-bottom: 4px;">数量：${item.quantity}</div>
 							<div style="font-size: 12px; color: var(--cult-text-muted); margin-bottom: 12px;">获得时间：${shipTime}</div>
@@ -219,14 +219,14 @@ import CultNav from "@/components/cultivation/CultNav.svelte";
 				const inventoryId = (e.target as HTMLElement).dataset.inventoryId;
 				if (!inventoryId) return;
 
-				if (!confirm("确定要使用这个丹药吗？使用后将获得灵气提升。")) return;
+				if (!confirm("确定要使用这个丹药吗？使用后将获得虎粮提升。")) return;
 
 				(e.target as HTMLButtonElement).disabled = true;
 				(e.target as HTMLButtonElement).textContent = "使用中...";
 
 				const result = await usePill(inventoryId);
 				if (result.success) {
-					alert(`使用成功！获得 ${result.qi_earned} 灵气，当前灵气：${result.new_qi}`);
+					alert(`使用成功！获得 ${result.qi_earned} 虎粮，当前虎粮：${result.new_qi}`);
 					window.location.reload();
 				} else {
 					alert(result.error || "使用失败");
@@ -242,7 +242,7 @@ import CultNav from "@/components/cultivation/CultNav.svelte";
 				const inventoryId = (e.target as HTMLElement).dataset.inventoryId;
 				if (!inventoryId) return;
 
-				const price = prompt("请输入基础竞价价格（灵石）：");
+				const price = prompt("请输入基础竞价价格（星辰币）：");
 				if (!price) return;
 
 				const priceNum = parseInt(price);
@@ -251,7 +251,7 @@ import CultNav from "@/components/cultivation/CultNav.svelte";
 					return;
 				}
 
-				if (!confirm(`确定要以 ${priceNum} 灵石作为基础价格上架竞价吗？最多5人竞价，价高者得。`)) return;
+				if (!confirm(`确定要以 ${priceNum} 星辰币作为基础价格上架竞价吗？最多5人竞价，价高者得。`)) return;
 
 				const result = await listPillForResell(inventoryId, priceNum);
 				if (result.success) {

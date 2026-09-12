@@ -1,21 +1,21 @@
----
+﻿---
 import CultivationLayout from "@layouts/CultivationLayout.astro";
 import CultNav from "@/components/cultivation/CultNav.svelte";
 ---
 
-<CultivationLayout title="灵石仙市" description="用灵石兑换好物">
+<CultivationLayout title="星辰币仙市" description="用星辰币兑换好物">
 	<CultNav client:load />
 
 	<main class="cult-page">
 		<div class="cult-page-header">
-			<h1 class="cult-page-title">灵石仙市</h1>
-			<p class="cult-page-desc">用灵石兑换你想要的东西</p>
+			<h1 class="cult-page-title">星辰币仙市</h1>
+			<p class="cult-page-desc">用星辰币兑换你想要的东西</p>
 		</div>
 
 		<div id="shop-content">
 			<div class="cult-card" style="margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
 				<div>
-					<div style="font-size: 13px; color: var(--cult-text-muted); margin-bottom: 4px;">我的灵石</div>
+					<div style="font-size: 13px; color: var(--cult-text-muted); margin-bottom: 4px;">我的星辰币</div>
 					<div style="font-size: 24px; font-weight: 700; color: var(--cult-gold-text); display: flex; align-items: center; gap: 6px;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 13L2 9Z"/><path d="M11 3 8 9l4 13 4-13-3-6"/><path d="M2 9h20"/></svg> <span id="user-coins">0</span></div>
 				</div>
 				<div style="display: flex; gap: 8px; flex-wrap: wrap; position: relative;">
@@ -148,7 +148,7 @@ import CultNav from "@/components/cultivation/CultNav.svelte";
 				const canAfford = coins >= product.price;
 				const inStock = (product.stock ?? 1) > 0;
 				const seller = product.profiles || {};
-				const btnText = !isLoggedIn ? "登录后兑换" : (!inStock ? "已售罄" : canAfford ? "兑换" : "灵石不足");
+				const btnText = !isLoggedIn ? "登录后兑换" : (!inStock ? "已售罄" : canAfford ? "兑换" : "星辰币不足");
 				const btnDisabled = isLoggedIn && (!canAfford || !inStock);
 				return `
 					<div class="cult-product-card">
@@ -216,7 +216,7 @@ import CultNav from "@/components/cultivation/CultNav.svelte";
 			.map((pill: any) => {
 				const canAfford = coins >= pill.price;
 				const gradeColor = gradeColors[pill.grade - 1] || gradeColors[0];
-				const btnText = !isLoggedIn ? "登录后购买" : (canAfford ? "购买" : "灵石不足");
+				const btnText = !isLoggedIn ? "登录后购买" : (canAfford ? "购买" : "星辰币不足");
 				const btnDisabled = isLoggedIn && !canAfford;
 				return `
 					<div class="cult-product-card">
@@ -225,7 +225,7 @@ import CultNav from "@/components/cultivation/CultNav.svelte";
 						<p class="cult-product-desc">${pill.description || "暂无描述"}</p>
 						<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12px;">
 							<span style="color: ${gradeColor}; font-weight: 600;">${pill.grade}品丹药</span>
-							<span style="color: #a78bfa; display: flex; align-items: center; gap: 4px;">${qiIcon} +${pill.qi_bonus} 灵气</span>
+							<span style="color: #a78bfa; display: flex; align-items: center; gap: 4px;">${qiIcon} +${pill.qi_bonus} 虎粮</span>
 						</div>
 						<div class="cult-product-price">${gemIcon} ${pill.price}</div>
 						<button class="cult-btn ${isLoggedIn && canAfford ? "cult-btn-primary" : "cult-btn-secondary"} cult-btn-sm cult-btn-block buy-pill-btn" data-pill-id="${pill.id}" ${btnDisabled ? "disabled" : ""}>
@@ -256,7 +256,7 @@ import CultNav from "@/components/cultivation/CultNav.svelte";
 
 				const result = await buyPill(pillId);
 				if (result.success) {
-					alert(`购买成功！获得 ${result.remaining_coins} 灵石剩余，丹药已放入储物袋。`);
+					alert(`购买成功！获得 ${result.remaining_coins} 星辰币剩余，丹药已放入储物袋。`);
 					window.location.reload();
 				} else {
 					alert(result.error || "购买失败");

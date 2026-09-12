@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 修仙系统核心服务
  * 集成 Auth、Profile、Task、Wallet、Shop 等功能
  */
@@ -346,7 +346,7 @@ export async function getMyWallet(): Promise<Wallet | null> {
 	return data[0] as Wallet;
 }
 
-/** 获取我的灵石流水 */
+/** 获取我的星辰币流水 */
 export async function getMyTransactions(limit = 50): Promise<WalletTransaction[]> {
 	if (!supabase) return [];
 	const user = await getCurrentUser();
@@ -363,7 +363,7 @@ export async function getMyTransactions(limit = 50): Promise<WalletTransaction[]
 	return data as WalletTransaction[];
 }
 
-/** 转赠灵石（RPC） */
+/** 转赠星辰币（RPC） */
 export async function transferCoins(
 	receiverId: string,
 	amount: number,
@@ -562,7 +562,7 @@ export async function approveTaskClaim(
 	}
 }
 
-/** 审核通过任务（同时发放灵石和随机灵气） */
+/** 审核通过任务（同时发放星辰币和随机虎粮） */
 export async function approveTaskWithQi(
 	claimId: string,
 	reviewNote?: string,
@@ -1130,7 +1130,7 @@ export async function createPill(pill: { name: string; grade: number; descriptio
 // 排名相关
 // ============================================================
 
-/** 获取灵石排名（使用公开 RPC，允许未登录查看） */
+/** 获取星辰币排名（使用公开 RPC，允许未登录查看） */
 export async function getCoinRanking(limit = 10): Promise<{ rank: number; username: string; coins: number; isMe: boolean }[]> {
 	if (!supabase) return [];
 	const currentUser = await getCurrentUser();

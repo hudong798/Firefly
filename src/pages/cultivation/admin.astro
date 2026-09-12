@@ -1,4 +1,4 @@
----
+﻿---
 import CultivationLayout from "@layouts/CultivationLayout.astro";
 import CultNav from "@/components/cultivation/CultNav.svelte";
 ---
@@ -71,8 +71,8 @@ import CultNav from "@/components/cultivation/CultNav.svelte";
 							</select>
 						</div>
 						<div>
-							<label class="cult-form-label">灵石奖励 *</label>
-							<input type="number" class="cult-form-input" id="new-task-reward" placeholder="输入灵石奖励" min="1" />
+							<label class="cult-form-label">星辰币奖励 *</label>
+							<input type="number" class="cult-form-input" id="new-task-reward" placeholder="输入星辰币奖励" min="1" />
 						</div>
 						<div>
 							<label class="cult-form-label">领取人数限制（0表示不限制）</label>
@@ -110,7 +110,7 @@ import CultNav from "@/components/cultivation/CultNav.svelte";
 							<textarea class="cult-form-textarea" id="new-product-desc" rows="2" placeholder="输入仙货描述"></textarea>
 						</div>
 						<div>
-							<label class="cult-form-label">价格（灵石）*</label>
+							<label class="cult-form-label">价格（星辰币）*</label>
 							<input type="number" class="cult-form-input" id="new-product-price" placeholder="输入价格" min="1" />
 						</div>
 						<div>
@@ -377,13 +377,13 @@ import CultNav from "@/components/cultivation/CultNav.svelte";
 		const maxClaimantsStr = (document.getElementById("new-task-max-claimants") as HTMLInputElement)?.value;
 
 		if (!title || !rewardStr || !category) {
-			alert("请填写任务名称、任务种类和灵石奖励");
+			alert("请填写任务名称、任务种类和星辰币奖励");
 			return;
 		}
 
 		const reward = parseInt(rewardStr, 10);
 		if (reward <= 0) {
-			alert("灵石奖励必须大于0");
+			alert("星辰币奖励必须大于0");
 			return;
 		}
 
@@ -514,10 +514,10 @@ import CultNav from "@/components/cultivation/CultNav.svelte";
 				if (!claimId || !action) return;
 
 				if (action === "approve") {
-					if (confirm("确定通过该任务吗？将发放灵石奖励和随机灵气。")) {
+					if (confirm("确定通过该任务吗？将发放星辰币奖励和随机虎粮。")) {
 						const result = await approveTaskWithQi(claimId);
 						if (result.success) {
-							alert(`审核通过！已发放 ${result.reward} 灵石，获得 ${result.qi_earned} 灵气！`);
+							alert(`审核通过！已发放 ${result.reward} 星辰币，获得 ${result.qi_earned} 虎粮！`);
 						} else {
 							alert(result.error || "审核失败");
 						}
@@ -698,7 +698,7 @@ import CultNav from "@/components/cultivation/CultNav.svelte";
 						alert(result.error || "发货失败");
 					}
 				} else if (action === "refund") {
-					if (!confirm("确定要退款吗？灵石将退还给用户。")) return;
+					if (!confirm("确定要退款吗？星辰币将退还给用户。")) return;
 					const result = await refundOrder(orderId);
 					if (result.success) {
 						loadOrders();
