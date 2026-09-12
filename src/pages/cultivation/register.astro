@@ -3,13 +3,6 @@ import CultivationLayout from "@layouts/CultivationLayout.astro";
 ---
 
 <CultivationLayout title="注册" description="注册修仙界">
-	<a href="/" class="cult-login-home" aria-label="返回首页" title="返回首页">
-		<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-			<path d="M3 9.5 12 3l9 6.5"/>
-			<path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/>
-			<path d="M9 21v-6h6v6"/>
-		</svg>
-	</a>
 	<div class="cult-register-page">
 		<div class="cult-register-card">
 			<div class="cult-register-header">
@@ -149,38 +142,6 @@ import CultivationLayout from "@layouts/CultivationLayout.astro";
 </script>
 
 <style is:global>
-	.cult-login-home {
-		position: fixed;
-		top: calc(16px + env(safe-area-inset-top, 0px));
-		right: 16px;
-		z-index: 100;
-		width: 42px;
-		height: 42px;
-		border-radius: 50%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		background: rgba(15, 23, 42, 0.75);
-		border: 1px solid rgba(139, 92, 246, 0.3);
-		color: #c4b5fd;
-		backdrop-filter: blur(10px);
-		-webkit-backdrop-filter: blur(10px);
-		box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
-		transition: transform 0.18s ease, background 0.18s ease;
-	}
-
-	.cult-login-home:active {
-		transform: scale(0.9);
-		background: rgba(139, 92, 246, 0.4);
-	}
-
-	@media (min-width: 768px) {
-		.cult-login-home {
-			top: 24px;
-			right: 24px;
-		}
-	}
-
 	.cult-register-page {
 		min-height: 100vh;
 		display: flex;
