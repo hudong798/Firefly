@@ -152,8 +152,8 @@ import CultNav from "@/components/cultivation/CultNav.svelte";
 
 		// 加载排行榜（公开数据，不需要登录）
 		const [coinRanking, realmRanking] = await Promise.all([
-			getCoinRanking(20),
-			getRealmRanking(20),
+			getCoinRanking(20, user),
+			getRealmRanking(20, user),
 		]);
 
 		// 已登录用户：加载个人数据

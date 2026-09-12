@@ -111,13 +111,33 @@ export async function login(
 export async function logout(): Promise<void> {
 	if (!supabase) return;
 	await supabase.auth.signOut();
+	clearUserCache();
 }
 
 /** 获取当前用户 */
-export async function getCurrentUser() {
+// 用户缓存，避免重复网络请求
+let _cachedUser: any | null = null;
+let _cacheTime = 0;
+const CACHE_TTL = 30000; // 30秒缓存
+
+export async function getCurrentUser(forceRefresh = false) {
 	if (!supabase) return null;
-	const { data } = await supabase.auth.getUser();
-	return data.user || null;
+	// 使用本地 session（无网络请求），比 getUser() 快很多
+	const now = Date.now();
+	if (!forceRefresh && _cachedUser && now - _cacheTime < CACHE_TTL) {
+		return _cachedUser;
+	}
+	const { data } = await supabase.auth.getSession();
+	const user = data.session?.user || null;
+	_cachedUser = user;
+	_cacheTime = now;
+	return user;
+}
+
+/** 清除用户缓存（登出时调用） */
+export function clearUserCache() {
+	_cachedUser = null;
+	_cacheTime = 0;
 }
 
 /** 获取当前会话 */
@@ -1131,9 +1151,9 @@ export async function createPill(pill: { name: string; grade: number; descriptio
 // ============================================================
 
 /** 获取星辰币排名（使用公开 RPC，允许未登录查看） */
-export async function getCoinRanking(limit = 10): Promise<{ rank: number; username: string; coins: number; isMe: boolean }[]> {
+export async function getCoinRanking(limit = 10, currentUser?: any | null): Promise<{ rank: number; username: string; coins: number; isMe: boolean }[]> {
 	if (!supabase) return [];
-	const currentUser = await getCurrentUser();
+	const user = currentUser !== undefined ? currentUser : await getCurrentUser();
 
 	// 优先使用公开 RPC（允许未登录查看）
 	const { data: rpcData, error: rpcError } = await supabase
@@ -1144,7 +1164,7 @@ export async function getCoinRanking(limit = 10): Promise<{ rank: number; userna
 			rank: item.rank,
 			username: item.username || "未知",
 			coins: item.coins,
-			isMe: currentUser?.id === item.user_id,
+			isMe: user?.id === item.user_id,
 		}));
 	}
 
@@ -1161,14 +1181,14 @@ export async function getCoinRanking(limit = 10): Promise<{ rank: number; userna
 		rank: index + 1,
 		username: item.profiles?.username || "未知",
 		coins: item.coins,
-		isMe: currentUser?.id === item.user_id,
+		isMe: user?.id === item.user_id,
 	}));
 }
 
 /** 获取境界排名（使用公开 RPC，允许未登录查看） */
-export async function getRealmRanking(limit = 10): Promise<{ rank: number; username: string; realm: string; qi: number; isMe: boolean }[]> {
+export async function getRealmRanking(limit = 10, currentUser?: any | null): Promise<{ rank: number; username: string; realm: string; qi: number; isMe: boolean }[]> {
 	if (!supabase) return [];
-	const currentUser = await getCurrentUser();
+	const user = currentUser !== undefined ? currentUser : await getCurrentUser();
 
 	// 优先使用公开 RPC（允许未登录查看）
 	const { data: rpcData, error: rpcError } = await supabase
@@ -1181,7 +1201,7 @@ export async function getRealmRanking(limit = 10): Promise<{ rank: number; usern
 			username: item.username,
 			realm: getRealm(item.qi || 0),
 			qi: item.qi || 0,
-			isMe: currentUser?.id === item.user_id,
+			isMe: user?.id === item.user_id,
 		}));
 	}
 
@@ -1201,7 +1221,7 @@ export async function getRealmRanking(limit = 10): Promise<{ rank: number; usern
 		username: item.username,
 		realm: getRealm(item.qi || 0),
 		qi: item.qi || 0,
-		isMe: currentUser?.id === item.id,
+		isMe: user?.id === item.id,
 	}));
 }
 
