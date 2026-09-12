@@ -20,9 +20,155 @@ const { title, description = "修仙系统" } = Astro.props;
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>{title} - FreeX 修仙界</title>
 		<meta name="description" content={description} />
+		{/* 关键 CSS 内联：防止外部 CSS 加载延迟时页面无样式闪烁（FOUC） */}
+		<style is:inline>
+			*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+			.cult-body{
+				--cult-bg:#050811;--cult-bg-soft:#0a0f1e;
+				--cult-surface:rgba(15,20,40,.75);--cult-surface-hover:rgba(20,27,50,.85);
+				--cult-border:rgba(130,110,255,.12);--cult-border-strong:rgba(130,110,255,.25);
+				--cult-primary:#8b5cf6;--cult-primary-soft:rgba(139,92,246,.15);
+				--cult-primary-hover:rgba(139,92,246,.25);--cult-primary-text:#a78bfa;
+				--cult-gold:#fbbf24;--cult-gold-soft:rgba(251,191,36,.12);--cult-gold-text:#fcd34d;
+				--cult-text:#f1f5f9;--cult-text-secondary:#94a3b8;--cult-text-muted:#64748b;
+				--cult-success:#34d399;--cult-success-soft:rgba(52,211,153,.12);
+				--cult-warning:#fbbf24;--cult-warning-soft:rgba(251,191,36,.12);
+				--cult-danger:#f87171;--cult-danger-soft:rgba(248,113,113,.12);
+				--cult-info:#60a5fa;--cult-info-soft:rgba(96,165,250,.12);
+				--cult-space-1:4px;--cult-space-2:8px;--cult-space-3:12px;--cult-space-4:16px;
+				--cult-space-5:20px;--cult-space-6:24px;--cult-space-8:32px;
+				--cult-radius-sm:8px;--cult-radius-md:12px;--cult-radius-lg:16px;--cult-radius-xl:20px;
+				min-height:100vh;background:var(--cult-bg);color:var(--cult-text);
+				font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+				-webkit-font-smoothing:antialiased;
+			}
+			@media(max-width:767px){
+				.cult-body{
+					background-image:url("/assets/images/cult-bg-mobile.webp");
+					background-size:cover;background-position:center;background-repeat:no-repeat;background-attachment:fixed;
+				}
+			}
+			.cult-body a{color:inherit;text-decoration:none}
+			.cult-body button{font-family:inherit;cursor:pointer;border:none;background:none}
+			/* 导航栏关键布局 */
+			.cult-nav{position:sticky;top:0;z-index:100;background:rgba(5,8,17,.9);
+				backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+				border-bottom:1px solid var(--cult-border)}
+			.cult-nav-inner{max-width:1100px;margin:0 auto;padding:0 20px;height:64px;
+				display:flex!important;align-items:center;gap:16px}
+			.cult-nav-links{display:flex;align-items:center;gap:4px}
+			.cult-nav-user{margin-left:auto;display:flex;align-items:center;gap:10px}
+			.cult-nav-back,.cult-nav-brand{display:flex;align-items:center;flex-shrink:0}
+			.cult-nav-link{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;
+				color:var(--cult-text-secondary);font-size:14px;font-weight:500;white-space:nowrap}
+			/* 页面容器 */
+			.cult-page{max-width:720px;margin:0 auto;padding:20px 16px 32px}
+			@media(min-width:768px){.cult-page{max-width:800px;padding:24px 20px 32px}}
+			@media(min-width:1024px){.cult-page{max-width:900px}}
+			/* 卡片基本样式 */
+			.cult-card,.cult-ranking-card,.cult-stat-card,.cult-realm-card{
+				background:var(--cult-surface);border:1px solid var(--cult-border);
+				border-radius:var(--cult-radius-lg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+			/* 网格布局 */
+			.cult-stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:24px}
+			.cult-stat-card{padding:16px;display:flex;flex-direction:column;gap:8px}
+			.cult-dashboard-grid{display:grid;grid-template-columns:1fr;gap:20px}
+			.cult-section{margin-bottom:24px}
+			.cult-section-title{font-size:16px;font-weight:600;margin-bottom:12px;color:var(--cult-text)}
+			.cult-dashboard-header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+			.cult-dashboard-title{font-size:24px;font-weight:700}
+			.cult-dashboard-desc{font-size:14px;color:var(--cult-text-secondary);margin-top:4px}
+			/* 排名列表 */
+			.cult-ranking-tabs{display:flex;gap:4px;margin-bottom:16px}
+			.cult-ranking-tab{padding:8px 16px;border-radius:10px;font-size:14px;color:var(--cult-text-secondary);background:var(--cult-primary-soft)}
+			.cult-ranking-tab.active{background:var(--cult-primary);color:#fff}
+			.cult-ranking-header{display:flex;align-items:center;padding:8px 12px;font-size:12px;color:var(--cult-text-muted)}
+			.cult-ranking-list{display:flex;flex-direction:column}
+			.cult-ranking-row{display:flex;align-items:center;gap:12px;padding:10px 12px;border-bottom:1px solid var(--cult-border)}
+			.cult-ranking-col-rank{width:40px;flex-shrink:0}
+			.cult-ranking-col-name{flex:1}
+			.cult-ranking-col-value{text-align:right}
+			.cult-ranking-pagination{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:12px}
+			.cult-page-btn{padding:6px 14px;border-radius:8px;background:var(--cult-primary-soft);color:var(--cult-primary-text);font-size:13px}
+			.cult-page-btn:disabled{opacity:.4}
+			.cult-page-info{font-size:13px;color:var(--cult-text-muted)}
+			/* 登录/注册页关键布局 */
+			.cult-login-page,.cult-register-page{min-height:100vh;display:flex;
+				align-items:center;justify-content:center;padding:2rem 1rem}
+			.cult-login-home{position:fixed;top:calc(16px + env(safe-area-inset-top,0px));right:16px;z-index:100;
+				width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+				background:rgba(15,23,42,.75);border:1px solid rgba(139,92,246,.3);color:#c4b5fd;
+				backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+			.cult-login-card,.cult-register-card{width:100%;max-width:420px;padding:2.5rem 2rem;
+				background:rgba(15,23,42,.9);border:1px solid rgba(99,102,241,.25);border-radius:16px;
+				backdrop-filter:blur(10px);box-shadow:0 8px 32px rgba(0,0,0,.5)}
+			.cult-login-header,.cult-register-header{text-align:center;margin-bottom:2rem}
+			.cult-login-header h1,.cult-register-header h1{font-size:1.5rem!important;font-weight:600;
+				margin:0 0 .5rem;color:#f1f5f9}
+			.cult-login-header p,.cult-register-header p{font-size:.9rem!important;color:#94a3b8;margin:0}
+			.cult-form-group{margin-bottom:1.25rem}
+			.cult-form-group label{display:block;font-size:.85rem;color:#cbd5e1;margin-bottom:.5rem;font-weight:500}
+			.cult-form-group input{width:100%;padding:.85rem 1rem;background:#1e293b;
+				border:1px solid rgba(148,163,184,.3);border-radius:10px;color:#f1f5f9;font-size:.95rem;
+				box-sizing:border-box;-webkit-appearance:none;appearance:none}
+			.cult-login-btn,.cult-register-btn{width:100%;padding:.9rem;
+				background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;border-radius:10px;
+				font-size:.95rem;font-weight:600;cursor:pointer;margin-top:.5rem}
+			.cult-login-footer,.cult-register-footer{text-align:center;margin-top:1.5rem;font-size:.85rem;color:#94a3b8}
+			.cult-login-footer a,.cult-register-footer a{color:#a78bfa}
+			.cult-error-message{padding:.6rem .85rem;background:rgba(239,68,68,.15);color:#f87171;
+				border:1px solid rgba(239,68,68,.3);border-radius:8px;font-size:.85rem;margin-bottom:1rem}
+			.cult-success-message{padding:.6rem .85rem;background:rgba(16,185,129,.15);color:#34d399;
+				border:1px solid rgba(16,185,129,.3);border-radius:8px;font-size:.85rem;margin-bottom:1rem}
+			/* 移动端导航 */
+			@media(max-width:640px){
+				.cult-nav-inner{padding:0 12px;gap:10px;height:56px}
+				.cult-nav-link{padding:8px 10px}
+			}
+		</style>
 	</head>
 	<body class="cult-body">
 		<slot />
+		{/* 导航遮罩：跳转瞬间覆盖同色全屏层，遮住移动浏览器卸载旧文档时的无样式重绘帧（FOUC） */}
+		<script is:inline>
+			(function () {
+				function showMask() {
+					var m = document.getElementById("__cult_nav_mask__");
+					if (m) return;
+					m = document.createElement("div");
+					m.id = "__cult_nav_mask__";
+					m.style.cssText =
+						"position:fixed;inset:0;z-index:2147483647;background:#050811;opacity:0;transition:opacity .14s ease;";
+					(document.body || document.documentElement).appendChild(m);
+					requestAnimationFrame(function () {
+						requestAnimationFrame(function () { m.style.opacity = "1"; });
+					});
+				}
+				function hideMask() {
+					var m = document.getElementById("__cult_nav_mask__");
+					if (m && m.parentNode) m.parentNode.removeChild(m);
+				}
+				// 捕获阶段拦截所有真实跨页链接点击，提前盖遮罩
+				document.addEventListener(
+					"click",
+					function (e) {
+						var t = e.target;
+						var a = t && t.closest ? t.closest("a") : null;
+						if (!a) return;
+						var h = a.getAttribute("href") || "";
+						if (!h || h.charAt(0) === "#" || /^javascript:/i.test(h)) return;
+						if (a.target === "_blank" || a.hasAttribute("download")) return;
+						if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+						showMask();
+					},
+					true
+				);
+				// 兜底：JS 主动跳转 / 表单提交等非点击导航
+				window.addEventListener("beforeunload", showMask);
+				// bfcache 恢复时移除遮罩
+				window.addEventListener("pageshow", hideMask);
+			})();
+		</script>
 	</body>
 </html>
 
