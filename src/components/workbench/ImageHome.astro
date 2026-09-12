@@ -95,6 +95,7 @@ const roles = ["把爱留在798", "西格玛男人", "内容创作者", "终身�
   .hero-stage {
     position: relative;
     width: 100%;
+    height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -104,6 +105,7 @@ const roles = ["把爱留在798", "西格玛男人", "内容创作者", "终身�
     background-position: center;
     background-repeat: no-repeat;
     padding: 20px 0 60px;
+    overflow: hidden;
   }
 
   .hero-announcement {
@@ -406,32 +408,50 @@ const roles = ["把爱留在798", "西格玛男人", "内容创作者", "终身�
   @media (max-width: 900px) {
     .hero-stage {
       background-image: url('/assets/images/bg-mobile.webp');
+      padding: 10px 0 0;
     }
 
     .hero-content {
       flex-direction: column;
-      text-align: center;
-      padding: 2rem 1.5rem;
-      gap: 2rem;
+      text-align: left;
+      padding: 2rem 1.5rem 0;
+      gap: 1rem;
+      align-items: flex-start;
+      flex: 1;
+      justify-content: flex-start;
     }
 
     .hero-profile {
       max-width: 100%;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      justify-content: flex-end;
+    }
+
+    .hero-greeting {
+      text-align: left;
+    }
+
+    .hero-name {
+      text-align: left;
     }
 
     .hero-bio {
-      margin-left: auto;
+      margin-left: 0;
       margin-right: auto;
     }
 
     .hero-actions {
-      justify-content: center;
+      justify-content: flex-start;
+      margin-top: 1.5rem;
+      padding: 0 0 1rem;
+      width: 100%;
     }
 
     .hero-observatory {
-      width: 280px;
-      height: 280px;
-      order: -1;
+      display: none;
     }
 
     .obs-ring--1 { width: 130px; height: 130px; }
