@@ -922,4 +922,212 @@ const { title, description = "修仙系统" } = Astro.props;
 			grid-template-columns: repeat(4, 1fr);
 		}
 	}
+
+	/* ============================================================
+	   导航栏全局样式（确保Svelte水合异常时样式仍生效）
+	   ============================================================ */
+	.cult-nav {
+		position: sticky;
+		top: 0;
+		z-index: 100;
+		background: rgba(5, 8, 17, 0.9);
+		backdrop-filter: blur(12px);
+		-webkit-backdrop-filter: blur(12px);
+		border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+	}
+
+	.cult-nav-inner {
+		max-width: 1100px;
+		margin: 0 auto;
+		padding: 0 20px;
+		height: 64px;
+		display: flex;
+		align-items: center;
+		gap: 16px;
+	}
+
+	.cult-nav-brand {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		flex-shrink: 0;
+		text-decoration: none;
+	}
+
+	.cult-nav-back {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 36px;
+		height: 36px;
+		border-radius: 10px;
+		color: rgba(241, 245, 249, 0.6);
+		transition: all 0.15s;
+		flex-shrink: 0;
+		text-decoration: none;
+	}
+
+	.cult-nav-back:hover {
+		color: #f1f5f9;
+		background: rgba(139, 92, 246, 0.12);
+	}
+
+	.cult-nav-brand-icon {
+		color: #a78bfa;
+	}
+
+	.cult-nav-brand-text {
+		font-size: 15px;
+		font-weight: 600;
+		color: #f1f5f9;
+		letter-spacing: 0.03em;
+	}
+
+	.cult-nav-links {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		flex: 1;
+		overflow-x: auto;
+		scrollbar-width: none;
+	}
+
+	.cult-nav-links::-webkit-scrollbar {
+		display: none;
+	}
+
+	.cult-nav-link {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding: 10px 16px;
+		border-radius: 10px;
+		color: rgba(241, 245, 249, 0.5);
+		font-size: 14px;
+		font-weight: 500;
+		white-space: nowrap;
+		transition: all 0.15s;
+		text-decoration: none;
+	}
+
+	.cult-nav-link:hover {
+		color: #f1f5f9;
+		background: rgba(139, 92, 246, 0.08);
+	}
+
+	.cult-nav-link.active {
+		color: #a78bfa;
+		background: rgba(139, 92, 246, 0.12);
+	}
+
+	.cult-nav-user {
+		flex-shrink: 0;
+	}
+
+	.cult-nav-user-info {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+	}
+
+	.cult-nav-coins {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		padding: 7px 14px;
+		background: rgba(251, 191, 36, 0.08);
+		border: 1px solid rgba(251, 191, 36, 0.15);
+		border-radius: 10px;
+		color: #fcd34d;
+	}
+
+	.cult-nav-coins svg {
+		color: #fcd34d;
+	}
+
+	.cult-nav-coins-value {
+		font-size: 14px;
+		font-weight: 600;
+	}
+
+	.cult-nav-avatar-btn {
+		background: none;
+		border: none;
+		padding: 0;
+		cursor: pointer;
+		transition: transform 0.15s;
+	}
+
+	.cult-nav-avatar-btn:hover {
+		transform: scale(1.1);
+	}
+
+	.cult-nav-avatar-btn:active {
+		transform: scale(0.95);
+	}
+
+	.cult-nav-user-avatar {
+		width: 34px;
+		height: 34px;
+		border-radius: 50%;
+		background: linear-gradient(135deg, #6366f1, #8b5cf6);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 14px;
+		font-weight: 600;
+		color: white;
+		overflow: hidden;
+	}
+
+	.cult-nav-avatar-img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		border-radius: 50%;
+	}
+
+	.cult-nav-login-btn {
+		padding: 6px 14px;
+		background: #8b5cf6;
+		border-radius: 8px;
+		color: white;
+		font-size: 13px;
+		font-weight: 500;
+		transition: all 0.15s;
+		text-decoration: none;
+	}
+
+	.cult-nav-login-btn:hover {
+		background: #7c3aed;
+	}
+
+	.cult-nav-loading {
+		font-size: 13px;
+		color: rgba(241, 245, 249, 0.4);
+	}
+
+	@media (max-width: 640px) {
+		.cult-nav-inner {
+			padding: 0 12px;
+			gap: 10px;
+			height: 56px;
+		}
+		.cult-nav-brand-text {
+			display: none;
+		}
+		.cult-nav-link-label {
+			display: none;
+		}
+		.cult-nav-link {
+			padding: 8px 10px;
+		}
+		.cult-nav-coins {
+			padding: 5px 10px;
+		}
+		.cult-nav-user-avatar {
+			width: 30px;
+			height: 30px;
+		}
+	}
 </style>
