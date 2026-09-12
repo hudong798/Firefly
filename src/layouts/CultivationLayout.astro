@@ -941,7 +941,7 @@ const { title, description = "修仙系统" } = Astro.props;
 		margin: 0 auto;
 		padding: 0 20px;
 		height: 64px;
-		display: flex;
+		display: flex !important;
 		align-items: center;
 		gap: 16px;
 	}
@@ -1129,5 +1129,242 @@ const { title, description = "修仙系统" } = Astro.props;
 			width: 30px;
 			height: 30px;
 		}
+	}
+
+	/* ============================================================
+	   登录/注册页面全局样式（防止跳转时样式闪烁）
+	   ============================================================ */
+	.cult-login-page {
+		min-height: 100vh;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 2rem 1rem;
+	}
+
+	.cult-login-card {
+		width: 100%;
+		max-width: 420px;
+		padding: 2.5rem 2rem;
+		background: rgba(15, 23, 42, 0.9);
+		border: 1px solid rgba(99, 102, 241, 0.25);
+		border-radius: 16px;
+		backdrop-filter: blur(10px);
+		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+	}
+
+	.cult-login-header {
+		text-align: center;
+		margin-bottom: 2rem;
+	}
+
+	.cult-login-icon {
+		font-size: 3rem;
+		margin-bottom: 1rem;
+		color: #a78bfa;
+	}
+
+	.cult-login-header h1 {
+		font-size: 1.5rem !important;
+		font-weight: 600;
+		margin: 0 0 0.5rem 0;
+		color: #f1f5f9;
+	}
+
+	.cult-login-header p {
+		font-size: 0.9rem !important;
+		color: #94a3b8;
+		margin: 0;
+	}
+
+	.cult-form-group {
+		margin-bottom: 1.25rem;
+	}
+
+	.cult-form-group label {
+		display: block;
+		font-size: 0.85rem;
+		color: #cbd5e1;
+		margin-bottom: 0.5rem;
+		font-weight: 500;
+	}
+
+	.cult-form-group input {
+		width: 100%;
+		padding: 0.85rem 1rem;
+		background: #1e293b;
+		border: 1px solid rgba(148, 163, 184, 0.3);
+		border-radius: 10px;
+		color: #f1f5f9;
+		font-size: 0.95rem;
+		box-sizing: border-box;
+		transition: all 0.2s;
+		-webkit-appearance: none;
+		appearance: none;
+	}
+
+	.cult-form-group input:focus {
+		outline: none;
+		border-color: #818cf8;
+		background: #1e293b;
+		box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+	}
+
+	.cult-form-group input::placeholder {
+		color: #64748b;
+	}
+
+	.cult-error-message {
+		padding: 0.6rem 0.85rem;
+		background: rgba(239, 68, 68, 0.15);
+		color: #f87171;
+		border: 1px solid rgba(239, 68, 68, 0.3);
+		border-radius: 8px;
+		font-size: 0.85rem;
+		margin-bottom: 1rem;
+	}
+
+	.cult-login-btn {
+		width: 100%;
+		padding: 0.9rem;
+		background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+		color: white;
+		border: none;
+		border-radius: 10px;
+		font-size: 0.95rem;
+		font-weight: 600;
+		cursor: pointer;
+		transition: all 0.2s;
+		margin-top: 0.5rem;
+	}
+
+	.cult-login-btn:hover:not(:disabled) {
+		opacity: 0.92;
+		transform: translateY(-1px);
+		box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+	}
+
+	.cult-login-btn:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	.cult-login-footer {
+		text-align: center;
+		margin-top: 1.5rem;
+		font-size: 0.85rem;
+		color: #94a3b8;
+	}
+
+	.cult-login-footer p {
+		margin: 0.5rem 0;
+	}
+
+	.cult-login-footer a {
+		color: #a78bfa;
+		text-decoration: none;
+	}
+
+	.cult-login-footer a:hover {
+		text-decoration: underline;
+	}
+
+	/* 注册页面样式 */
+	.cult-register-page {
+		min-height: 100vh;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 2rem 1rem;
+	}
+
+	.cult-register-card {
+		width: 100%;
+		max-width: 440px;
+		padding: 2.5rem 2rem;
+		background: rgba(15, 23, 42, 0.9);
+		border: 1px solid rgba(99, 102, 241, 0.25);
+		border-radius: 16px;
+		backdrop-filter: blur(10px);
+		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+	}
+
+	.cult-register-header {
+		text-align: center;
+		margin-bottom: 2rem;
+	}
+
+	.cult-register-icon {
+		font-size: 3rem;
+		margin-bottom: 1rem;
+		color: #a78bfa;
+	}
+
+	.cult-register-header h1 {
+		font-size: 1.5rem !important;
+		font-weight: 600;
+		margin: 0 0 0.5rem 0;
+		color: #f1f5f9;
+	}
+
+	.cult-register-header p {
+		font-size: 0.9rem !important;
+		color: #94a3b8;
+		margin: 0;
+	}
+
+	.cult-success-message {
+		padding: 0.6rem 0.85rem;
+		background: rgba(16, 185, 129, 0.15);
+		color: #34d399;
+		border: 1px solid rgba(16, 185, 129, 0.3);
+		border-radius: 8px;
+		font-size: 0.85rem;
+		margin-bottom: 1rem;
+	}
+
+	.cult-register-btn {
+		width: 100%;
+		padding: 0.9rem;
+		background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+		color: white;
+		border: none;
+		border-radius: 10px;
+		font-size: 0.95rem;
+		font-weight: 600;
+		cursor: pointer;
+		transition: all 0.2s;
+		margin-top: 0.5rem;
+	}
+
+	.cult-register-btn:hover:not(:disabled) {
+		opacity: 0.92;
+		transform: translateY(-1px);
+		box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+	}
+
+	.cult-register-btn:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	.cult-register-footer {
+		text-align: center;
+		margin-top: 1.5rem;
+		font-size: 0.85rem;
+		color: #94a3b8;
+	}
+
+	.cult-register-footer p {
+		margin: 0.5rem 0;
+	}
+
+	.cult-register-footer a {
+		color: #a78bfa;
+		text-decoration: none;
+	}
+
+	.cult-register-footer a:hover {
+		text-decoration: underline;
 	}
 </style>
