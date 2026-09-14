@@ -29,7 +29,7 @@ import CultNav from "@/components/cultivation/CultNav.svelte";
 						<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg>
 					</div>
 				<h3 class="cult-empty-title">没有权限</h3>
-				<p class="cult-empty-desc">只有管理员和宗主可以访问管理后台</p>
+				<p class="cult-empty-desc">只有宗主可以访问管理后台</p>
 			</div>
 		</div>
 
@@ -161,7 +161,6 @@ import CultNav from "@/components/cultivation/CultNav.svelte";
 		getCurrentUser,
 		getMyProfile,
 		getAllProfiles,
-		updateUserRole,
 		updateUserStatus,
 		deleteUser,
 		resetUserPassword,
@@ -197,7 +196,7 @@ import CultNav from "@/components/cultivation/CultNav.svelte";
 		}
 
 		const profile = await getMyProfile();
-		if (!profile || (profile.role !== "admin" && profile.role !== "owner")) {
+		if (!profile || profile.role !== "owner") {
 			if (noPermission) noPermission.style.display = "block";
 			return;
 		}
@@ -294,23 +293,18 @@ import CultNav from "@/components/cultivation/CultNav.svelte";
 							</div>
 						</div>
 						<div class="admin-item-actions">
-							${isOwner && !isSelf && u.role !== "owner" ? `
-								<button class="cult-btn ${u.role === "admin" ? "cult-btn-secondary" : "cult-btn-primary"} cult-btn-sm admin-action" data-action="role" data-user-id="${u.id}" data-role="${u.role === "admin" ? "user" : "admin"}">
-									${u.role === "admin" ? "取消管理员" : "设为管理员"}
-								</button>
-							` : ""}
-							${!isSelf && (isOwner || (myProfile?.role === "admin" && u.role === "user")) ? `
+							${!isSelf && isOwner ? `
 								<button class="cult-btn ${u.status === "active" ? "cult-btn-danger" : "cult-btn-success"} cult-btn-sm admin-action" data-action="status" data-user-id="${u.id}" data-status="${u.status === "active" ? "disabled" : "active"}">
 									${u.status === "active" ? "停用" : "恢复"}
 								</button>
 							` : ""}
-							${!isSelf && (isOwner || (myProfile?.role === "admin" && u.role === "user")) ? `
+							${!isSelf && isOwner ? `
 								<button class="cult-btn cult-btn-secondary cult-btn-sm admin-action" data-action="reset-password" data-user-id="${u.id}" data-username="${u.username}">
 									重置密码
 								</button>
 							` : ""}
-							${isOwner && !isSelf && u.role !== "owner" ? `
-								<button class="cult-btn cult-btn-danger cult-btn-sm admin-action" data-action="delete" data-user-id="${u.id}" data-username="${u.username}">
+							${isOwner && !isSelf ? `
+								<button class="cult-btn cult-btn-danger cult-btn-sm admin-action" data-action="delete" data-user-id="${u.id}" data-username="${u.username}" data-role="${u.role}">
 									删除
 								</button>
 							` : ""}
@@ -327,13 +321,7 @@ import CultNav from "@/components/cultivation/CultNav.svelte";
 				const action = (e.target as HTMLElement).dataset.action;
 				if (!userId || !action) return;
 
-				if (action === "role") {
-					const role = (e.target as HTMLElement).dataset.role as any;
-					if (confirm(`确定要${role === "admin" ? "设为管理员" : "取消管理员"}吗？`)) {
-						await updateUserRole(userId, role);
-						loadUsers();
-					}
-				} else if (action === "status") {
+				if (action === "status") {
 					const status = (e.target as HTMLElement).dataset.status as any;
 					if (confirm(`确定要${status === "active" ? "恢复" : "停用"}该用户吗？`)) {
 						await updateUserStatus(userId, status);
@@ -355,7 +343,11 @@ import CultNav from "@/components/cultivation/CultNav.svelte";
 					}
 				} else if (action === "delete") {
 					const username = (e.target as HTMLElement).dataset.username || "";
-					if (confirm(`确定要删除用户「${username}」吗？\n此操作不可恢复，将同时删除该用户的所有数据！`)) {
+					const targetRole = (e.target as HTMLElement).dataset.role || "user";
+					const warn = targetRole === "owner"
+						? `\n\n⚠️ 该用户是宗主权限（可能是被非法提权的后门账号），删除后其全部数据将被清除。`
+						: "";
+					if (confirm(`确定要删除用户「${username}」吗？\n此操作不可恢复，将同时删除该用户的所有数据！${warn}`)) {
 						const result = await deleteUser(userId);
 						if (result.success) {
 							alert("用户已删除");

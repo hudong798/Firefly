@@ -174,6 +174,12 @@ export async function getMyProfile(): Promise<Profile | null> {
 	return data[0] as Profile;
 }
 
+/** 内部：当前登录用户是否为宗主/管理员（仅体验层前置拦截，最终权限以数据库 RLS 为准） */
+async function _isStaff(): Promise<boolean> {
+	const profile = await getMyProfile();
+	return !!profile && (profile.role === "owner" || profile.role === "admin");
+}
+
 /** 根据 ID 获取 profile */
 export async function getProfileById(id: string): Promise<Profile | null> {
 	if (!supabase) return null;
@@ -469,6 +475,7 @@ export async function createTask(
 	try {
 		const user = await getCurrentUser();
 		if (!user) return { success: false, error: "未登录" };
+		if (!(await _isStaff())) return { success: false, error: "需要管理员权限" };
 
 		const { error } = await supabase.from("tasks").insert({
 			title,
@@ -692,6 +699,7 @@ export async function createProduct(
 	try {
 		const user = await getCurrentUser();
 		if (!user) return { success: false, error: "未登录" };
+		if (!(await _isStaff())) return { success: false, error: "需要管理员权限" };
 
 		const { error } = await supabase.from("products").insert({
 			name,
@@ -1152,6 +1160,7 @@ export async function createPill(pill: { name: string; grade: number; descriptio
 	if (!supabase) return { success: false, error: "未初始化" };
 	const user = await getCurrentUser();
 	if (!user) return { success: false, error: "未登录" };
+	if (!(await _isStaff())) return { success: false, error: "需要宗主/管理员权限" };
 
 	try {
 		const { error } = await supabase
