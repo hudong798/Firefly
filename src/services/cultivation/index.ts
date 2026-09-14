@@ -21,6 +21,17 @@ import type {
 // Auth 相关
 // ============================================================
 
+/** 内部：通过后端RPC获取Auth邮箱（前端不硬编码邮箱规则，宗主邮箱不暴露在前端） */
+async function _getAuthEmail(identifier: string): Promise<string> {
+	if (!supabase) return identifier;
+	const { data, error } = await supabase.rpc("get_auth_email", { p_identifier: identifier });
+	if (error || !data) {
+		console.warn("get_auth_email RPC 失败", error);
+		return identifier;
+	}
+	return data as string;
+}
+
 /** 注册 */
 export async function register(
 	username: string,
@@ -41,8 +52,8 @@ export async function register(
 			return { success: false, error: "用户名已被使用" };
 		}
 
-		// 统一使用 user_+username@freex.app 作为邮箱，确保用户名登录能匹配
-		const authEmail = `user_${username}@freex.app`;
+		// 通过后端RPC获取Auth邮箱（前端不硬编码邮箱规则）
+		const authEmail = await _getAuthEmail(username);
 
 		// 注册 Auth 用户
 		const { data, error } = await supabase.auth.signUp({
@@ -84,13 +95,9 @@ export async function login(
 	try {
 		let email = identifier;
 
-		// 如果不是邮箱格式，用 user_+username@freex.app
+		// 如果不是邮箱格式，通过后端RPC获取Auth邮箱（前端不暴露宗主邮箱和映射规则）
 		if (!identifier.includes("@")) {
-			if (identifier === "0001") {
-				email = "owner@freex.local";
-			} else {
-				email = `user_${identifier}@freex.app`;
-			}
+			email = await _getAuthEmail(identifier);
 		}
 
 		const { data, error } = await supabase.auth.signInWithPassword({
@@ -271,7 +278,12 @@ export async function changePassword(
 			return { success: false, error: "用户不存在" };
 		}
 
-		const authEmail = `user_${profile.username}@freex.app`;
+		// 从当前会话获取邮箱（不重新构造，避免硬编码邮箱规则）
+		const session = await supabase.auth.getSession();
+		const authEmail = session.data.session?.user?.email;
+		if (!authEmail) {
+			return { success: false, error: "无法获取当前用户信息，请重新登录" };
+		}
 		const { error: signInError } = await supabase.auth.signInWithPassword({
 			email: authEmail,
 			password: oldPassword,
