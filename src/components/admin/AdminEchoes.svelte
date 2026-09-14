@@ -13,33 +13,48 @@
 		created_at: string;
 	}
 
-	// 默认管理密码（Supabase 读取失败时使用）
-	const DEFAULT_ADMIN_PASSWORD = "52798";
-
+	/**
+	 * 后台鉴权说明（不要改回去）：
+	 * 这里曾经从 site_config 读明文管理密码、并在浏览器里做字符串比较，
+	 * 等于把管理密码公开给任何能访问前端的人（anon key 就能读到那张表）。
+	 * 现在改为：必须已用「宗主 / 管理员」账号登录 Supabase，
+	 * 角色由数据库 RLS 决定，前端只负责隐藏入口，不作安全边界。
+	 */
 	let loggedIn = false;
 	let loading = false;
 	let echoes: Echo[] = [];
 	let echoesLoading = false;
-	let password = "";
+	let role: string | null = null;
 	let loginError = "";
 	let actionMessage = "";
 
-	// 从 Supabase 获取管理密码
-	async function getAdminPassword(): Promise<string> {
-		if (!supabase) return DEFAULT_ADMIN_PASSWORD;
-		try {
-			const { data, error } = await supabase
-				.from("site_config")
-				.select("value")
-				.eq("key", "admin_password")
-				.single();
-			if (!error && data?.value) {
-				return data.value;
-			}
-		} catch (e) {
-			// 表不存在或读取失败，使用默认密码
+	/** 检查当前会话是否有后台权限（真正的拦截在数据库 RLS） */
+	async function checkStaffAuth(): Promise<boolean> {
+		if (!supabase) {
+			loginError = "Supabase 未配置";
+			return false;
 		}
-		return DEFAULT_ADMIN_PASSWORD;
+		const { data: sessionData } = await supabase.auth.getSession();
+		const user = sessionData?.session?.user;
+		if (!user) {
+			loginError = "尚未登录，请先用宗主账号登录";
+			return false;
+		}
+		const { data: profile, error } = await supabase
+			.from("profiles")
+			.select("role")
+			.eq("id", user.id)
+			.single();
+		if (error || !profile) {
+			loginError = "读取账号权限失败，请重新登录";
+			return false;
+		}
+		role = profile.role as string;
+		if (role !== "owner" && role !== "admin") {
+			loginError = "当前账号没有管理权限";
+			return false;
+		}
+		return true;
 	}
 
 	// 新建回声表单
@@ -54,36 +69,26 @@
 	const moodOptions = ["🌙", "😆", "🌱", "😊", "🤔", "😴", "✨", "🔥", "💭", "☕"];
 
 	async function handleLogin() {
-		if (!password) {
-			loginError = "请输入密码";
-			return;
-		}
-
 		loading = true;
 		loginError = "";
 
 		try {
-			const adminPassword = await getAdminPassword();
-			if (password === adminPassword) {
+			if (await checkStaffAuth()) {
 				loggedIn = true;
-				if (typeof window !== "undefined") {
-					localStorage.setItem("echo_admin_logged_in", "true");
-				}
 				loadEchoes();
-			} else {
-				loginError = "密码错误";
 			}
 		} catch (e) {
-			loginError = "登录失败，请重试";
+			loginError = "登录状态检查失败，请重试";
 		} finally {
 			loading = false;
 		}
 	}
 
+	/** 仅收起面板，不退出站点登录（退出登录请到修仙界页面顶栏操作） */
 	function handleLogout() {
 		loggedIn = false;
 		echoes = [];
-		password = "";
+		role = null;
 		showForm = false;
 	}
 
@@ -179,39 +184,28 @@
 	}
 
 	onMount(() => {
-		// 从 localStorage 读取登录状态
-		if (typeof window !== "undefined" && localStorage.getItem("echo_admin_logged_in") === "true") {
-			loggedIn = true;
-			loadEchoes();
-		}
+		// 不再信任 localStorage 里的登录标记：每次进入都按当前会话重新判定权限
+		handleLogin();
 	});
 </script>
 
 <div class="admin-echoes">
 	{#if !loggedIn}
-		<!-- 登录表单 -->
+		<!-- 没有后台权限：引导用宗主账号登录，前端不再放任何密码 -->
 		<div class="admin-login">
-			<h2>公告管理登录</h2>
-			<p class="admin-login-sub">登录后可以发布和管理公告</p>
+			<h2>公告管理</h2>
+			<p class="admin-login-sub">需要宗主或管理员账号登录，登录后自动进入</p>
 
 			{#if loginError}
 				<div class="admin-error">{loginError}</div>
 			{/if}
 
-			<div class="admin-form-group">
-				<label for="echo-password">管理密码</label>
-				<input
-					id="echo-password"
-					type="password"
-					bind:value={password}
-					placeholder="••••••••"
-					on:keydown={(e) => e.key === "Enter" && handleLogin()}
-				/>
+			<div class="admin-login-actions">
+				<a class="admin-btn admin-btn-primary" href="/cultivation/login/">前往登录</a>
+				<button class="admin-btn admin-btn-secondary" on:click={handleLogin} disabled={loading}>
+					{#if loading}检查中...{:else}我已登录，重新检查{/if}
+				</button>
 			</div>
-
-			<button class="admin-login-btn" on:click={handleLogin} disabled={loading}>
-				{#if loading}登录中...{:else}登录{/if}
-			</button>
 		</div>
 	{:else}
 		<!-- 管理面板 -->
@@ -348,6 +342,21 @@
 		font-size: 0.85rem;
 		color: #94a3b8;
 		margin: 0 0 1.5rem 0;
+	}
+
+	.admin-login-actions {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+	}
+
+	.admin-login-actions .admin-btn,
+	.admin-login-actions a.admin-btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		text-decoration: none;
 	}
 
 	.admin-error {

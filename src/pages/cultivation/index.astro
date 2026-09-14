@@ -828,22 +828,25 @@ import CultNav from "@/components/cultivation/CultNav.svelte";
 		font-weight: 600;
 	}
 
-	/* 前三名逐渐变浅 */
+	/* 前三名：同一金色系，亮度依次递减（冠军最亮 → 亚军 → 季军最暗）
+	   用亮度单调下降的金色阶梯，而不是金银铜三种色相，视觉上才是"逐渐变淡" */
 	.cult-ranking-row.rank-1 .cult-ranking-col-rank,
 	.cult-ranking-row.rank-1 .cult-ranking-col-name {
-		color: #f5c451;
+		color: #f7c948;
 		font-weight: 700;
+		text-shadow: 0 0 12px rgba(247, 201, 72, 0.45);
 	}
 
 	.cult-ranking-row.rank-2 .cult-ranking-col-rank,
 	.cult-ranking-row.rank-2 .cult-ranking-col-name {
-		color: #d4d4d8;
+		color: #d9a441;
 		font-weight: 600;
+		text-shadow: 0 0 10px rgba(217, 164, 65, 0.2);
 	}
 
 	.cult-ranking-row.rank-3 .cult-ranking-col-rank,
 	.cult-ranking-row.rank-3 .cult-ranking-col-name {
-		color: #cd9b6e;
+		color: #b9863c;
 		font-weight: 500;
 	}
 

@@ -45,10 +45,22 @@
 			});
 
 			if (error) throw error;
-			if (data.user) {
-				loggedIn = true;
-				loadComments();
+			if (!data.user) throw new Error("登录失败");
+
+			// 登录成功 ≠ 有后台权限：必须是宗主或管理员（真正的拦截在数据库 RLS）
+			const { data: profile } = await supabase
+				.from("profiles")
+				.select("role")
+				.eq("id", data.user.id)
+				.single();
+
+			if (!profile || (profile.role !== "owner" && profile.role !== "admin")) {
+				await supabase.auth.signOut();
+				throw new Error("当前账号没有管理权限");
 			}
+
+			loggedIn = true;
+			loadComments();
 		} catch (e: any) {
 			loginError = e?.message || "登录失败";
 		} finally {

@@ -302,24 +302,43 @@ export async function getAllProfiles(): Promise<Profile[]> {
 	return data as Profile[];
 }
 
-/** 更新用户角色（宗主） */
+/**
+ * 更新用户角色（仅宗主可调用）
+ *
+ * 注意：这里必须走 RPC，不能直接 update profiles 表。
+ * 数据库已撤销 authenticated 角色对 profiles.role / status / qi 的列级写权限，
+ * 直更会被 Postgres 拒绝（这正是防止「自己把自己改成宗主」的关键）。
+ * admin_set_user_role 内部会校验调用者角色。
+ */
 export async function updateUserRole(userId: string, role: "owner" | "admin" | "user"): Promise<boolean> {
 	if (!supabase) return false;
-	const { error } = await supabase
-		.from("profiles")
-		.update({ role })
-		.eq("id", userId);
-	return !error;
+	try {
+		const { data, error } = await supabase.rpc("admin_set_user_role", {
+			p_user_id: userId,
+			p_role: role,
+		});
+		if (error) throw error;
+		return Boolean((data as { success?: boolean } | null)?.success);
+	} catch (e: any) {
+		console.error("更新角色失败:", e?.message || e);
+		return false;
+	}
 }
 
-/** 更新用户状态（宗主/管理员） */
+/** 更新用户状态（宗主/管理员可调用，走鉴权 RPC） */
 export async function updateUserStatus(userId: string, status: "active" | "disabled"): Promise<boolean> {
 	if (!supabase) return false;
-	const { error } = await supabase
-		.from("profiles")
-		.update({ status })
-		.eq("id", userId);
-	return !error;
+	try {
+		const { data, error } = await supabase.rpc("admin_set_user_status", {
+			p_user_id: userId,
+			p_status: status,
+		});
+		if (error) throw error;
+		return Boolean((data as { success?: boolean } | null)?.success);
+	} catch (e: any) {
+		console.error("更新状态失败:", e?.message || e);
+		return false;
+	}
 }
 
 /** 删除用户（仅宗主） */
