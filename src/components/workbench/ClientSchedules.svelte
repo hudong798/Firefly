@@ -35,7 +35,7 @@
 			const raw = localStorage.getItem(SCHEDULE_AUTH_KEY);
 			if (!raw) return;
 			const data = JSON.parse(raw);
-			if (data.authenticated && Date.now() - data.timestamp < SCHEDULE_AUTH_EXPIRE) {
+			if (data.authenticated && data.username && data.password && Date.now() - data.timestamp < SCHEDULE_AUTH_EXPIRE) {
 				scheduleAdminLoggedIn = true;
 			} else {
 				localStorage.removeItem(SCHEDULE_AUTH_KEY);
@@ -43,6 +43,18 @@
 		} catch (e) {
 			localStorage.removeItem(SCHEDULE_AUTH_KEY);
 		}
+	}
+
+	function getScheduleCredentials() {
+		try {
+			const raw = localStorage.getItem(SCHEDULE_AUTH_KEY);
+			if (!raw) return null;
+			const data = JSON.parse(raw);
+			if (data.username && data.password) {
+				return { username: data.username, password: data.password };
+			}
+		} catch (e) {}
+		return null;
 	}
 
 	async function scheduleAdminLogin() {
@@ -61,12 +73,16 @@
 			});
 			if (error) throw error;
 			if (data === true) {
+				const savedUser = scheduleLoginUser.trim();
+				const savedPass = scheduleLoginPass;
 				scheduleAdminLoggedIn = true;
 				showScheduleLogin = false;
 				scheduleLoginUser = "";
 				scheduleLoginPass = "";
 				localStorage.setItem(SCHEDULE_AUTH_KEY, JSON.stringify({
 					authenticated: true,
+					username: savedUser,
+					password: savedPass,
 					timestamp: Date.now()
 				}));
 				openAddForm();
@@ -227,16 +243,40 @@
 		};
 
 		try {
+			const creds = getScheduleCredentials();
+			if (!creds) {
+				scheduleAdminLoggedIn = false;
+				localStorage.removeItem(SCHEDULE_AUTH_KEY);
+				formError = "登录已过期，请重新登录";
+				return;
+			}
+
 			if (editingId) {
-				const { error: err } = await supabase
-					.from("schedules")
-					.update(payload)
-					.eq("id", editingId);
+				const { error: err } = await supabase.rpc("admin_update_schedule", {
+					p_username: creds.username,
+					p_password: creds.password,
+					p_id: editingId,
+					p_title: formTitle.trim(),
+					p_description: formDescription.trim() || null,
+					p_schedule_date: formDate,
+					p_schedule_time: formTime || null,
+					p_location: formLocation.trim() || null,
+					p_status: formStatus,
+					p_sort_order: null
+				});
 				if (err) throw err;
 			} else {
-				const { error: err } = await supabase
-					.from("schedules")
-					.insert(payload);
+				const { error: err } = await supabase.rpc("admin_insert_schedule", {
+					p_username: creds.username,
+					p_password: creds.password,
+					p_title: formTitle.trim(),
+					p_description: formDescription.trim() || null,
+					p_schedule_date: formDate,
+					p_schedule_time: formTime || null,
+					p_location: formLocation.trim() || null,
+					p_status: formStatus,
+					p_sort_order: 0
+				});
 				if (err) throw err;
 			}
 			closeForm();
@@ -252,10 +292,18 @@
 		if (!supabase) return;
 		if (!confirm("确定删除这条日程吗？此操作不可撤销。")) return;
 		try {
-			const { error: err } = await supabase
-				.from("schedules")
-				.delete()
-				.eq("id", id);
+			const creds = getScheduleCredentials();
+			if (!creds) {
+				scheduleAdminLoggedIn = false;
+				localStorage.removeItem(SCHEDULE_AUTH_KEY);
+				alert("登录已过期，请重新登录");
+				return;
+			}
+			const { error: err } = await supabase.rpc("admin_delete_schedule", {
+				p_username: creds.username,
+				p_password: creds.password,
+				p_id: id
+			});
 			if (err) throw err;
 			await loadSchedules();
 		} catch (e: any) {
@@ -267,10 +315,19 @@
 		if (!supabase) return;
 		const next = s.status === "upcoming" ? "completed" : "upcoming";
 		try {
-			const { error: err } = await supabase
-				.from("schedules")
-				.update({ status: next })
-				.eq("id", s.id);
+			const creds = getScheduleCredentials();
+			if (!creds) {
+				scheduleAdminLoggedIn = false;
+				localStorage.removeItem(SCHEDULE_AUTH_KEY);
+				alert("登录已过期，请重新登录");
+				return;
+			}
+			const { error: err } = await supabase.rpc("admin_update_schedule_status", {
+				p_username: creds.username,
+				p_password: creds.password,
+				p_id: s.id,
+				p_status: next
+			});
 			if (err) throw err;
 			await loadSchedules();
 		} catch (e: any) {

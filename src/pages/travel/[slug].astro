@@ -441,8 +441,11 @@ const citiesRaw = locationParts[1]?.trim() || entry.location || "";
 	/* 正文图片 */
 	.journey-content :global(img) {
 		max-width: 100%;
-		border-radius: 10px;
-		margin: 1.2em 0;
+		max-height: 350px;
+		height: auto;
+		border-radius: 12px;
+		margin: 1.5em auto;
+		display: block;
 	}
 
 	/* 行内代码 */
@@ -663,6 +666,9 @@ const citiesRaw = locationParts[1]?.trim() || entry.location || "";
 		.journey-content {
 			font-size: 0.95rem;
 			line-height: 1.85;
+		}
+		.journey-content :global(img) {
+			max-height: 250px;
 		}
 		.journey-content :global(h2) {
 			font-size: 1.2rem;

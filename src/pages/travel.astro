@@ -27,25 +27,29 @@ const countryCount = countries.size;
 	<div class="traj-container">
 		<!-- 页面标题 -->
 		<header class="traj-header">
-			<div class="traj-header-label">
-				<span class="traj-header-observing">
-					<span class="traj-header-dot"></span>
-					TRAVEL LOG
-				</span>
-				<span class="traj-header-text">TRAJECTORIES</span>
-				<span class="traj-header-line"></span>
-			</div>
-			<h1 class="traj-title">轨迹</h1>
-			<p class="traj-sub">每一张封面，都是一段出发与抵达。</p>
+			<div class="traj-header-main">
+				<div class="traj-header-text">
+					<div class="traj-header-label">
+						<span class="traj-header-observing">
+							<span class="traj-header-dot"></span>
+							TRAVEL LOG
+						</span>
+						<span class="traj-header-text-label">TRAJECTORIES</span>
+						<span class="traj-header-line"></span>
+					</div>
+					<h1 class="traj-title">轨迹</h1>
+					<p class="traj-sub">每一张封面，都是一段出发与抵达。</p>
+				</div>
 
-			<!-- 发布轨迹按钮 -->
-			<a href="/admin/travel/" class="traj-publish-btn" target="_blank" rel="noopener">
-				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="traj-publish-icon">
-					<line x1="12" y1="5" x2="12" y2="19"/>
-					<line x1="5" y1="12" x2="19" y2="12"/>
-				</svg>
-				发布轨迹
-			</a>
+				<!-- 发布轨迹按钮 -->
+				<a href="/admin/travel/" class="traj-publish-btn" target="_blank" rel="noopener">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="traj-publish-icon">
+						<line x1="12" y1="5" x2="12" y2="19"/>
+						<line x1="5" y1="12" x2="19" y2="12"/>
+					</svg>
+					发布轨迹
+				</a>
+			</div>
 
 			<!-- Journey Statistics -->
 			<div class="traj-stats">
@@ -102,6 +106,18 @@ const countryCount = countries.size;
 		padding-top: 1rem;
 	}
 
+	.traj-header-main {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		gap: 2rem;
+	}
+
+	.traj-header-text {
+		flex: 1;
+		min-width: 0;
+	}
+
 	.traj-header-label {
 		display: flex;
 		align-items: center;
@@ -128,7 +144,7 @@ const countryCount = countries.size;
 		box-shadow: 0 0 6px rgba(99, 216, 255, 0.3);
 	}
 
-	.traj-header-text {
+	.traj-header-text-label {
 		font-family: "JetBrains Mono", "Fira Code", "Space Mono", ui-monospace, monospace;
 		font-size: 0.65rem;
 		font-weight: 500;
@@ -175,7 +191,8 @@ const countryCount = countries.size;
 		font-weight: 500;
 		text-decoration: none;
 		transition: all 0.25s ease;
-		margin-bottom: 1.5rem;
+		flex-shrink: 0;
+		margin-top: 5rem;
 		backdrop-filter: blur(8px);
 	}
 	.traj-publish-btn:hover {
@@ -238,6 +255,14 @@ const countryCount = countries.size;
 		}
 		.traj-header {
 			margin-bottom: 2rem;
+		}
+		.traj-header-main {
+			flex-direction: column;
+			gap: 1.25rem;
+		}
+		.traj-publish-btn {
+			align-self: flex-start;
+			margin-top: 0;
 		}
 		.traj-title {
 			font-size: 1.75rem;

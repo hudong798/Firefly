@@ -3,7 +3,7 @@
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
 import ClientEchoes from "@/components/workbench/ClientEchoes.svelte";
 
-const title = "公告";
+const title = "说说";
 const description = "一些想法经过时间，最终留下的痕迹。";
 ---
 
@@ -15,31 +15,34 @@ const description = "一些想法经过时间，最终留下的痕迹。";
 	<div class="echo-container">
 		<!-- 页面标题 -->
 		<header class="echo-header">
-			<div class="echo-header-label">
-				<span class="echo-header-observing">
-					<span class="echo-header-dot"></span>
-					OBSERVING
-				</span>
-				<span class="echo-header-text">ECHOES</span>
-				<span class="echo-header-line"></span>
-			</div>
-			<div class="echo-title-row">
-				<h1 class="echo-title">公告</h1>
-			</div>
-			<p class="echo-sub">一些想法经过时间，最终留下的痕迹。</p>
-		</header>
+			<div class="echo-header-main">
+				<div class="echo-header-text">
+					<div class="echo-header-label">
+						<span class="echo-header-observing">
+							<span class="echo-header-dot"></span>
+							OBSERVING
+						</span>
+						<span class="echo-header-text-label">ECHOES</span>
+						<span class="echo-header-line"></span>
+					</div>
+					<div class="echo-title-row">
+						<h1 class="echo-title">说说</h1>
+					</div>
+					<p class="echo-sub">一些想法经过时间，最终留下的痕迹。</p>
+				</div>
 
-		<!-- 回声列表（客户端动态加载 Supabase 数据） -->
-		<section class="echo-list">
-			<!-- 工具栏：写公告按钮放在卡片区域最右边 -->
-			<div class="echo-list-toolbar">
+				<!-- 写说说按钮 -->
 				<a href="/admin/echoes/" class="echo-admin-btn" target="_blank" rel="noopener">
 					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="echo-admin-icon">
 						<path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
 					</svg>
-					写公告
+					写说说
 				</a>
 			</div>
+		</header>
+
+		<!-- 回声列表（客户端动态加载 Supabase 数据） -->
+		<section class="echo-list">
 			<ClientEchoes client:only="svelte" />
 		</section>
 	</div>
@@ -75,6 +78,18 @@ const description = "一些想法经过时间，最终留下的痕迹。";
 		padding-top: 1rem;
 	}
 
+	.echo-header-main {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		gap: 2rem;
+	}
+
+	.echo-header-text {
+		flex: 1;
+		min-width: 0;
+	}
+
 	.echo-header-label {
 		display: flex;
 		align-items: center;
@@ -101,7 +116,7 @@ const description = "一些想法经过时间，最终留下的痕迹。";
 		box-shadow: 0 0 6px rgba(155, 140, 255, 0.3);
 	}
 
-	.echo-header-text {
+	.echo-header-text-label {
 		font-family: "JetBrains Mono", "Fira Code", "Space Mono", ui-monospace, monospace;
 		font-size: 0.65rem;
 		font-weight: 500;
@@ -147,6 +162,8 @@ const description = "一些想法经过时间，最终留下的痕迹。";
 		text-decoration: none;
 		transition: all 0.2s;
 		letter-spacing: 0.02em;
+		flex-shrink: 0;
+		margin-top: 5.25rem;
 	}
 
 	.echo-admin-btn:hover {
@@ -166,14 +183,6 @@ const description = "一些想法经过时间，最终留下的痕迹。";
 		color: #7F8799;
 		line-height: 1.7;
 		max-width: 480px;
-	}
-
-	/* 回声列表工具栏：写公告按钮放在卡片区域最右边 */
-	.echo-list-toolbar {
-		display: flex;
-		justify-content: flex-end;
-		align-items: center;
-		margin-bottom: 1.25rem;
 	}
 
 	/* 回声列表 */
@@ -357,6 +366,14 @@ const description = "一些想法经过时间，最终留下的痕迹。";
 		}
 		.echo-header {
 			margin-bottom: 2rem;
+		}
+		.echo-header-main {
+			flex-direction: column;
+			gap: 1.25rem;
+		}
+		.echo-admin-btn {
+			align-self: flex-start;
+			margin-top: 0;
 		}
 		.echo-title {
 			font-size: 1.75rem;

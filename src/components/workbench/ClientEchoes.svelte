@@ -18,7 +18,7 @@
 	let error = "";
 	let expandedSlug: string | null = null;
 
-	const MOMENT_PREVIEW_LIMIT = 200;
+	const MOMENT_PREVIEW_LIMIT = 50;
 
 	function previewOf(content: string) {
 		const isLong = content.length > MOMENT_PREVIEW_LIMIT;

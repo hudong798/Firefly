@@ -14,7 +14,7 @@
 	}
 
 	/**
-	 * 公告管理独立登录（账号密码存 Supabase admin_credentials 表，与修仙界完全无关）
+	 * 说说管理独立登录（账号密码存 Supabase admin_credentials 表，与修仙界完全无关）
 	 */
 	const ECHO_AUTH_KEY = "echo_admin_auth";
 	const ECHO_AUTH_EXPIRE = 1000 * 60 * 60 * 8; // 8小时过期
@@ -33,7 +33,7 @@
 			const raw = localStorage.getItem(ECHO_AUTH_KEY);
 			if (!raw) return;
 			const data = JSON.parse(raw);
-			if (data.authenticated && Date.now() - data.timestamp < ECHO_AUTH_EXPIRE) {
+			if (data.authenticated && data.username && data.password && Date.now() - data.timestamp < ECHO_AUTH_EXPIRE) {
 				loggedIn = true;
 			} else {
 				localStorage.removeItem(ECHO_AUTH_KEY);
@@ -41,6 +41,18 @@
 		} catch (e) {
 			localStorage.removeItem(ECHO_AUTH_KEY);
 		}
+	}
+
+	function getAdminCredentials() {
+		try {
+			const raw = localStorage.getItem(ECHO_AUTH_KEY);
+			if (!raw) return null;
+			const data = JSON.parse(raw);
+			if (data.username && data.password) {
+				return { username: data.username, password: data.password };
+			}
+		} catch (e) {}
+		return null;
 	}
 
 	async function handleLogin() {
@@ -59,11 +71,15 @@
 			});
 			if (error) throw error;
 			if (data === true) {
+				const savedUser = loginUser.trim();
+				const savedPass = loginPass;
 				loggedIn = true;
 				loginUser = "";
 				loginPass = "";
 				localStorage.setItem(ECHO_AUTH_KEY, JSON.stringify({
 					authenticated: true,
+					username: savedUser,
+					password: savedPass,
 					timestamp: Date.now()
 				}));
 				loadEchoes();
@@ -139,18 +155,28 @@
 				? newTags.split(/[,，\s]+/).filter((t) => t.trim())
 				: [];
 
-			const { error } = await supabase.from("echoes").insert({
-				slug: newSlug,
-				title: newTitle.trim(),
-				content: newContent.trim(),
-				mood: newMood || null,
-				tags: tagsArr.length > 0 ? tagsArr : null,
-				status: "published",
+			const creds = getAdminCredentials();
+			if (!creds) {
+				loggedIn = false;
+				localStorage.removeItem(ECHO_AUTH_KEY);
+				actionMessage = "登录已过期，请重新登录";
+				return;
+			}
+
+			const { error } = await supabase.rpc("admin_insert_echo", {
+				p_username: creds.username,
+				p_password: creds.password,
+				p_slug: newSlug,
+				p_title: newTitle.trim(),
+				p_content: newContent.trim(),
+				p_mood: newMood || null,
+				p_tags: tagsArr.length > 0 ? tagsArr : null,
+				p_status: "published"
 			});
 
 			if (error) throw error;
 
-			actionMessage = "公告发布成功！";
+			actionMessage = "说说发布成功！";
 			// 重置表单
 			newTitle = "";
 			newSlug = "";
@@ -168,9 +194,20 @@
 
 	async function deleteEcho(id: string) {
 		if (!supabase) return;
-		if (!confirm("确定删除这条公告吗？此操作不可撤销。")) return;
+		if (!confirm("确定删除这条说说吗？此操作不可撤销。")) return;
 		try {
-			const { error } = await supabase.from("echoes").delete().eq("id", id);
+			const creds = getAdminCredentials();
+			if (!creds) {
+				loggedIn = false;
+				localStorage.removeItem(ECHO_AUTH_KEY);
+				actionMessage = "登录已过期，请重新登录";
+				return;
+			}
+			const { error } = await supabase.rpc("admin_delete_echo", {
+				p_username: creds.username,
+				p_password: creds.password,
+				p_id: id
+			});
 			if (error) throw error;
 			actionMessage = "已删除";
 			loadEchoes();
@@ -194,10 +231,10 @@
 
 <div class="admin-echoes">
 	{#if !loggedIn}
-		<!-- 公告管理独立登录（账号密码存 Supabase，与修仙界无关） -->
+		<!-- 说说管理独立登录（账号密码存 Supabase，与修仙界无关） -->
 		<div class="admin-login">
-			<h2>公告管理登录</h2>
-			<p class="admin-login-sub">使用公告管理员账号密码登录</p>
+			<h2>说说管理登录</h2>
+			<p class="admin-login-sub">使用说说管理员账号密码登录</p>
 
 			{#if loginError}
 				<div class="admin-error">{loginError}</div>
@@ -237,12 +274,12 @@
 		<div class="admin-panel">
 			<div class="admin-panel-header">
 				<div>
-					<h2>公告管理</h2>
-					<p class="admin-panel-sub">共 {echoes.length} 条公告</p>
+					<h2>说说管理</h2>
+					<p class="admin-panel-sub">共 {echoes.length} 条说说</p>
 				</div>
 				<div class="admin-panel-actions">
 					<button class="admin-btn admin-btn-primary" on:click={() => (showForm = !showForm)}>
-						{#if showForm}取消{:else}+ 写公告{/if}
+						{#if showForm}取消{:else}+ 写说说{/if}
 					</button>
 					<button class="admin-btn admin-btn-secondary" on:click={loadEchoes}>刷新</button>
 					<button class="admin-btn admin-btn-danger" on:click={handleLogout}>退出</button>
@@ -256,12 +293,12 @@
 			<!-- 新建回声表单 -->
 			{#if showForm}
 				<div class="echo-form">
-					<h3>发布新公告</h3>
+					<h3>发布新说说</h3>
 
 					<div class="form-row">
 						<div class="form-group">
 							<label>标题 *</label>
-							<input type="text" bind:value={newTitle} placeholder="给这条公告起个标题" />
+							<input type="text" bind:value={newTitle} placeholder="给这条说说起个标题" />
 						</div>
 						<div class="form-group">
 							<label>Slug（URL，留空自动生成）</label>
@@ -295,7 +332,7 @@
 					</div>
 
 					<button class="admin-submit-btn" on:click={submitEcho} disabled={submitting}>
-						{#if submitting}发布中...{:else}发布公告{/if}
+						{#if submitting}发布中...{:else}发布说说{/if}
 					</button>
 				</div>
 			{/if}
@@ -304,7 +341,7 @@
 			{#if echoesLoading}
 				<div class="admin-loading">加载中...</div>
 			{:else if echoes.length === 0}
-				<div class="admin-empty">还没有公告，点击「写公告」发布第一条</div>
+				<div class="admin-empty">还没有说说，点击「写说说」发布第一条</div>
 			{:else}
 				<div class="echo-list">
 					{#each echoes as echo (echo.id)}

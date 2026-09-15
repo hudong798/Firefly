@@ -34,7 +34,7 @@
 			const raw = localStorage.getItem(TRAVEL_AUTH_KEY);
 			if (!raw) return;
 			const data = JSON.parse(raw);
-			if (data.authenticated && Date.now() - data.timestamp < TRAVEL_AUTH_EXPIRE) {
+			if (data.authenticated && data.username && data.password && Date.now() - data.timestamp < TRAVEL_AUTH_EXPIRE) {
 				loggedIn = true;
 			} else {
 				localStorage.removeItem(TRAVEL_AUTH_KEY);
@@ -42,6 +42,18 @@
 		} catch (e) {
 			localStorage.removeItem(TRAVEL_AUTH_KEY);
 		}
+	}
+
+	function getTravelCredentials() {
+		try {
+			const raw = localStorage.getItem(TRAVEL_AUTH_KEY);
+			if (!raw) return null;
+			const data = JSON.parse(raw);
+			if (data.username && data.password) {
+				return { username: data.username, password: data.password };
+			}
+		} catch (e) {}
+		return null;
 	}
 
 	async function handleLogin() {
@@ -60,11 +72,15 @@
 			});
 			if (error) throw error;
 			if (data === true) {
+				const savedUser = loginUser.trim();
+				const savedPass = loginPass;
 				loggedIn = true;
 				loginUser = "";
 				loginPass = "";
 				localStorage.setItem(TRAVEL_AUTH_KEY, JSON.stringify({
 					authenticated: true,
+					username: savedUser,
+					password: savedPass,
 					timestamp: Date.now()
 				}));
 				loadTravels();
@@ -382,28 +398,55 @@
 				? formTags.split(/[,，\s]+/).filter((t) => t.trim())
 				: [];
 
-			const payload: Record<string, any> = {
-				slug: formSlug.trim(),
-				title: formTitle.trim(),
-				country: formCountry.trim() || null,
-				destination: formDestination.trim() || null,
-				year: formYear ? parseInt(formYear) : null,
-				start_date: formStartDate || null,
-				end_date: formEndDate || null,
-				cover_image: formCover.trim() || null,
-				description: formDescription.trim() || null,
-				content: formContent.trim() || null,
-				tags: tagsArr.length > 0 ? tagsArr : null,
-				status: formStatus,
-				sort_order: formSortOrder ? parseInt(formSortOrder) : null,
-			};
+			const creds = getTravelCredentials();
+			if (!creds) {
+				loggedIn = false;
+				localStorage.removeItem(TRAVEL_AUTH_KEY);
+				actionMessage = "登录已过期，请重新登录";
+				return;
+			}
 
 			if (editingId) {
-				const { error } = await supabase.from("travels").update(payload).eq("id", editingId);
+				const { error } = await supabase.rpc("admin_update_travel", {
+					p_username: creds.username,
+					p_password: creds.password,
+					p_id: editingId,
+					p_slug: formSlug.trim(),
+					p_title: formTitle.trim(),
+					p_cover_image: formCover.trim() || null,
+					p_description: formDescription.trim() || null,
+					p_content: formContent.trim() || null,
+					p_tags: tagsArr.length > 0 ? tagsArr : null,
+					p_gallery: null,
+					p_country: formCountry.trim() || null,
+					p_destination: formDestination.trim() || null,
+					p_year: formYear ? parseInt(formYear) : null,
+					p_start_date: formStartDate || null,
+					p_end_date: formEndDate || null,
+					p_status: formStatus,
+					p_sort_order: formSortOrder ? parseInt(formSortOrder) : null
+				});
 				if (error) throw error;
 				actionMessage = "轨迹更新成功！";
 			} else {
-				const { error } = await supabase.from("travels").insert(payload);
+				const { error } = await supabase.rpc("admin_insert_travel", {
+					p_username: creds.username,
+					p_password: creds.password,
+					p_slug: formSlug.trim(),
+					p_title: formTitle.trim(),
+					p_cover_image: formCover.trim() || null,
+					p_description: formDescription.trim() || null,
+					p_content: formContent.trim() || null,
+					p_tags: tagsArr.length > 0 ? tagsArr : null,
+					p_gallery: null,
+					p_country: formCountry.trim() || null,
+					p_destination: formDestination.trim() || null,
+					p_year: formYear ? parseInt(formYear) : null,
+					p_start_date: formStartDate || null,
+					p_end_date: formEndDate || null,
+					p_status: formStatus,
+					p_sort_order: formSortOrder ? parseInt(formSortOrder) : 0
+				});
 				if (error) throw error;
 				actionMessage = "轨迹发布成功！";
 			}
@@ -422,7 +465,18 @@
 		if (!supabase) return;
 		if (!confirm("确定删除这条轨迹吗？此操作不可撤销。")) return;
 		try {
-			const { error } = await supabase.from("travels").delete().eq("id", id);
+			const creds = getTravelCredentials();
+			if (!creds) {
+				loggedIn = false;
+				localStorage.removeItem(TRAVEL_AUTH_KEY);
+				actionMessage = "登录已过期，请重新登录";
+				return;
+			}
+			const { error } = await supabase.rpc("admin_delete_travel", {
+				p_username: creds.username,
+				p_password: creds.password,
+				p_id: id
+			});
 			if (error) throw error;
 			actionMessage = "已删除";
 			loadTravels();

@@ -59,7 +59,7 @@
 			</div>
 		{:else if announcements.length === 0}
 			<div class="announcement-item">
-				<span class="announcement-text">暂无公告</span>
+				<span class="announcement-text">暂无说说</span>
 			</div>
 		{:else}
 			{#each announcements as item}
