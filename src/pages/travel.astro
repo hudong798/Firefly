@@ -38,6 +38,15 @@ const countryCount = countries.size;
 			<h1 class="traj-title">轨迹</h1>
 			<p class="traj-sub">每一张封面，都是一段出发与抵达。</p>
 
+			<!-- 发布轨迹按钮 -->
+			<a href="/admin/travel/" class="traj-publish-btn" target="_blank" rel="noopener">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="traj-publish-icon">
+					<line x1="12" y1="5" x2="12" y2="19"/>
+					<line x1="5" y1="12" x2="19" y2="12"/>
+				</svg>
+				发布轨迹
+			</a>
+
 			<!-- Journey Statistics -->
 			<div class="traj-stats">
 				<div class="traj-stat">
@@ -150,6 +159,35 @@ const countryCount = countries.size;
 		color: #7F8799;
 		line-height: 1.7;
 		max-width: 480px;
+	}
+
+	/* 发布轨迹按钮 */
+	.traj-publish-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.45rem;
+		padding: 0.55rem 1.15rem;
+		background: linear-gradient(135deg, rgba(124, 111, 255, 0.15), rgba(91, 79, 212, 0.1));
+		border: 1px solid rgba(124, 111, 255, 0.3);
+		border-radius: 10px;
+		color: #b8adff;
+		font-size: 0.82rem;
+		font-weight: 500;
+		text-decoration: none;
+		transition: all 0.25s ease;
+		margin-bottom: 1.5rem;
+		backdrop-filter: blur(8px);
+	}
+	.traj-publish-btn:hover {
+		background: linear-gradient(135deg, rgba(124, 111, 255, 0.25), rgba(91, 79, 212, 0.18));
+		border-color: rgba(124, 111, 255, 0.5);
+		color: #d4cdff;
+		transform: translateY(-1px);
+		box-shadow: 0 4px 16px rgba(124, 111, 255, 0.2);
+	}
+	.traj-publish-icon {
+		width: 0.85rem;
+		height: 0.85rem;
 	}
 
 	/* Journey Statistics */

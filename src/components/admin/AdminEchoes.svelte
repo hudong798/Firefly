@@ -14,47 +14,72 @@
 	}
 
 	/**
-	 * 后台鉴权说明（不要改回去）：
-	 * 这里曾经从 site_config 读明文管理密码、并在浏览器里做字符串比较，
-	 * 等于把管理密码公开给任何能访问前端的人（anon key 就能读到那张表）。
-	 * 现在改为：必须已用「宗主 / 管理员」账号登录 Supabase，
-	 * 角色由数据库 RLS 决定，前端只负责隐藏入口，不作安全边界。
+	 * 公告管理独立登录（账号密码存 Supabase admin_credentials 表，与修仙界完全无关）
 	 */
+	const ECHO_AUTH_KEY = "echo_admin_auth";
+	const ECHO_AUTH_EXPIRE = 1000 * 60 * 60 * 8; // 8小时过期
 	let loggedIn = false;
 	let loading = false;
 	let echoes: Echo[] = [];
 	let echoesLoading = false;
-	let role: string | null = null;
 	let loginError = "";
 	let actionMessage = "";
+	let loginUser = "";
+	let loginPass = "";
+	let loginLoading = false;
 
-	/** 检查当前会话是否有后台权限（真正的拦截在数据库 RLS） */
-	async function checkStaffAuth(): Promise<boolean> {
-		if (!supabase) {
-			loginError = "Supabase 未配置";
-			return false;
+	function checkEchoAuth() {
+		try {
+			const raw = localStorage.getItem(ECHO_AUTH_KEY);
+			if (!raw) return;
+			const data = JSON.parse(raw);
+			if (data.authenticated && Date.now() - data.timestamp < ECHO_AUTH_EXPIRE) {
+				loggedIn = true;
+			} else {
+				localStorage.removeItem(ECHO_AUTH_KEY);
+			}
+		} catch (e) {
+			localStorage.removeItem(ECHO_AUTH_KEY);
 		}
-		const { data: sessionData } = await supabase.auth.getSession();
-		const user = sessionData?.session?.user;
-		if (!user) {
-			loginError = "尚未登录，请先用宗主账号登录";
-			return false;
+	}
+
+	async function handleLogin() {
+		if (loginLoading) return;
+		if (!loginUser.trim() || !loginPass) {
+			loginError = "请输入账号和密码";
+			return;
 		}
-		const { data: profile, error } = await supabase
-			.from("profiles")
-			.select("role")
-			.eq("id", user.id)
-			.single();
-		if (error || !profile) {
-			loginError = "读取账号权限失败，请重新登录";
-			return false;
+		loginLoading = true;
+		loginError = "";
+		try {
+			const { data, error } = await supabase.rpc("verify_admin_credentials", {
+				p_module: "echo",
+				p_username: loginUser.trim(),
+				p_password: loginPass
+			});
+			if (error) throw error;
+			if (data === true) {
+				loggedIn = true;
+				loginUser = "";
+				loginPass = "";
+				localStorage.setItem(ECHO_AUTH_KEY, JSON.stringify({
+					authenticated: true,
+					timestamp: Date.now()
+				}));
+				loadEchoes();
+			} else {
+				loginError = "账号或密码错误";
+			}
+		} catch (e: any) {
+			loginError = "登录验证失败：" + (e?.message || "未知错误");
+		} finally {
+			loginLoading = false;
 		}
-		role = profile.role as string;
-		if (role !== "owner" && role !== "admin") {
-			loginError = "当前账号没有管理权限";
-			return false;
-		}
-		return true;
+	}
+
+	function handleLogout() {
+		loggedIn = false;
+		localStorage.removeItem(ECHO_AUTH_KEY);
 	}
 
 	// 新建回声表单
@@ -67,30 +92,6 @@
 	let submitting = false;
 
 	const moodOptions = ["🌙", "😆", "🌱", "😊", "🤔", "😴", "✨", "🔥", "💭", "☕"];
-
-	async function handleLogin() {
-		loading = true;
-		loginError = "";
-
-		try {
-			if (await checkStaffAuth()) {
-				loggedIn = true;
-				loadEchoes();
-			}
-		} catch (e) {
-			loginError = "登录状态检查失败，请重试";
-		} finally {
-			loading = false;
-		}
-	}
-
-	/** 仅收起面板，不退出站点登录（退出登录请到修仙界页面顶栏操作） */
-	function handleLogout() {
-		loggedIn = false;
-		echoes = [];
-		role = null;
-		showForm = false;
-	}
 
 	async function loadEchoes() {
 		if (!supabase) return;
@@ -184,26 +185,50 @@
 	}
 
 	onMount(() => {
-		// 不再信任 localStorage 里的登录标记：每次进入都按当前会话重新判定权限
-		handleLogin();
+		checkEchoAuth();
+		if (loggedIn) {
+			loadEchoes();
+		}
 	});
 </script>
 
 <div class="admin-echoes">
 	{#if !loggedIn}
-		<!-- 没有后台权限：引导用宗主账号登录，前端不再放任何密码 -->
+		<!-- 公告管理独立登录（账号密码存 Supabase，与修仙界无关） -->
 		<div class="admin-login">
-			<h2>公告管理</h2>
-			<p class="admin-login-sub">需要宗主或管理员账号登录，登录后自动进入</p>
+			<h2>公告管理登录</h2>
+			<p class="admin-login-sub">使用公告管理员账号密码登录</p>
 
 			{#if loginError}
 				<div class="admin-error">{loginError}</div>
 			{/if}
 
+			<div class="admin-login-form">
+				<div class="form-group">
+					<label for="echo-login-user">账号</label>
+					<input
+						id="echo-login-user"
+						type="text"
+						bind:value={loginUser}
+						placeholder="请输入管理员账号"
+						on:keydown={(e) => e.key === "Enter" && handleLogin()}
+					/>
+				</div>
+				<div class="form-group">
+					<label for="echo-login-pass">密码</label>
+					<input
+						id="echo-login-pass"
+						type="password"
+						bind:value={loginPass}
+						placeholder="请输入管理员密码"
+						on:keydown={(e) => e.key === "Enter" && handleLogin()}
+					/>
+				</div>
+			</div>
+
 			<div class="admin-login-actions">
-				<a class="admin-btn admin-btn-primary" href="/cultivation/login/">前往登录</a>
-				<button class="admin-btn admin-btn-secondary" on:click={handleLogin} disabled={loading}>
-					{#if loading}检查中...{:else}我已登录，重新检查{/if}
+				<button class="admin-btn admin-btn-primary" on:click={handleLogin} disabled={loginLoading}>
+					{#if loginLoading}验证中...{:else}登录{/if}
 				</button>
 			</div>
 		</div>

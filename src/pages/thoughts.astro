@@ -25,6 +25,14 @@ const description = "一些想法经过时间，最终留下的痕迹。";
 			</div>
 			<div class="echo-title-row">
 				<h1 class="echo-title">公告</h1>
+			</div>
+			<p class="echo-sub">一些想法经过时间，最终留下的痕迹。</p>
+		</header>
+
+		<!-- 回声列表（客户端动态加载 Supabase 数据） -->
+		<section class="echo-list">
+			<!-- 工具栏：写公告按钮放在卡片区域最右边 -->
+			<div class="echo-list-toolbar">
 				<a href="/admin/echoes/" class="echo-admin-btn" target="_blank" rel="noopener">
 					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="echo-admin-icon">
 						<path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
@@ -32,11 +40,6 @@ const description = "一些想法经过时间，最终留下的痕迹。";
 					写公告
 				</a>
 			</div>
-			<p class="echo-sub">一些想法经过时间，最终留下的痕迹。</p>
-		</header>
-
-		<!-- 回声列表（客户端动态加载 Supabase 数据） -->
-		<section class="echo-list">
 			<ClientEchoes client:only="svelte" />
 		</section>
 	</div>
@@ -163,6 +166,14 @@ const description = "一些想法经过时间，最终留下的痕迹。";
 		color: #7F8799;
 		line-height: 1.7;
 		max-width: 480px;
+	}
+
+	/* 回声列表工具栏：写公告按钮放在卡片区域最右边 */
+	.echo-list-toolbar {
+		display: flex;
+		justify-content: flex-end;
+		align-items: center;
+		margin-bottom: 1.25rem;
 	}
 
 	/* 回声列表 */

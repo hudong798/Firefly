@@ -48,9 +48,26 @@ const description = "时间的安排，未来的轨迹。";
 
 <script>
 	// 点击"写日程"按钮，派发自定义事件让 ClientSchedules 组件打开表单
-	document.getElementById("schedule-add-btn")?.addEventListener("click", () => {
-		window.dispatchEvent(new CustomEvent("open-schedule-form"));
-	});
+	function bindScheduleAddBtn() {
+		const btn = document.getElementById("schedule-add-btn");
+		if (!btn) {
+			// DOM 还没准备好，等一下再试
+			setTimeout(bindScheduleAddBtn, 100);
+			return;
+		}
+		btn.addEventListener("click", () => {
+			// 按钮点击反馈
+			btn.style.transform = "scale(0.95)";
+			setTimeout(() => { btn.style.transform = ""; }, 150);
+			// 派发自定义事件
+			window.dispatchEvent(new CustomEvent("open-schedule-form"));
+		});
+	}
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", bindScheduleAddBtn);
+	} else {
+		bindScheduleAddBtn();
+	}
 </script>
 
 <style>

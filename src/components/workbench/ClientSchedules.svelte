@@ -17,9 +17,80 @@
 	let schedules: Schedule[] = [];
 	let loading = true;
 	let error = "";
-	let isLoggedIn = false;
 	let showForm = false;
 	let editingId: string | null = null;
+
+	// ===== 日程独立管理员登录（账号密码存 Supabase，与修仙界完全无关）=====
+	const SCHEDULE_AUTH_KEY = "schedule_admin_auth";
+	const SCHEDULE_AUTH_EXPIRE = 1000 * 60 * 60 * 8; // 8小时过期
+	let scheduleAdminLoggedIn = false;
+	let showScheduleLogin = false;
+	let scheduleLoginUser = "";
+	let scheduleLoginPass = "";
+	let scheduleLoginError = "";
+	let scheduleLoginLoading = false;
+
+	function checkScheduleAdminAuth() {
+		try {
+			const raw = localStorage.getItem(SCHEDULE_AUTH_KEY);
+			if (!raw) return;
+			const data = JSON.parse(raw);
+			if (data.authenticated && Date.now() - data.timestamp < SCHEDULE_AUTH_EXPIRE) {
+				scheduleAdminLoggedIn = true;
+			} else {
+				localStorage.removeItem(SCHEDULE_AUTH_KEY);
+			}
+		} catch (e) {
+			localStorage.removeItem(SCHEDULE_AUTH_KEY);
+		}
+	}
+
+	async function scheduleAdminLogin() {
+		if (scheduleLoginLoading) return;
+		if (!scheduleLoginUser.trim() || !scheduleLoginPass) {
+			scheduleLoginError = "请输入账号和密码";
+			return;
+		}
+		scheduleLoginLoading = true;
+		scheduleLoginError = "";
+		try {
+			const { data, error } = await supabase.rpc("verify_admin_credentials", {
+				p_module: "schedule",
+				p_username: scheduleLoginUser.trim(),
+				p_password: scheduleLoginPass
+			});
+			if (error) throw error;
+			if (data === true) {
+				scheduleAdminLoggedIn = true;
+				showScheduleLogin = false;
+				scheduleLoginUser = "";
+				scheduleLoginPass = "";
+				localStorage.setItem(SCHEDULE_AUTH_KEY, JSON.stringify({
+					authenticated: true,
+					timestamp: Date.now()
+				}));
+				openAddForm();
+			} else {
+				scheduleLoginError = "账号或密码错误";
+			}
+		} catch (e: any) {
+			scheduleLoginError = "登录验证失败：" + (e?.message || "未知错误");
+		} finally {
+			scheduleLoginLoading = false;
+		}
+	}
+
+	function scheduleAdminLogout() {
+		scheduleAdminLoggedIn = false;
+		localStorage.removeItem(SCHEDULE_AUTH_KEY);
+	}
+
+	function closeScheduleLogin() {
+		showScheduleLogin = false;
+		scheduleLoginError = "";
+		scheduleLoginUser = "";
+		scheduleLoginPass = "";
+	}
 
 	// 表单字段
 	let formTitle = "";
@@ -108,12 +179,6 @@
 	function closeForm() {
 		showForm = false;
 		resetForm();
-	}
-
-	async function checkLogin() {
-		if (!supabase) return;
-		const { data } = await supabase.auth.getSession();
-		isLoggedIn = !!data.session;
 	}
 
 	async function loadSchedules() {
@@ -213,19 +278,21 @@
 		}
 	}
 
+	function handleOpenScheduleForm() {
+		if (scheduleAdminLoggedIn) {
+			openAddForm();
+		} else {
+			showScheduleLogin = true;
+		}
+	}
+
 	onMount(async () => {
-		await checkLogin();
+		checkScheduleAdminAuth();
 		await loadSchedules();
-		// 监听页面"写日程"按钮派发的自定义事件
-		window.addEventListener("open-schedule-form", () => {
-			if (isLoggedIn) {
-				openAddForm();
-			} else {
-				alert("请先登录后再添加日程");
-			}
-		});
 	});
 </script>
+
+<svelte:window on:open-schedule-form={handleOpenScheduleForm} />
 
 <div class="client-schedules">
 	{#if loading}
@@ -288,7 +355,7 @@
 								{#if s.description}
 									<p class="sch-description">{s.description}</p>
 								{/if}
-								{#if isLoggedIn}
+								{#if scheduleAdminLoggedIn}
 									<div class="sch-actions">
 										<button class="sch-action-btn" on:click={() => toggleStatus(s)}>
 											{s.status === "upcoming" ? "标记完成" : "标记未完成"}
@@ -302,6 +369,37 @@
 					</div>
 				</div>
 			{/each}
+		</div>
+	{/if}
+
+	<!-- 日程管理员登录弹窗（独立系统，与修仙界无关） -->
+	{#if showScheduleLogin}
+		<div class="sch-modal-overlay" on:click={closeScheduleLogin}>
+			<div class="sch-modal sch-login-modal" on:click|stopPropagation>
+				<div class="sch-modal-header">
+					<h3>日程管理登录</h3>
+					<button class="sch-modal-close" on:click={closeScheduleLogin}>×</button>
+				</div>
+				<div class="sch-modal-body">
+					{#if scheduleLoginError}
+						<div class="sch-form-error">{scheduleLoginError}</div>
+					{/if}
+					<div class="sch-form-group">
+						<label>账号</label>
+						<input type="text" bind:value={scheduleLoginUser} placeholder="请输入管理员账号" on:keydown={(e) => e.key === "Enter" && scheduleAdminLogin()} />
+					</div>
+					<div class="sch-form-group">
+						<label>密码</label>
+						<input type="password" bind:value={scheduleLoginPass} placeholder="请输入管理员密码" on:keydown={(e) => e.key === "Enter" && scheduleAdminLogin()} />
+					</div>
+				</div>
+				<div class="sch-modal-footer">
+					<button class="sch-btn-cancel" on:click={closeScheduleLogin}>取消</button>
+					<button class="sch-btn-submit" on:click={scheduleAdminLogin} disabled={scheduleLoginLoading}>
+						{scheduleLoginLoading ? "验证中..." : "登录"}
+					</button>
+				</div>
+			</div>
 		</div>
 	{/if}
 
