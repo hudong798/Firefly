@@ -11,6 +11,7 @@ export interface TravelEntry {
 	tags?: string[];
 	content?: string;
 	gallery?: string[];
+	year?: number;
 }
 
 export const travels: TravelEntry[] = [

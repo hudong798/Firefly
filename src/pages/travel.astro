@@ -17,6 +17,11 @@ const countries = new Set(
 	travels.map((t) => t.location.split("·")[0].trim()).filter(Boolean),
 );
 const countryCount = countries.size;
+// 动态计算年份区间
+const years = travels.map((t) => t.year).filter((y): y is number => typeof y === "number" && y > 0);
+const minYear = years.length > 0 ? Math.min(...years) : null;
+const maxYear = years.length > 0 ? Math.max(...years) : null;
+const yearRange = minYear && maxYear ? (minYear === maxYear ? String(minYear) : `${minYear} — ${maxYear}`) : "";
 ---
 
 <MainGridLayout title={title} description={description}>
@@ -64,8 +69,8 @@ const countryCount = countries.size;
 				</div>
 				<div class="traj-stat-divider"></div>
 				<div class="traj-stat">
-					<span class="traj-stat-num">2022</span>
-					<span class="traj-stat-label">— 2024</span>
+					<span class="traj-stat-num">{minYear ?? "—"}</span>
+					{maxYear && maxYear !== minYear && <span class="traj-stat-label">— {maxYear}</span>}
 				</div>
 			</div>
 		</header>

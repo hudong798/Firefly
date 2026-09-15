@@ -392,6 +392,7 @@
 		}
 		submitting = true;
 		actionMessage = "";
+		const wasEditing = !!editingId;
 		try {
 			generateSlug();
 			const tagsArr = formTags
@@ -428,6 +429,27 @@
 				});
 				if (error) throw error;
 				actionMessage = "轨迹更新成功！";
+				// 直接更新本地数组，确保页面立即刷新
+				const idx = travels.findIndex(t => t.id === editingId);
+				if (idx !== -1) {
+					travels[idx] = {
+						...travels[idx],
+						title: formTitle.trim(),
+						slug: formSlug.trim(),
+						cover_image: formCover.trim() || null,
+						description: formDescription.trim() || null,
+						content: formContent.trim() || null,
+						tags: tagsArr.length > 0 ? tagsArr : [],
+						country: formCountry.trim() || null,
+						destination: formDestination.trim() || null,
+						year: formYear ? parseInt(formYear) : null,
+						start_date: formStartDate || null,
+						end_date: formEndDate || null,
+						status: formStatus,
+						sort_order: formSortOrder ? parseInt(formSortOrder) : null
+					};
+					travels = [...travels];
+				}
 			} else {
 				const { error } = await supabase.rpc("admin_insert_travel", {
 					p_username: creds.username,
@@ -453,7 +475,10 @@
 
 			resetForm();
 			showForm = false;
-			loadTravels();
+			// 新增成功后需要重新加载以获取新轨迹ID；编辑成功后已更新本地数组无需重载
+			if (!wasEditing) {
+				loadTravels();
+			}
 		} catch (e: any) {
 			actionMessage = e?.message || "保存失败";
 		} finally {
@@ -479,7 +504,8 @@
 			});
 			if (error) throw error;
 			actionMessage = "已删除";
-			loadTravels();
+			// 直接从本地数组移除，确保页面立即刷新，不再调用 loadTravels() 避免覆盖
+			travels = travels.filter(t => t.id !== id);
 		} catch (e: any) {
 			actionMessage = e?.message || "删除失败";
 		}

@@ -37,6 +37,7 @@ export function supabaseTravelToEntry(t: Travel): TravelEntry {
 		tags: t.tags || [],
 		content: t.content || undefined,
 		gallery: t.gallery || undefined,
+		year: t.year || undefined,
 	};
 }
 
