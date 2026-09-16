@@ -29,12 +29,12 @@ const description = "时间的安排，未来的轨迹。";
 					<p class="schedule-sub">时间的安排，未来的轨迹。</p>
 				</div>
 				<div class="schedule-header-right">
-					<button class="schedule-admin-btn" id="schedule-add-btn" type="button">
+					<a href="/admin/schedule/" class="schedule-admin-btn" target="_blank" rel="noopener">
 						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="schedule-admin-icon">
 							<path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
 						</svg>
 						写日程
-					</button>
+					</a>
 				</div>
 			</div>
 		</header>
@@ -45,30 +45,6 @@ const description = "时间的安排，未来的轨迹。";
 		</section>
 	</div>
 </MainGridLayout>
-
-<script>
-	// 点击"写日程"按钮，派发自定义事件让 ClientSchedules 组件打开表单
-	function bindScheduleAddBtn() {
-		const btn = document.getElementById("schedule-add-btn");
-		if (!btn) {
-			// DOM 还没准备好，等一下再试
-			setTimeout(bindScheduleAddBtn, 100);
-			return;
-		}
-		btn.addEventListener("click", () => {
-			// 按钮点击反馈
-			btn.style.transform = "scale(0.95)";
-			setTimeout(() => { btn.style.transform = ""; }, 150);
-			// 派发自定义事件
-			window.dispatchEvent(new CustomEvent("open-schedule-form"));
-		});
-	}
-	if (document.readyState === "loading") {
-		document.addEventListener("DOMContentLoaded", bindScheduleAddBtn);
-	} else {
-		bindScheduleAddBtn();
-	}
-</script>
 
 <style>
 	/* 日程页面需要更宽的容器来承载 2/3 屏幕宽度的卡片，覆盖全局 .wb-chat 限制 */
@@ -266,8 +242,6 @@ const description = "时间的安排，未来的轨迹。";
 	.sch-meta-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; color: rgba(255,255,255,0.5); }
 	.sch-meta-item svg { width: 14px; height: 14px; flex-shrink: 0; }
 	.sch-description { font-size: 0.92rem; line-height: 1.75; color: rgba(255,255,255,0.65); margin: 0.7rem 0 0; white-space: pre-wrap; word-break: break-word; }
-	.sch-actions { display: flex; gap: 0.6rem; margin-top: 1rem; padding-top: 0.85rem; border-top: 1px solid rgba(255,255,255,0.06); }
-	.sch-action-btn { padding: 0.4rem 0.9rem; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 0.4rem; color: rgba(255,255,255,0.6); font-size: 0.78rem; cursor: pointer; font-family: inherit; }
 	.sch-empty { text-align: center; padding: 4rem 2rem; border: 1px solid rgba(255,255,255,0.06); border-radius: 1rem; background: rgba(255,255,255,0.02); }
 	.sch-empty-icon { width: 48px; height: 48px; margin: 0 auto 1rem; color: rgba(155,140,255,0.5); }
 	.sch-empty-icon svg { width: 100%; height: 100%; }
@@ -291,7 +265,5 @@ const description = "时间的安排，未来的轨迹。";
 		.sch-meta-item { font-size: 0.75rem; }
 		.sch-meta-item svg { width: 12px; height: 12px; }
 		.sch-description { font-size: 0.85rem; line-height: 1.6; }
-		.sch-actions { gap: 0.5rem; margin-top: 0.85rem; padding-top: 0.7rem; flex-wrap: wrap; }
-		.sch-action-btn { padding: 0.35rem 0.75rem; font-size: 0.75rem; }
 	}
 </style>

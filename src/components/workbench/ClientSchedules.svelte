@@ -17,106 +17,6 @@
 	let schedules: Schedule[] = [];
 	let loading = true;
 	let error = "";
-	let showForm = false;
-	let editingId: string | null = null;
-
-	// ===== 日程独立管理员登录（账号密码存 Supabase，与修仙界完全无关）=====
-	const SCHEDULE_AUTH_KEY = "schedule_admin_auth";
-	const SCHEDULE_AUTH_EXPIRE = 1000 * 60 * 60 * 8; // 8小时过期
-	let scheduleAdminLoggedIn = false;
-	let showScheduleLogin = false;
-	let scheduleLoginUser = "";
-	let scheduleLoginPass = "";
-	let scheduleLoginError = "";
-	let scheduleLoginLoading = false;
-
-	function checkScheduleAdminAuth() {
-		try {
-			const raw = localStorage.getItem(SCHEDULE_AUTH_KEY);
-			if (!raw) return;
-			const data = JSON.parse(raw);
-			if (data.authenticated && data.username && data.password && Date.now() - data.timestamp < SCHEDULE_AUTH_EXPIRE) {
-				scheduleAdminLoggedIn = true;
-			} else {
-				localStorage.removeItem(SCHEDULE_AUTH_KEY);
-			}
-		} catch (e) {
-			localStorage.removeItem(SCHEDULE_AUTH_KEY);
-		}
-	}
-
-	function getScheduleCredentials() {
-		try {
-			const raw = localStorage.getItem(SCHEDULE_AUTH_KEY);
-			if (!raw) return null;
-			const data = JSON.parse(raw);
-			if (data.username && data.password) {
-				return { username: data.username, password: data.password };
-			}
-		} catch (e) {}
-		return null;
-	}
-
-	async function scheduleAdminLogin() {
-		if (scheduleLoginLoading) return;
-		if (!scheduleLoginUser.trim() || !scheduleLoginPass) {
-			scheduleLoginError = "请输入账号和密码";
-			return;
-		}
-		scheduleLoginLoading = true;
-		scheduleLoginError = "";
-		try {
-			const { data, error } = await supabase.rpc("verify_admin_credentials", {
-				p_module: "schedule",
-				p_username: scheduleLoginUser.trim(),
-				p_password: scheduleLoginPass
-			});
-			if (error) throw error;
-			if (data === true) {
-				const savedUser = scheduleLoginUser.trim();
-				const savedPass = scheduleLoginPass;
-				scheduleAdminLoggedIn = true;
-				showScheduleLogin = false;
-				scheduleLoginUser = "";
-				scheduleLoginPass = "";
-				localStorage.setItem(SCHEDULE_AUTH_KEY, JSON.stringify({
-					authenticated: true,
-					username: savedUser,
-					password: savedPass,
-					timestamp: Date.now()
-				}));
-				openAddForm();
-			} else {
-				scheduleLoginError = "账号或密码错误";
-			}
-		} catch (e: any) {
-			scheduleLoginError = "登录验证失败：" + (e?.message || "未知错误");
-		} finally {
-			scheduleLoginLoading = false;
-		}
-	}
-
-	function scheduleAdminLogout() {
-		scheduleAdminLoggedIn = false;
-		localStorage.removeItem(SCHEDULE_AUTH_KEY);
-	}
-
-	function closeScheduleLogin() {
-		showScheduleLogin = false;
-		scheduleLoginError = "";
-		scheduleLoginUser = "";
-		scheduleLoginPass = "";
-	}
-
-	// 表单字段
-	let formTitle = "";
-	let formDescription = "";
-	let formDate = "";
-	let formTime = "";
-	let formLocation = "";
-	let formStatus: "upcoming" | "completed" | "cancelled" = "upcoming";
-	let submitting = false;
-	let formError = "";
 
 	const STATUS_LABELS: Record<string, string> = {
 		upcoming: "即将到来",
@@ -164,39 +64,6 @@
 		}));
 	})();
 
-	function resetForm() {
-		formTitle = "";
-		formDescription = "";
-		formDate = "";
-		formTime = "";
-		formLocation = "";
-		formStatus = "upcoming";
-		formError = "";
-		editingId = null;
-	}
-
-	function openAddForm() {
-		resetForm();
-		showForm = true;
-	}
-
-	function openEditForm(s: Schedule) {
-		editingId = s.id;
-		formTitle = s.title;
-		formDescription = s.description || "";
-		formDate = s.schedule_date;
-		formTime = s.schedule_time ? s.schedule_time.slice(0, 5) : "";
-		formLocation = s.location || "";
-		formStatus = s.status;
-		formError = "";
-		showForm = true;
-	}
-
-	function closeForm() {
-		showForm = false;
-		resetForm();
-	}
-
 	async function loadSchedules() {
 		if (!supabase) {
 			loading = false;
@@ -219,137 +86,10 @@
 		}
 	}
 
-	async function submitForm() {
-		if (!supabase) return;
-		if (!formTitle.trim()) {
-			formError = "请填写日程标题";
-			return;
-		}
-		if (!formDate) {
-			formError = "请选择日程日期";
-			return;
-		}
-
-		submitting = true;
-		formError = "";
-
-		const payload: Record<string, any> = {
-			title: formTitle.trim(),
-			description: formDescription.trim() || null,
-			schedule_date: formDate,
-			schedule_time: formTime || null,
-			location: formLocation.trim() || null,
-			status: formStatus,
-		};
-
-		try {
-			const creds = getScheduleCredentials();
-			if (!creds) {
-				scheduleAdminLoggedIn = false;
-				localStorage.removeItem(SCHEDULE_AUTH_KEY);
-				formError = "登录已过期，请重新登录";
-				return;
-			}
-
-			if (editingId) {
-				const { error: err } = await supabase.rpc("admin_update_schedule", {
-					p_username: creds.username,
-					p_password: creds.password,
-					p_id: editingId,
-					p_title: formTitle.trim(),
-					p_description: formDescription.trim() || null,
-					p_schedule_date: formDate,
-					p_schedule_time: formTime || null,
-					p_location: formLocation.trim() || null,
-					p_status: formStatus,
-					p_sort_order: null
-				});
-				if (err) throw err;
-			} else {
-				const { error: err } = await supabase.rpc("admin_insert_schedule", {
-					p_username: creds.username,
-					p_password: creds.password,
-					p_title: formTitle.trim(),
-					p_description: formDescription.trim() || null,
-					p_schedule_date: formDate,
-					p_schedule_time: formTime || null,
-					p_location: formLocation.trim() || null,
-					p_status: formStatus,
-					p_sort_order: 0
-				});
-				if (err) throw err;
-			}
-			closeForm();
-			await loadSchedules();
-		} catch (e: any) {
-			formError = e?.message || "保存失败";
-		} finally {
-			submitting = false;
-		}
-	}
-
-	async function deleteSchedule(id: string) {
-		if (!supabase) return;
-		if (!confirm("确定删除这条日程吗？此操作不可撤销。")) return;
-		try {
-			const creds = getScheduleCredentials();
-			if (!creds) {
-				scheduleAdminLoggedIn = false;
-				localStorage.removeItem(SCHEDULE_AUTH_KEY);
-				alert("登录已过期，请重新登录");
-				return;
-			}
-			const { error: err } = await supabase.rpc("admin_delete_schedule", {
-				p_username: creds.username,
-				p_password: creds.password,
-				p_id: id
-			});
-			if (err) throw err;
-			await loadSchedules();
-		} catch (e: any) {
-			alert("删除失败：" + (e?.message || "未知错误"));
-		}
-	}
-
-	async function toggleStatus(s: Schedule) {
-		if (!supabase) return;
-		const next = s.status === "upcoming" ? "completed" : "upcoming";
-		try {
-			const creds = getScheduleCredentials();
-			if (!creds) {
-				scheduleAdminLoggedIn = false;
-				localStorage.removeItem(SCHEDULE_AUTH_KEY);
-				alert("登录已过期，请重新登录");
-				return;
-			}
-			const { error: err } = await supabase.rpc("admin_update_schedule_status", {
-				p_username: creds.username,
-				p_password: creds.password,
-				p_id: s.id,
-				p_status: next
-			});
-			if (err) throw err;
-			await loadSchedules();
-		} catch (e: any) {
-			alert("更新失败：" + (e?.message || "未知错误"));
-		}
-	}
-
-	function handleOpenScheduleForm() {
-		if (scheduleAdminLoggedIn) {
-			openAddForm();
-		} else {
-			showScheduleLogin = true;
-		}
-	}
-
 	onMount(async () => {
-		checkScheduleAdminAuth();
 		await loadSchedules();
 	});
 </script>
-
-<svelte:window on:open-schedule-form={handleOpenScheduleForm} />
 
 <div class="client-schedules">
 	{#if loading}
@@ -361,7 +101,7 @@
 		<div class="sch-error">
 			<p>日程加载失败：{error}</p>
 		</div>
-	{:else if schedules.length === 0 && !showForm}
+	{:else if schedules.length === 0}
 		<div class="sch-empty">
 			<div class="sch-empty-icon">
 				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -412,104 +152,11 @@
 								{#if s.description}
 									<p class="sch-description">{s.description}</p>
 								{/if}
-								{#if scheduleAdminLoggedIn}
-									<div class="sch-actions">
-										<button class="sch-action-btn" on:click={() => toggleStatus(s)}>
-											{s.status === "upcoming" ? "标记完成" : "标记未完成"}
-										</button>
-										<button class="sch-action-btn" on:click={() => openEditForm(s)}>编辑</button>
-										<button class="sch-action-btn sch-delete" on:click={() => deleteSchedule(s.id)}>删除</button>
-									</div>
-								{/if}
 							</article>
 						{/each}
 					</div>
 				</div>
 			{/each}
-		</div>
-	{/if}
-
-	<!-- 日程管理员登录弹窗（独立系统，与修仙界无关） -->
-	{#if showScheduleLogin}
-		<div class="sch-modal-overlay" on:click={closeScheduleLogin}>
-			<div class="sch-modal sch-login-modal" on:click|stopPropagation>
-				<div class="sch-modal-header">
-					<h3>日程管理登录</h3>
-					<button class="sch-modal-close" on:click={closeScheduleLogin}>×</button>
-				</div>
-				<div class="sch-modal-body">
-					{#if scheduleLoginError}
-						<div class="sch-form-error">{scheduleLoginError}</div>
-					{/if}
-					<div class="sch-form-group">
-						<label>账号</label>
-						<input type="text" bind:value={scheduleLoginUser} placeholder="请输入管理员账号" on:keydown={(e) => e.key === "Enter" && scheduleAdminLogin()} />
-					</div>
-					<div class="sch-form-group">
-						<label>密码</label>
-						<input type="password" bind:value={scheduleLoginPass} placeholder="请输入管理员密码" on:keydown={(e) => e.key === "Enter" && scheduleAdminLogin()} />
-					</div>
-				</div>
-				<div class="sch-modal-footer">
-					<button class="sch-btn-cancel" on:click={closeScheduleLogin}>取消</button>
-					<button class="sch-btn-submit" on:click={scheduleAdminLogin} disabled={scheduleLoginLoading}>
-						{scheduleLoginLoading ? "验证中..." : "登录"}
-					</button>
-				</div>
-			</div>
-		</div>
-	{/if}
-
-	<!-- 添加/编辑表单弹窗 -->
-	{#if showForm}
-		<div class="sch-modal-overlay" on:click={closeForm}>
-			<div class="sch-modal" on:click|stopPropagation>
-				<div class="sch-modal-header">
-					<h3>{editingId ? "编辑日程" : "添加日程"}</h3>
-					<button class="sch-modal-close" on:click={closeForm}>×</button>
-				</div>
-				<div class="sch-modal-body">
-					{#if formError}
-						<div class="sch-form-error">{formError}</div>
-					{/if}
-					<div class="sch-form-group">
-						<label>标题 *</label>
-						<input type="text" bind:value={formTitle} placeholder="日程标题" />
-					</div>
-					<div class="sch-form-row">
-						<div class="sch-form-group">
-							<label>日期 *</label>
-							<input type="date" bind:value={formDate} />
-						</div>
-						<div class="sch-form-group">
-							<label>时间</label>
-							<input type="time" bind:value={formTime} />
-						</div>
-					</div>
-					<div class="sch-form-group">
-						<label>地点</label>
-						<input type="text" bind:value={formLocation} placeholder="日程地点（可选）" />
-					</div>
-					<div class="sch-form-group">
-						<label>描述</label>
-						<textarea bind:value={formDescription} placeholder="日程详细描述（可选）" rows="3"></textarea>
-					</div>
-					<div class="sch-form-group">
-						<label>状态</label>
-						<select bind:value={formStatus}>
-							<option value="upcoming">即将到来</option>
-							<option value="completed">已完成</option>
-							<option value="cancelled">已取消</option>
-						</select>
-					</div>
-				</div>
-				<div class="sch-modal-footer">
-					<button class="sch-btn-cancel" on:click={closeForm}>取消</button>
-					<button class="sch-btn-submit" on:click={submitForm} disabled={submitting}>
-						{submitting ? "保存中..." : (editingId ? "保存修改" : "添加日程")}
-					</button>
-				</div>
-			</div>
 		</div>
 	{/if}
 </div>
@@ -570,31 +217,6 @@
 		font-size: 0.85rem;
 		color: rgba(141, 150, 170, 0.6);
 		margin: 0 0 1.5rem;
-	}
-
-	/* 操作栏 */
-	.sch-toolbar {
-		display: flex;
-		justify-content: flex-end;
-		margin-bottom: 1.5rem;
-	}
-
-	/* 添加按钮 */
-	.sch-add-btn {
-		padding: 0.5rem 1.25rem;
-		background: linear-gradient(135deg, rgba(155, 140, 255, 0.25), rgba(99, 216, 255, 0.15));
-		border: 1px solid rgba(155, 140, 255, 0.4);
-		border-radius: 0.6rem;
-		color: #F5F7FF;
-		font-size: 0.85rem;
-		font-weight: 600;
-		cursor: pointer;
-		transition: all 0.2s;
-		font-family: inherit;
-	}
-	.sch-add-btn:hover {
-		background: linear-gradient(135deg, rgba(155, 140, 255, 0.35), rgba(99, 216, 255, 0.25));
-		box-shadow: 0 0 16px rgba(155, 140, 255, 0.3);
 	}
 
 	/* 时间线：左日期栏 + 竖向轨道 + 右卡片列，与页面容器共用同一轴线 */
@@ -725,159 +347,6 @@
 		word-break: break-word;
 	}
 
-	/* 操作按钮 */
-	.sch-actions {
-		display: flex;
-		gap: 0.6rem;
-		margin-top: 1rem;
-		padding-top: 0.85rem;
-		border-top: 1px solid rgba(255, 255, 255, 0.06);
-	}
-	.sch-action-btn {
-		padding: 0.4rem 0.9rem;
-		background: rgba(255, 255, 255, 0.04);
-		border: 1px solid rgba(255, 255, 255, 0.08);
-		border-radius: 0.4rem;
-		color: rgba(255, 255, 255, 0.6);
-		font-size: 0.78rem;
-		cursor: pointer;
-		transition: all 0.2s;
-		font-family: inherit;
-	}
-	.sch-action-btn:hover {
-		background: rgba(155, 140, 255, 0.1);
-		color: rgba(155, 140, 255, 0.9);
-		border-color: rgba(155, 140, 255, 0.3);
-	}
-	.sch-action-btn.sch-delete:hover {
-		background: rgba(248, 113, 113, 0.1);
-		color: rgba(248, 113, 113, 0.9);
-		border-color: rgba(248, 113, 113, 0.3);
-	}
-
-	/* 弹窗 */
-	.sch-modal-overlay {
-		position: fixed;
-		inset: 0;
-		background: rgba(0, 0, 0, 0.6);
-		backdrop-filter: blur(4px);
-		z-index: 1000;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		padding: 1rem;
-	}
-	.sch-modal {
-		width: 100%;
-		max-width: 480px;
-		max-height: 90vh;
-		overflow-y: auto;
-		background: rgba(15, 18, 30, 0.95);
-		border: 1px solid rgba(155, 140, 255, 0.2);
-		border-radius: 1rem;
-		box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-	}
-	.sch-modal-header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 1.25rem 1.5rem;
-		border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-	}
-	.sch-modal-header h3 {
-		margin: 0;
-		font-size: 1.1rem;
-		color: #F5F7FF;
-	}
-	.sch-modal-close {
-		background: none;
-		border: none;
-		color: rgba(255, 255, 255, 0.4);
-		font-size: 1.5rem;
-		cursor: pointer;
-		line-height: 1;
-		padding: 0.25rem;
-	}
-	.sch-modal-close:hover { color: #F5F7FF; }
-	.sch-modal-body { padding: 1.5rem; }
-	.sch-modal-footer {
-		display: flex;
-		justify-content: flex-end;
-		gap: 0.75rem;
-		padding: 1rem 1.5rem 1.5rem;
-	}
-
-	/* 表单 */
-	.sch-form-group { margin-bottom: 1rem; }
-	.sch-form-group label {
-		display: block;
-		font-size: 0.8rem;
-		color: rgba(255, 255, 255, 0.6);
-		margin-bottom: 0.4rem;
-	}
-	.sch-form-group input,
-	.sch-form-group textarea,
-	.sch-form-group select {
-		width: 100%;
-		padding: 0.6rem 0.75rem;
-		background: rgba(255, 255, 255, 0.04);
-		border: 1px solid rgba(255, 255, 255, 0.1);
-		border-radius: 0.5rem;
-		color: #F5F7FF;
-		font-size: 0.85rem;
-		font-family: inherit;
-		box-sizing: border-box;
-	}
-	.sch-form-group input:focus,
-	.sch-form-group textarea:focus,
-	.sch-form-group select:focus {
-		outline: none;
-		border-color: rgba(155, 140, 255, 0.5);
-		box-shadow: 0 0 0 3px rgba(155, 140, 255, 0.1);
-	}
-	.sch-form-row {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 0.75rem;
-	}
-	.sch-form-error {
-		padding: 0.6rem 0.75rem;
-		background: rgba(248, 113, 113, 0.1);
-		border: 1px solid rgba(248, 113, 113, 0.3);
-		border-radius: 0.5rem;
-		color: rgba(248, 113, 113, 0.9);
-		font-size: 0.8rem;
-		margin-bottom: 1rem;
-	}
-
-	/* 弹窗按钮 */
-	.sch-btn-cancel {
-		padding: 0.55rem 1.25rem;
-		background: rgba(255, 255, 255, 0.04);
-		border: 1px solid rgba(255, 255, 255, 0.1);
-		border-radius: 0.5rem;
-		color: rgba(255, 255, 255, 0.6);
-		font-size: 0.85rem;
-		cursor: pointer;
-		font-family: inherit;
-	}
-	.sch-btn-cancel:hover { background: rgba(255, 255, 255, 0.08); }
-	.sch-btn-submit {
-		padding: 0.55rem 1.25rem;
-		background: linear-gradient(135deg, rgba(155, 140, 255, 0.3), rgba(99, 216, 255, 0.2));
-		border: 1px solid rgba(155, 140, 255, 0.4);
-		border-radius: 0.5rem;
-		color: #F5F7FF;
-		font-size: 0.85rem;
-		font-weight: 600;
-		cursor: pointer;
-		font-family: inherit;
-	}
-	.sch-btn-submit:hover:not(:disabled) {
-		box-shadow: 0 0 16px rgba(155, 140, 255, 0.3);
-	}
-	.sch-btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
-
 	/* 响应式：移动端——日期回到卡片上方横排，去掉轨道线 */
 	@media (max-width: 768px) {
 		.sch-timeline { gap: 1.75rem; }
@@ -908,8 +377,5 @@
 		.sch-meta-item { font-size: 0.75rem; }
 		.sch-meta-item svg { width: 12px; height: 12px; }
 		.sch-description { font-size: 0.85rem; line-height: 1.6; }
-		.sch-actions { gap: 0.5rem; margin-top: 0.85rem; padding-top: 0.7rem; flex-wrap: wrap; }
-		.sch-action-btn { padding: 0.35rem 0.75rem; font-size: 0.75rem; }
-		.sch-form-row { grid-template-columns: 1fr; }
 	}
 </style>
