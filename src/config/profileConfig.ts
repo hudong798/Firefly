@@ -2,10 +2,10 @@ import type { ProfileConfig } from "../types/config";
 
 export const profileConfig: ProfileConfig = {
 	// 头像
-	avatar: "/assets/images/avatar-new.png",
+	avatar: "/assets/images/avatar-freex.png",
 
 	// 名字
-	name: "Itong",
+	name: "FreeX",
 
 	// 个人签名
 	bio: "Regard the suspicious gazes of others as mere flickering ghost fires, and boldly walk your night path.",
