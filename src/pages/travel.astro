@@ -5,7 +5,7 @@ import MainGridLayout from "@/layouts/MainGridLayout.astro";
 import { getTravelEntries } from "@/services/travel.service";
 
 const title = "轨迹";
-const description = "每一张封面，都是一段出发与抵达。";
+const description = "一封面，一程启抵。";
 
 // 从 Supabase 获取旅行数据（未配置时自动降级到静态数据）
 const travels = await getTravelEntries();
@@ -43,7 +43,7 @@ const yearRange = minYear && maxYear ? (minYear === maxYear ? String(minYear) : 
 						<span class="traj-header-line"></span>
 					</div>
 					<h1 class="traj-title">轨迹</h1>
-					<p class="traj-sub">每一张封面，都是一段出发与抵达。</p>
+					<p class="traj-sub">一封面，一程启抵。</p>
 				</div>
 
 				<!-- 发布轨迹按钮 -->
