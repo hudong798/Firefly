@@ -192,6 +192,131 @@
 		}
 	}
 
+	// ===== 正文图片：压缩 + 上传 + 光标处插入 Markdown =====
+	const MAX_IMAGE_SIZE = 500 * 1024; // 500KB
+	const MAX_IMAGE_DIMENSION = 1920; // 最大边1920px
+	let contentImageUploading = false;
+	let contentImageError = "";
+
+	function compressImage(file: File): Promise<Blob> {
+		return new Promise((resolve, reject) => {
+			if (file.size <= MAX_IMAGE_SIZE) {
+				resolve(file);
+				return;
+			}
+			const reader = new FileReader();
+			reader.onload = (e) => {
+				const img = new Image();
+				img.onload = () => {
+					let { width, height } = img;
+					const scale = Math.min(1, MAX_IMAGE_DIMENSION / Math.max(width, height));
+					width = Math.round(width * scale);
+					height = Math.round(height * scale);
+
+					const canvas = document.createElement("canvas");
+					canvas.width = width;
+					canvas.height = height;
+					const ctx = canvas.getContext("2d");
+					if (!ctx) {
+						reject(new Error("无法创建Canvas"));
+						return;
+					}
+					ctx.drawImage(img, 0, 0, width, height);
+
+					let quality = 0.85;
+					const tryCompress = () => {
+						canvas.toBlob(
+							(blob) => {
+								if (!blob) {
+									reject(new Error("压缩失败"));
+									return;
+								}
+								if (blob.size <= MAX_IMAGE_SIZE || quality <= 0.15) {
+									resolve(blob);
+								} else {
+									quality -= 0.1;
+									tryCompress();
+								}
+							},
+							"image/jpeg",
+							quality
+						);
+					};
+					tryCompress();
+				};
+				img.onerror = () => reject(new Error("图片加载失败"));
+				img.src = e.target?.result as string;
+			};
+			reader.onerror = () => reject(new Error("文件读取失败"));
+			reader.readAsDataURL(file);
+		});
+	}
+
+	function insertTextAtCursor(textarea: HTMLTextAreaElement, text: string) {
+		const start = textarea.selectionStart ?? textarea.value.length;
+		const end = textarea.selectionEnd ?? textarea.value.length;
+		const newValue = textarea.value.substring(0, start) + text + textarea.value.substring(end);
+
+		const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value")?.set;
+		if (setter) {
+			setter.call(textarea, newValue);
+		} else {
+			textarea.value = newValue;
+		}
+		textarea.dispatchEvent(new Event("input", { bubbles: true }));
+
+		const newPos = start + text.length;
+		textarea.setSelectionRange(newPos, newPos);
+		textarea.focus();
+	}
+
+	async function handleContentImageSelect(e: Event) {
+		const input = e.target as HTMLInputElement;
+		const file = input.files?.[0];
+		if (!file) return;
+
+		if (!file.type.startsWith("image/")) {
+			contentImageError = "请选择图片文件";
+			return;
+		}
+
+		contentImageUploading = true;
+		contentImageError = "";
+
+		try {
+			const compressedBlob = await compressImage(file);
+			const fileName = `echo-content-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+
+			const { data, error } = await supabase.storage
+				.from("travel-covers")
+				.upload(fileName, compressedBlob, {
+					cacheControl: "3600",
+					upsert: false,
+					contentType: "image/jpeg",
+				});
+
+			if (error) throw error;
+
+			const { data: urlData } = supabase.storage
+				.from("travel-covers")
+				.getPublicUrl(data.path);
+
+			const textarea = document.getElementById("echo-content-input") as HTMLTextAreaElement | null;
+			const imgMarkdown = `\n\n![${file.name.replace(/\.[^.]+$/, "")}](${urlData.publicUrl})\n\n`;
+
+			if (textarea) {
+				insertTextAtCursor(textarea, imgMarkdown);
+			} else {
+				newContent = (newContent || "") + imgMarkdown;
+			}
+		} catch (err: any) {
+			contentImageError = "上传失败：" + (err?.message || "未知错误");
+		} finally {
+			contentImageUploading = false;
+			input.value = "";
+		}
+	}
+
 	async function deleteEcho(id: string) {
 		if (!supabase) return;
 		if (!confirm("确定删除这条说说吗？此操作不可撤销。")) return;
@@ -306,9 +431,36 @@
 						</div>
 					</div>
 
-					<div class="form-group">
-						<label>内容 *</label>
-						<textarea bind:value={newContent} rows={6} placeholder="写下你此刻的想法..."></textarea>
+					<div class="form-group content-editor-group">
+						<div class="content-editor-header">
+							<label>内容 *（支持 Markdown）</label>
+							<div class="content-editor-toolbar">
+								<label class="toolbar-btn {contentImageUploading ? 'uploading' : ''}" title="在光标位置插入图片">
+									<input
+										type="file"
+										accept="image/*"
+										on:change={handleContentImageSelect}
+										class="toolbar-file-input"
+									/>
+									<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="toolbar-icon">
+										<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+										<circle cx="8.5" cy="8.5" r="1.5"/>
+										<polyline points="21 15 16 10 5 21"/>
+									</svg>
+									<span>{contentImageUploading ? "上传中..." : "插入图片"}</span>
+								</label>
+							</div>
+						</div>
+						{#if contentImageError}
+							<div class="content-editor-error">{contentImageError}</div>
+						{/if}
+						<textarea
+							id="echo-content-input"
+							bind:value={newContent}
+							rows={8}
+							placeholder="写下你此刻的想法...支持 Markdown 语法（标题、列表、加粗、引用等），点击上方「插入图片」可在光标处插入图片"
+						></textarea>
+						<p class="content-editor-hint">支持 Markdown；插入的图片会自动压缩到 500KB 以内并在光标位置生成图片链接</p>
 					</div>
 
 					<div class="form-row">
@@ -622,6 +774,72 @@
 	.form-group textarea:focus {
 		outline: none;
 		border-color: #6366f1;
+	}
+
+	/* 正文 Markdown 编辑器 */
+	.content-editor-group {
+		margin-bottom: 1rem;
+	}
+	.content-editor-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 0.4rem;
+	}
+	.content-editor-header label {
+		margin-bottom: 0;
+	}
+	.content-editor-toolbar {
+		display: flex;
+		gap: 0.5rem;
+	}
+	.toolbar-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		padding: 0.35rem 0.8rem;
+		background: rgba(255, 255, 255, 0.05);
+		border: 1px solid rgba(255, 255, 255, 0.12);
+		border-radius: 6px;
+		color: rgba(255, 255, 255, 0.65);
+		font-size: 0.78rem;
+		cursor: pointer;
+		transition: all 0.2s;
+	}
+	.toolbar-btn:hover:not(.uploading) {
+		background: rgba(124, 111, 255, 0.12);
+		border-color: rgba(124, 111, 255, 0.35);
+		color: #b8adff;
+	}
+	.toolbar-btn.uploading {
+		opacity: 0.55;
+		cursor: wait;
+	}
+	.toolbar-file-input {
+		display: none;
+	}
+	.toolbar-icon {
+		width: 0.85rem;
+		height: 0.85rem;
+	}
+	.content-editor-error {
+		padding: 0.45rem 0.7rem;
+		margin-bottom: 0.5rem;
+		background: rgba(255, 80, 80, 0.1);
+		border: 1px solid rgba(255, 80, 80, 0.25);
+		border-radius: 6px;
+		color: #ff8a8a;
+		font-size: 0.78rem;
+	}
+	.content-editor-hint {
+		margin: 0.4rem 0 0;
+		font-size: 0.72rem;
+		color: #64748b;
+	}
+	.content-editor-group textarea {
+		font-family: "SF Mono", "Menlo", "Consolas", monospace;
+		line-height: 1.7;
+		min-height: 180px;
 	}
 
 	.mood-picker {

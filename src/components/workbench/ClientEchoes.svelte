@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from "svelte";
+	import { marked } from "marked";
 	import { supabase } from "@/lib/supabase";
 
 	interface Echo {
@@ -20,12 +21,35 @@
 
 	const MOMENT_PREVIEW_LIMIT = 50;
 
+	// 去除 Markdown 语法，提取纯文本用于预览
+	function plainTextOf(markdown: string): string {
+		return markdown
+			.replace(/!\[[^\]]*\]\([^)]*\)/g, "") // 图片
+			.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1") // 链接保留文字
+			.replace(/^#{1,6}\s+/gm, "") // 标题符号
+			.replace(/\*\*?([^*]+)\*\*?/g, "$1") // 加粗/斜体
+			.replace(/`([^`]+)`/g, "$1") // 行内代码
+			.replace(/^>\s?/gm, "") // 引用
+			.replace(/^[-*+]\s+/gm, "") // 无序列表
+			.replace(/^\d+\.\s+/gm, "") // 有序列表
+			.replace(/\|/g, " ") // 表格
+			.replace(/^={3,}|-{3,}|_{3,}$/gm, "") // 分隔线
+			.replace(/\n{2,}/g, "\n")
+			.trim();
+	}
+
 	function previewOf(content: string) {
-		const isLong = content.length > MOMENT_PREVIEW_LIMIT;
+		const plain = plainTextOf(content);
+		const isLong = plain.length > MOMENT_PREVIEW_LIMIT;
 		return {
 			isLong,
-			text: isLong ? content.slice(0, MOMENT_PREVIEW_LIMIT) + "…" : content,
+			text: isLong ? plain.slice(0, MOMENT_PREVIEW_LIMIT) + "…" : plain,
 		};
+	}
+
+	// 渲染 Markdown 为 HTML（breaks 保留单换行，兼容纯文本说说）
+	function renderMarkdown(content: string): string {
+		return marked.parse(content ?? "", { async: false, breaks: true, gfm: true }) as string;
 	}
 
 	function formatDate(dateStr: string): string {
@@ -143,7 +167,7 @@
 
 						<div class="echo-content">
 							{#if isExpanded || !p.isLong}
-								{echo.content}
+								<div class="echo-md">{@html renderMarkdown(echo.content)}</div>
 							{:else}
 								{p.text}
 							{/if}
@@ -351,6 +375,127 @@
 		word-break: break-word;
 	}
 
+	/* Markdown 渲染内容 */
+	.echo-md {
+		font-size: 0.95rem;
+		line-height: 1.9;
+		color: rgba(255, 255, 255, 0.78);
+		word-break: break-word;
+	}
+
+	.echo-md :global(p) {
+		margin: 0.6em 0;
+	}
+
+	.echo-md :global(p:first-child) {
+		margin-top: 0;
+	}
+
+	.echo-md :global(p:last-child) {
+		margin-bottom: 0;
+	}
+
+	.echo-md :global(h1),
+	.echo-md :global(h2),
+	.echo-md :global(h3),
+	.echo-md :global(h4) {
+		color: #f4f5fa;
+		font-weight: 600;
+		line-height: 1.4;
+		margin: 1em 0 0.5em;
+	}
+
+	.echo-md :global(h1) { font-size: 1.25rem; }
+	.echo-md :global(h2) { font-size: 1.15rem; }
+	.echo-md :global(h3) { font-size: 1.05rem; }
+	.echo-md :global(h4) { font-size: 1rem; }
+
+	.echo-md :global(ul),
+	.echo-md :global(ol) {
+		margin: 0.6em 0;
+		padding-left: 1.4em;
+	}
+
+	.echo-md :global(li) {
+		margin: 0.25em 0;
+	}
+
+	.echo-md :global(li::marker) {
+		color: rgba(155, 140, 255, 0.7);
+	}
+
+	.echo-md :global(blockquote) {
+		margin: 0.8em 0;
+		padding: 0.4em 1em;
+		border-left: 3px solid rgba(155, 140, 255, 0.4);
+		background: rgba(155, 140, 255, 0.06);
+		border-radius: 0 6px 6px 0;
+		color: rgba(255, 255, 255, 0.65);
+	}
+
+	.echo-md :global(blockquote p) {
+		margin: 0.3em 0;
+	}
+
+	.echo-md :global(code) {
+		font-size: 0.85em;
+		background: rgba(155, 140, 255, 0.1);
+		color: #b8adff;
+		padding: 0.12em 0.4em;
+		border-radius: 4px;
+		font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+	}
+
+	.echo-md :global(pre) {
+		background: rgba(15, 23, 42, 0.7);
+		border: 1px solid rgba(155, 140, 255, 0.15);
+		border-radius: 8px;
+		padding: 0.9em 1em;
+		overflow-x: auto;
+		margin: 0.8em 0;
+	}
+
+	.echo-md :global(pre code) {
+		background: none;
+		padding: 0;
+		color: rgba(255, 255, 255, 0.8);
+	}
+
+	.echo-md :global(a) {
+		color: rgba(155, 140, 255, 0.9);
+		text-decoration: underline;
+		text-underline-offset: 3px;
+		text-decoration-thickness: 1px;
+	}
+
+	.echo-md :global(a:hover) {
+		color: #b8adff;
+	}
+
+	.echo-md :global(hr) {
+		border: none;
+		border-top: 1px solid rgba(155, 140, 255, 0.2);
+		margin: 1.2em 0;
+	}
+
+	.echo-md :global(strong) {
+		color: #f4f5fa;
+		font-weight: 600;
+	}
+
+	/* 正文图片：桌面端 */
+	.echo-md :global(img) {
+		max-width: 100%;
+		max-height: 320px;
+		width: auto;
+		height: auto;
+		object-fit: contain;
+		border-radius: 10px;
+		margin: 1em auto;
+		display: block;
+		border: 1px solid rgba(155, 140, 255, 0.15);
+	}
+
 	.echo-expand-btn {
 		margin-top: 0.75rem;
 		padding: 0.3rem 0.75rem;
@@ -411,6 +556,17 @@
 
 		.echo-content {
 			font-size: 0.9rem;
+		}
+
+		.echo-md {
+			font-size: 0.9rem;
+		}
+
+		/* 正文图片：移动端，避免过大 */
+		.echo-md :global(img) {
+			max-height: 220px;
+			margin: 0.8em auto;
+			border-radius: 8px;
 		}
 	}
 </style>
