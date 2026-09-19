@@ -11,6 +11,7 @@
 		tags: string[] | null;
 		status: string;
 		created_at: string;
+		is_locked: boolean;
 	}
 
 	/**
@@ -98,13 +99,15 @@
 		localStorage.removeItem(ECHO_AUTH_KEY);
 	}
 
-	// 新建回声表单
+	// 新建说说表单
 	let showForm = false;
 	let newTitle = "";
 	let newSlug = "";
 	let newContent = "";
 	let newMood = "";
 	let newTags = "";
+	let newLocked = false;
+	let newLockPwd = "";
 	let submitting = false;
 
 	const moodOptions = ["🌙", "😆", "🌱", "😊", "🤔", "😴", "✨", "🔥", "💭", "☕"];
@@ -113,16 +116,21 @@
 		if (!supabase) return;
 		echoesLoading = true;
 		try {
+			const creds = getAdminCredentials();
+			if (!creds) {
+				echoes = [];
+				return;
+			}
 			const { data, error } = await supabase
-				.from("echoes")
-				.select("*")
-				.order("created_at", { ascending: false })
-				.limit(100);
+				.rpc("admin_list_echoes", {
+					p_username: creds.username,
+					p_password: creds.password
+				});
 
 			if (error) throw error;
 			echoes = (data as Echo[]) || [];
 		} catch (e) {
-			console.error("加载回声失败:", e);
+			console.error("加载说说失败:", e);
 			actionMessage = "加载失败";
 		} finally {
 			echoesLoading = false;
@@ -143,6 +151,10 @@
 		if (!supabase) return;
 		if (!newTitle.trim() || !newContent.trim()) {
 			actionMessage = "标题和内容不能为空";
+			return;
+		}
+		if (newLocked && !newLockPwd.trim()) {
+			actionMessage = "已勾选上锁，请设置解锁密码";
 			return;
 		}
 
@@ -171,7 +183,9 @@
 				p_content: newContent.trim(),
 				p_mood: newMood || null,
 				p_tags: tagsArr.length > 0 ? tagsArr : null,
-				p_status: "published"
+				p_status: "published",
+				p_is_locked: newLocked,
+				p_lock_password: newLocked ? newLockPwd.trim() : null
 			});
 
 			if (error) throw error;
@@ -183,6 +197,8 @@
 			newContent = "";
 			newMood = "";
 			newTags = "";
+			newLocked = false;
+			newLockPwd = "";
 			showForm = false;
 			loadEchoes();
 		} catch (e: any) {
@@ -483,6 +499,21 @@
 						</div>
 					</div>
 
+					<div class="lock-row">
+						<label class="lock-toggle">
+							<input type="checkbox" bind:checked={newLocked} />
+							<span>🔒 上锁保护（访客需输入密码才能查看正文）</span>
+						</label>
+						{#if newLocked}
+							<input
+								type="password"
+								bind:value={newLockPwd}
+								placeholder="设置这条说说的解锁密码"
+								class="lock-pwd-input"
+							/>
+						{/if}
+					</div>
+
 					<button class="admin-submit-btn" on:click={submitEcho} disabled={submitting}>
 						{#if submitting}发布中...{:else}发布说说{/if}
 					</button>
@@ -502,6 +533,7 @@
 								<div class="echo-item-title">
 									{#if echo.mood}<span class="echo-mood">{echo.mood}</span>{/if}
 									<span>{echo.title}</span>
+									{#if echo.is_locked}<span class="echo-locked-badge" title="已上锁">🔒</span>{/if}
 								</div>
 								<div class="echo-item-meta">
 									<span class="echo-date">{formatDate(echo.created_at)}</span>
@@ -869,6 +901,54 @@
 	.mood-btn.active {
 		background: rgba(99, 102, 241, 0.2);
 		border-color: #6366f1;
+	}
+
+	/* 上锁设置 */
+	.lock-row {
+		margin-bottom: 1rem;
+		padding: 0.8rem 1rem;
+		background: rgba(15, 23, 42, 0.5);
+		border: 1px solid rgba(148, 163, 184, 0.15);
+		border-radius: 8px;
+		display: flex;
+		flex-direction: column;
+		gap: 0.6rem;
+	}
+
+	.lock-toggle {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		font-size: 0.85rem;
+		color: #cbd5e1;
+		cursor: pointer;
+	}
+
+	.lock-toggle input {
+		width: auto;
+		cursor: pointer;
+		accent-color: #6366f1;
+	}
+
+	.lock-pwd-input {
+		width: 100%;
+		padding: 0.6rem 0.85rem;
+		background: rgba(30, 41, 59, 0.8);
+		border: 1px solid rgba(148, 163, 184, 0.25);
+		border-radius: 8px;
+		color: #f1f5f9;
+		font-size: 0.9rem;
+		box-sizing: border-box;
+		font-family: inherit;
+	}
+
+	.lock-pwd-input:focus {
+		outline: none;
+		border-color: #6366f1;
+	}
+
+	.echo-locked-badge {
+		font-size: 0.85rem;
 	}
 
 	.admin-submit-btn {

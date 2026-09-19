@@ -12,6 +12,8 @@
 		tags: string[] | null;
 		status: string;
 		created_at: string;
+		is_locked: boolean;
+		has_image: boolean;
 	}
 
 	let echoes: Echo[] = [];
@@ -19,11 +21,18 @@
 	let error = "";
 	let expandedSlug: string | null = null;
 
+	// 上锁说说：解锁后从 RPC 取回的正文；解锁输入与错误提示
+	let unlockedContent: Record<string, string> = {};
+	let lockInput: Record<string, string> = {};
+	let lockError: Record<string, string> = {};
+	let verifyingLock: Record<string, boolean> = {};
+
 	const MOMENT_PREVIEW_LIMIT = 50;
 
 	// 去除 Markdown 语法，提取纯文本用于预览
 	function plainTextOf(markdown: string): string {
-		return markdown
+		const md = markdown || "";
+		return md
 			.replace(/!\[[^\]]*\]\([^)]*\)/g, "") // 图片
 			.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1") // 链接保留文字
 			.replace(/^#{1,6}\s+/gm, "") // 标题符号
@@ -75,6 +84,35 @@
 		expandedSlug = expandedSlug === slug ? null : slug;
 	}
 
+	// 解锁上锁说说：调用数据库端 RPC 校验密码，通过才拿回正文
+	async function verifyLock(echo: Echo) {
+		if (!supabase || verifyingLock[echo.slug]) return;
+		const pwd = (lockInput[echo.slug] || "").trim();
+		if (!pwd) {
+			lockError = { ...lockError, [echo.slug]: "请输入解锁密码" };
+			return;
+		}
+		verifyingLock = { ...verifyingLock, [echo.slug]: true };
+		lockError = { ...lockError, [echo.slug]: "" };
+		try {
+			const { data, error: err } = await supabase.rpc("unlock_echo", {
+				p_echo_id: echo.id,
+				p_password: pwd
+			});
+			if (err) throw err;
+			if (data) {
+				unlockedContent = { ...unlockedContent, [echo.slug]: data as string };
+				expandedSlug = echo.slug;
+			} else {
+				lockError = { ...lockError, [echo.slug]: "密码错误，请重试" };
+			}
+		} catch (e: any) {
+			lockError = { ...lockError, [echo.slug]: "解锁失败：" + (e?.message || "") };
+		} finally {
+			verifyingLock = { ...verifyingLock, [echo.slug]: false };
+		}
+	}
+
 	onMount(async () => {
 		if (!supabase) {
 			loading = false;
@@ -84,11 +122,7 @@
 
 		try {
 			const { data, error: err } = await supabase
-				.from("echoes")
-				.select("*")
-				.eq("status", "published")
-				.order("created_at", { ascending: false })
-				.limit(100);
+				.rpc("list_public_echoes");
 
 			if (err) throw err;
 			echoes = (data as Echo[]) || [];
@@ -161,19 +195,48 @@
 							<div class="echo-mood">{echo.mood}</div>
 						{/if}
 
-						{#if echo.title && echo.title !== echo.content.slice(0, echo.title.length)}
-							<h3 class="echo-title">{echo.title}</h3>
-						{/if}
+						<h3 class="echo-title">{echo.title}</h3>
 
 						<div class="echo-content">
-							{#if isExpanded || !p.isLong}
-								<div class="echo-md">{@html renderMarkdown(echo.content)}</div>
+							{#if echo.is_locked}
+								{#if unlockedContent[echo.slug]}
+									<div class="echo-md">{@html renderMarkdown(unlockedContent[echo.slug])}</div>
+								{:else}
+									<div class="echo-locked-box">
+										<p class="echo-locked-tip">🔒 这条说说已上锁，输入密码查看</p>
+										<div class="echo-lock-form">
+											<input
+												type="password"
+												placeholder="解锁密码"
+												value={lockInput[echo.slug] || ""}
+												on:input={(e) => (lockInput = { ...lockInput, [echo.slug]: (e.target as HTMLInputElement).value })}
+												on:keydown={(e) => e.key === "Enter" && verifyLock(echo)}
+											/>
+											<button class="echo-expand-btn" on:click={() => verifyLock(echo)} disabled={verifyingLock[echo.slug]}>
+												{#if verifyingLock[echo.slug]}验证中...{:else}解锁{/if}
+											</button>
+										</div>
+										{#if lockError[echo.slug]}
+											<p class="echo-lock-error">{lockError[echo.slug]}</p>
+										{/if}
+									</div>
+								{/if}
+							{:else if echo.has_image && !isExpanded}
+								<p class="echo-hasimage-tip">📷 这条说说包含图片，点击查看详情</p>
 							{:else}
-								{p.text}
+								{#if isExpanded || !p.isLong}
+									<div class="echo-md">{@html renderMarkdown(echo.content)}</div>
+								{:else}
+									{p.text}
+								{/if}
 							{/if}
 						</div>
 
-						{#if p.isLong}
+						{#if echo.is_locked && unlockedContent[echo.slug]}
+							<button class="echo-expand-btn" on:click={() => toggleExpand(echo.slug)}>收起 ↑</button>
+						{:else if !echo.is_locked && echo.has_image && !isExpanded}
+							<button class="echo-expand-btn" on:click={() => toggleExpand(echo.slug)}>查看详情 ↓</button>
+						{:else if !echo.is_locked && !echo.has_image && p.isLong}
 							<button class="echo-expand-btn" on:click={() => toggleExpand(echo.slug)}>
 								{#if isExpanded}收起 ↑{:else}展开全文 ↓{/if}
 							</button>
@@ -512,6 +575,56 @@
 	.echo-expand-btn:hover {
 		background: rgba(155, 140, 255, 0.15);
 		color: rgba(155, 140, 255, 1);
+	}
+
+	/* 上锁说说 */
+	.echo-locked-box {
+		padding: 0.9rem 1rem;
+		background: rgba(15, 23, 42, 0.5);
+		border: 1px solid rgba(155, 140, 255, 0.18);
+		border-radius: 10px;
+	}
+
+	.echo-locked-tip {
+		margin: 0 0 0.6rem 0;
+		font-size: 0.85rem;
+		color: rgba(155, 140, 255, 0.85);
+	}
+
+	.echo-lock-form {
+		display: flex;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+		align-items: center;
+	}
+
+	.echo-lock-form input {
+		flex: 1;
+		min-width: 140px;
+		padding: 0.45rem 0.7rem;
+		background: rgba(30, 41, 59, 0.8);
+		border: 1px solid rgba(148, 163, 184, 0.25);
+		border-radius: 6px;
+		color: #f1f5f9;
+		font-size: 0.85rem;
+		font-family: inherit;
+	}
+
+	.echo-lock-form input:focus {
+		outline: none;
+		border-color: #6366f1;
+	}
+
+	.echo-lock-error {
+		margin: 0.5rem 0 0;
+		font-size: 0.78rem;
+		color: #f87171;
+	}
+
+	.echo-hasimage-tip {
+		margin: 0;
+		font-size: 0.85rem;
+		color: rgba(255, 255, 255, 0.5);
 	}
 
 	.echo-tags {
