@@ -153,10 +153,6 @@
 			actionMessage = "标题和内容不能为空";
 			return;
 		}
-		if (newLocked && !newLockPwd.trim()) {
-			actionMessage = "已勾选上锁，请设置解锁密码";
-			return;
-		}
 
 		submitting = true;
 		actionMessage = "";
@@ -185,7 +181,7 @@
 				p_tags: tagsArr.length > 0 ? tagsArr : null,
 				p_status: "published",
 				p_is_locked: newLocked,
-				p_lock_password: newLocked ? newLockPwd.trim() : null
+				p_lock_password: null
 			});
 
 			if (error) throw error;
@@ -504,14 +500,6 @@
 							<input type="checkbox" bind:checked={newLocked} />
 							<span>🔒 上锁保护（访客需输入密码才能查看正文）</span>
 						</label>
-						{#if newLocked}
-							<input
-								type="password"
-								bind:value={newLockPwd}
-								placeholder="设置这条说说的解锁密码"
-								class="lock-pwd-input"
-							/>
-						{/if}
 					</div>
 
 					<button class="admin-submit-btn" on:click={submitEcho} disabled={submitting}>

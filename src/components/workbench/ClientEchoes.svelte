@@ -199,47 +199,18 @@
 
 						<div class="echo-content">
 							{#if echo.is_locked}
-								{#if unlockedContent[echo.slug]}
-									<div class="echo-md">{@html renderMarkdown(unlockedContent[echo.slug])}</div>
-								{:else}
-									<div class="echo-locked-box">
-										<p class="echo-locked-tip">🔒 这条说说已上锁，输入密码查看</p>
-										<div class="echo-lock-form">
-											<input
-												type="password"
-												placeholder="解锁密码"
-												value={lockInput[echo.slug] || ""}
-												on:input={(e) => (lockInput = { ...lockInput, [echo.slug]: (e.target as HTMLInputElement).value })}
-												on:keydown={(e) => e.key === "Enter" && verifyLock(echo)}
-											/>
-											<button class="echo-expand-btn" on:click={() => verifyLock(echo)} disabled={verifyingLock[echo.slug]}>
-												{#if verifyingLock[echo.slug]}验证中...{:else}解锁{/if}
-											</button>
-										</div>
-										{#if lockError[echo.slug]}
-											<p class="echo-lock-error">{lockError[echo.slug]}</p>
-										{/if}
-									</div>
-								{/if}
-							{:else if echo.has_image && !isExpanded}
+								<p class="echo-hasimage-tip">🔒 这条说说已上锁，点击查看详情解锁</p>
+							{:else if echo.has_image}
 								<p class="echo-hasimage-tip">📷 这条说说包含图片，点击查看详情</p>
+							{:else if p.isLong}
+								<p>{p.text}</p>
 							{:else}
-								{#if isExpanded || !p.isLong}
-									<div class="echo-md">{@html renderMarkdown(echo.content)}</div>
-								{:else}
-									{p.text}
-								{/if}
+								<div class="echo-md">{@html renderMarkdown(echo.content)}</div>
 							{/if}
 						</div>
 
-						{#if echo.is_locked && unlockedContent[echo.slug]}
-							<button class="echo-expand-btn" on:click={() => toggleExpand(echo.slug)}>收起 ↑</button>
-						{:else if !echo.is_locked && echo.has_image && !isExpanded}
-							<button class="echo-expand-btn" on:click={() => toggleExpand(echo.slug)}>查看详情 ↓</button>
-						{:else if !echo.is_locked && !echo.has_image && p.isLong}
-							<button class="echo-expand-btn" on:click={() => toggleExpand(echo.slug)}>
-								{#if isExpanded}收起 ↑{:else}展开全文 ↓{/if}
-							</button>
+						{#if echo.is_locked || echo.has_image || p.isLong}
+							<a class="echo-expand-btn" href={"/thoughts/view/?slug=" + encodeURIComponent(echo.slug)}>查看详情 ↓</a>
 						{/if}
 
 						{#if echo.tags && echo.tags.length > 0}

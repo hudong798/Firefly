@@ -1,0 +1,28 @@
+---
+// 说说详情页：客户端按 ?slug=xxx 加载单条说说完整内容（含图片、上锁解锁）
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import ClientEchoDetail from "@/components/workbench/ClientEchoDetail.svelte";
+
+const title = "说说详情";
+const description = "岁月留痕";
+---
+
+<MainGridLayout title={title} description={description}>
+	<div class="echo-detail-vignette" aria-hidden="true"></div>
+	<ClientEchoDetail client:only="svelte" />
+</MainGridLayout>
+
+<style>
+	.echo-detail-vignette {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		z-index: 1;
+		pointer-events: none;
+		background:
+			radial-gradient(ellipse 65% 55% at 45% 40%, rgba(3, 5, 10, 0.5) 0%, rgba(3, 5, 10, 0.25) 50%, transparent 80%),
+			linear-gradient(180deg, rgba(3, 5, 10, 0.15) 0%, transparent 12%, transparent 88%, rgba(3, 5, 10, 0.2) 100%);
+	}
+</style>
