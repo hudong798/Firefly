@@ -4,7 +4,6 @@
 import type { APIRoute } from "astro";
 import { getCollection } from "astro:content";
 import { moments } from "@/data/thoughts";
-import { travels } from "@/data/travels";
 import { tvSites, tvOthers, tvParsers, tvAdult } from "@/data/tv";
 import { aiTools } from "@/data/ai";
 import { toolGroups } from "@/data/tools";
@@ -78,25 +77,6 @@ export const GET: APIRoute = async () => {
 			snippet: m.content,
 			tags,
 			url: `/thoughts/${m.id}/`,
-			external: false,
-			search,
-		});
-	}
-
-	// ---- 旅游 ----
-	for (const t of travels) {
-		const tags = (t.tags || []).map(String);
-		const search = [t.title, t.summary, tags.join(" "), t.location, t.date, t.content]
-			.join(" ")
-			.toLowerCase();
-		items.push({
-			id: `travel-${t.slug}`,
-			section: "travel",
-			sectionLabel: "旅游",
-			title: t.title,
-			snippet: `${t.location} · ${t.summary}`,
-			tags,
-			url: `/travel/${t.slug}/`,
 			external: false,
 			search,
 		});

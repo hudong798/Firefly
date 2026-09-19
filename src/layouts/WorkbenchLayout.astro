@@ -90,7 +90,7 @@ const { title, description, lang, setOGTypeArticle, postSlug, headings = [] } =
 		const resultsEl = document.getElementById("wb-search-results");
 		if (!input || !resultsEl) return;
 
-		// 统一搜索索引：覆盖 文章/说说/旅游/影视/AI/工具/游戏 七个板块
+		// 统一搜索索引：覆盖 文章/说说/影视/AI/工具/游戏 六个板块
 		let index: any[] | null = null;
 
 		const loadIndex = () => {

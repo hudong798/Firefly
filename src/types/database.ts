@@ -27,34 +27,6 @@ export interface Database {
 				Update: Partial<Database["public"]["Tables"]["echoes"]["Row"]>;
 			};
 
-			/** 旅行 / 轨迹 */
-			travels: {
-				Row: {
-					id: string;
-					title: string;
-					destination: string;
-					country: string;
-					province: string | null;
-					city: string | null;
-					start_date: string | null;
-					end_date: string | null;
-					description: string | null;
-					cover_image: string | null;
-					latitude: number | null;
-					longitude: number | null;
-					year: number | null;
-					tags: string[] | null;
-					content: string | null;
-					gallery: string[] | null;
-					sort_order: number;
-					status: "draft" | "published";
-					created_at: string;
-					updated_at: string;
-				};
-				Insert: Partial<Database["public"]["Tables"]["travels"]["Row"]>;
-				Update: Partial<Database["public"]["Tables"]["travels"]["Row"]>;
-			};
-
 			/** 档案 / 收藏 */
 			archives: {
 				Row: {
