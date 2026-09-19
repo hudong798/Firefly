@@ -415,7 +415,7 @@
 					<p class="admin-panel-sub">共 {echoes.length} 条说说</p>
 				</div>
 				<div class="admin-panel-actions">
-					<button class="admin-btn admin-btn-primary" on:click={() => (showForm = !showForm)}>
+					<button class="admin-btn admin-btn-primary" on:click={() => { showForm = !showForm; if (showForm) { newLocked = false; newLockPwd = ""; } }}>
 						{#if showForm}取消{:else}+ 写说说{/if}
 					</button>
 					<button class="admin-btn admin-btn-secondary" on:click={loadEchoes}>刷新</button>
