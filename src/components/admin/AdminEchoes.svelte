@@ -358,6 +358,23 @@
 		return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 	}
 
+	// 管理列表正文摘要：把 Markdown 转纯文本，避免直接暴露图片/链接源码
+	function toPlainExcerpt(md: string, len = 100): string {
+		let t = md || "";
+		// 图片 ![alt](url) -> [图片]
+		t = t.replace(/!\[[^\]]*\]\([^)]*\)/g, "[图片]");
+		// 链接 [text](url) -> text
+		t = t.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1");
+		// 去掉标题/粗斜体/行内代码/删除线等标记
+		t = t.replace(/^#{1,6}\s*/gm, "");
+		t = t.replace(/(\*\*|__|\*|_|`|~~)/g, "");
+		// 引用/列表符号
+		t = t.replace(/^\s*[->+]\s*/gm, "");
+		// 压缩空白
+		t = t.replace(/\s+/g, " ").trim();
+		return t.length > len ? t.slice(0, len) + "..." : t;
+	}
+
 	onMount(() => {
 		checkEchoAuth();
 		if (loggedIn) {
@@ -531,7 +548,7 @@
 									{/if}
 								</div>
 							</div>
-							<div class="echo-item-content">{echo.content.length > 120 ? echo.content.slice(0, 120) + "..." : echo.content}</div>
+							<div class="echo-item-content">{toPlainExcerpt(echo.content)}</div>
 							<div class="echo-item-actions">
 								<a href={`/thoughts/?slug=${encodeURIComponent(echo.slug)}`} target="_blank" class="admin-btn admin-btn-secondary">查看</a>
 								<button class="admin-btn admin-btn-danger" on:click={() => deleteEcho(echo.id)}>删除</button>
@@ -1026,6 +1043,8 @@
 		line-height: 1.7;
 		color: #cbd5e1;
 		margin-bottom: 0.75rem;
+		overflow-wrap: anywhere;
+		word-break: break-word;
 	}
 
 	.echo-item-actions {
@@ -1039,7 +1058,20 @@
 		}
 
 		.admin-echoes {
+			max-width: 100%;
+			padding: 0.75rem 0.75rem 2rem;
+		}
+
+		.echo-item {
 			padding: 1rem;
+		}
+
+		.admin-panel-header {
+			gap: 0.75rem;
+		}
+
+		.admin-panel-actions {
+			width: 100%;
 		}
 	}
 </style>
