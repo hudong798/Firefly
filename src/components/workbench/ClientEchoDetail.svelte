@@ -229,10 +229,12 @@
 		grid-template-columns: 160px 1fr;
 		gap: 3rem;
 		padding: 3rem;
-		background: rgba(155, 140, 255, 0.06);
-		border: 1px solid rgba(155, 140, 255, 0.12);
+		background: linear-gradient(160deg, rgba(30, 32, 54, 0.72), rgba(16, 18, 32, 0.78));
+		border: 1px solid rgba(155, 140, 255, 0.28);
 		border-radius: 1.25rem;
-		backdrop-filter: blur(10px);
+		backdrop-filter: blur(18px) saturate(1.3);
+		-webkit-backdrop-filter: blur(18px) saturate(1.3);
+		box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45), 0 0 24px rgba(155, 140, 255, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.06);
 		animation: ed-in 0.5s ease-out both;
 	}
 
