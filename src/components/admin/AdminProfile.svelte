@@ -101,19 +101,37 @@
 			const { data, error } = await supabase.rpc("get_site_profile");
 			if (error) throw error;
 			if (data) {
-				name = data.name || "";
-				tagline = data.tagline || "";
-				tagsText = Array.isArray(data.tags) ? data.tags.join("，") : "";
-				manifestoText = Array.isArray(data.manifesto) ? data.manifesto.join("\n") : "";
+				// 空字段回退到与 about.astro 完全一致的默认值，使表单显示关于我页实际内容
+				const defaultTags = ["AI 爱好者", "足球迷", "FreeX 站长", "数字探索者"];
+				const defaultManifesto = ["你好，我是 Idong。", "一个热爱 AI、追求自由，", "也喜欢记录生活的人。"];
+				const defaultInterests = [
+					{ en: "AI", zh: "人工智能", desc: "Artificial Intelligence · 研究模型与工具，相信技术的可能性" },
+					{ en: "FOOTBALL", zh: "足球", desc: "Neymar · Brazil · 绿茵场是永远的热爱" },
+					{ en: "TRAVEL", zh: "旅行", desc: "City Walk · Photography · 用脚步和镜头记录世界" },
+					{ en: "CREATION", zh: "创造", desc: "Coding · Design · Experiment · 写代码、做设计、折腾数字实验" }
+				];
+				const defaultContacts = [
+					{ name: "抖音", icon: "fa6-brands:tiktok", url: "https://www.douyin.com/user/self?from_tab_name=main&showTab=post", copy: "" },
+					{ name: "Email", icon: "fa6-solid:envelope", url: "mailto:519931819@qq.com", copy: "" },
+					{ name: "RSS", icon: "fa6-solid:rss", url: "/rss/", copy: "" },
+					{ name: "微信", icon: "fa6-brands:weixin", url: "#", copy: "hd60819" },
+					{ name: "信号", icon: "material-symbols:forum-outline", url: "/guestbook/", copy: "" }
+				];
+				name = data.name || "Idong";
+				tagline = data.tagline || "热爱 AI · 追求自由";
+				tagsText = Array.isArray(data.tags) && data.tags.length ? data.tags.join("，") : defaultTags.join("，");
+				manifestoText = Array.isArray(data.manifesto) && data.manifesto.length ? data.manifesto.join("\n") : defaultManifesto.join("\n");
 				aboutText = data.about_text || "";
 				avatarUrl = data.avatar_url || "";
 				freexIntro = data.freex_intro || "";
 				if (Array.isArray(data.interests) && data.interests.length) {
-					interests = data.interests.map((it: any) => ({
-						en: it.en || "",
-						zh: it.zh || "",
-						desc: it.desc || ""
+					interests = data.interests.map((it: any, i: number) => ({
+						en: it.en || defaultInterests[i]?.en || "",
+						zh: it.zh || defaultInterests[i]?.zh || "",
+						desc: it.desc || defaultInterests[i]?.desc || ""
 					}));
+				} else {
+					interests = defaultInterests.map((it) => ({ ...it }));
 				}
 				if (Array.isArray(data.contacts) && data.contacts.length) {
 					contacts = data.contacts.map((c: any) => ({
@@ -122,6 +140,8 @@
 						url: c.url || "",
 						copy: c.copy || ""
 					}));
+				} else {
+					contacts = defaultContacts.map((c) => ({ ...c }));
 				}
 			}
 		} catch (e: any) {
