@@ -437,7 +437,7 @@
 	.echo-content {
 		font-size: 0.95rem;
 		line-height: 1.9;
-		color: rgba(255, 255, 255, 0.75);
+		color: rgba(134, 239, 172, 0.85);
 		white-space: pre-wrap;
 		word-break: break-word;
 	}
@@ -446,7 +446,7 @@
 	.echo-md {
 		font-size: 0.95rem;
 		line-height: 1.9;
-		color: rgba(255, 255, 255, 0.78);
+		color: rgba(134, 239, 172, 0.88);
 		word-break: break-word;
 	}
 
