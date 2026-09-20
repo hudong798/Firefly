@@ -182,58 +182,6 @@ const contacts =
 					</div>
 				</section>
 
-				<!-- 02 INTEREST SIGNALS -->
-				<section class="po-section">
-					<div class="po-section-head">
-						<span class="po-section-no">02</span>
-						<span class="po-section-en">INTEREST SIGNALS</span>
-						<span class="po-section-zh">兴趣信号</span>
-						<span class="po-section-line"></span>
-					</div>
-					<div class="interest-list">
-						{profileInterests.map((it) => (
-							<div class={`interest-item tone-${it.tone}`}>
-								<span class="interest-signal-line" aria-hidden="true"></span>
-								<span class="interest-no">{it.no}</span>
-								<span class="interest-node" aria-hidden="true"></span>
-								<div class="interest-text">
-									<div class="interest-title">
-										<span class="interest-en">{it.en}</span>
-										<span class="interest-zh">{it.zh}</span>
-									</div>
-									<p class="interest-desc">{it.desc}</p>
-								</div>
-							</div>
-						))}
-					</div>
-				</section>
-
-				<!-- 03 ABOUT FREEX -->
-				<section class="po-section">
-					<div class="po-section-head">
-						<span class="po-section-no">03</span>
-						<span class="po-section-en">ABOUT FREEX</span>
-						<span class="po-section-zh">关于这个小站</span>
-						<span class="po-section-line"></span>
-					</div>
-					<p class="freex-intro">
-						{profileFreexIntro ||
-							"FreeX 不是一个单纯的网站名称，而是一个记录生活、分享想法的小站——碎碎念、AI 工具、影视与漫画收藏、旅行足迹，以及一些数字实验。"}
-					</p>
-					<div class="freex-grid">
-						{freexNodes.map((n) => (
-							<a class="freex-node" href={n.url}>
-								<span class="freex-node-top">
-									<span class="freex-node-code">{n.code}</span>
-									<span class="freex-node-arrow">→</span>
-								</span>
-								<span class="freex-node-name">{n.name}</span>
-								<span class="freex-node-desc">{n.desc}</span>
-							</a>
-						))}
-					</div>
-				</section>
-
 				<footer class="po-end">
 					<span class="po-end-line"></span>
 					<span class="po-top-mono">END OF PROFILE · IDONG / 2026</span>
