@@ -111,6 +111,7 @@
 	let newLockPwd = "";
 	let submitting = false;
 	let showMoodPicker = false;
+	let editingId: string | null = null;
 
 	const moodOptions = [
 		"🌙", "😆", "🌱", "😊", "🤔", "😴", "✨", "🔥", "💭", "☕",
@@ -153,6 +154,29 @@
 		newSlug = base || `echo-${Date.now()}`;
 	}
 
+	function startEdit(echo: any) {
+		editingId = echo.id;
+		newTitle = echo.title || "";
+		newSlug = echo.slug || "";
+		newContent = echo.content || "";
+		newMood = echo.mood || "";
+		newTags = Array.isArray(echo.tags) ? echo.tags.join(", ") : "";
+		newLocked = !!echo.is_locked;
+		newPinned = !!echo.pinned;
+		newLockPwd = "";
+		showForm = true;
+		showMoodPicker = false;
+		actionMessage = "";
+		window.scrollTo({ top: 0, behavior: "smooth" });
+	}
+
+	function cancelEdit() {
+		editingId = null;
+		showForm = false;
+		newTitle = ""; newSlug = ""; newContent = ""; newMood = "";
+		newTags = ""; newLocked = false; newPinned = false; newLockPwd = "";
+	}
+
 	async function submitEcho() {
 		if (!supabase) return;
 		if (!newTitle.trim() || !newContent.trim()) {
@@ -177,7 +201,8 @@
 				return;
 			}
 
-			const { error } = await supabase.rpc("admin_insert_echo", {
+			const rpcName = editingId ? "admin_update_echo" : "admin_insert_echo";
+			const payload: any = {
 				p_username: creds.username,
 				p_password: creds.password,
 				p_slug: newSlug,
@@ -189,12 +214,16 @@
 				p_is_locked: newLocked,
 				p_pinned: newPinned,
 				p_lock_password: null
-			});
+			};
+			if (editingId) payload.p_id = editingId;
+
+			const { error } = await supabase.rpc(rpcName, payload);
 
 			if (error) throw error;
 
-			actionMessage = "说说发布成功！";
+			actionMessage = editingId ? "说说修改已保存！" : "说说发布成功！";
 			// 重置表单
+			editingId = null;
 			newTitle = "";
 			newSlug = "";
 			newContent = "";
@@ -478,7 +507,7 @@
 			<!-- 新建回声表单 -->
 			{#if showForm}
 				<div class="echo-form">
-					<h3>发布新说说</h3>
+					<h3>{editingId ? "编辑说说" : "发布新说说"}</h3>
 
 					<div class="form-row">
 						<div class="form-group">
@@ -595,6 +624,7 @@
 							<div class="echo-item-content">{toPlainExcerpt(echo.content)}</div>
 							<div class="echo-item-actions">
 								<button class="admin-btn {echo.pinned ? "admin-btn-pin" : "admin-btn-secondary"}" on:click={() => togglePin(echo)}>{echo.pinned ? "取消置顶" : "置顶"}</button>
+								<button class="admin-btn admin-btn-secondary" on:click={() => startEdit(echo)}>编辑</button>
 								<a href={`/thoughts/?slug=${encodeURIComponent(echo.slug)}`} target="_blank" class="admin-btn admin-btn-secondary">查看</a>
 								<button class="admin-btn admin-btn-danger" on:click={() => deleteEcho(echo.id)}>删除</button>
 							</div>
