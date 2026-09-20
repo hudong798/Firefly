@@ -19,6 +19,8 @@
 	let manifestoText = "";
 	let aboutText = "";
 	let avatarUrl = "";
+	let freexIntro = "";
+	let interests: { en: string; zh: string; desc: string }[] = [];
 	let submitting = false;
 	let saveMessage = "";
 	let loadError = "";
@@ -104,6 +106,14 @@
 				manifestoText = Array.isArray(data.manifesto) ? data.manifesto.join("\n") : "";
 				aboutText = data.about_text || "";
 				avatarUrl = data.avatar_url || "";
+				freexIntro = data.freex_intro || "";
+				if (Array.isArray(data.interests) && data.interests.length) {
+					interests = data.interests.map((it: any) => ({
+						en: it.en || "",
+						zh: it.zh || "",
+						desc: it.desc || ""
+					}));
+				}
 			}
 		} catch (e: any) {
 			loadError = "加载失败：" + (e?.message || "未知错误");
@@ -134,7 +144,9 @@
 				p_tags: tags,
 				p_manifesto: manifesto,
 				p_about_text: aboutText,
-				p_avatar_url: avatarUrl.trim()
+				p_avatar_url: avatarUrl.trim(),
+				p_interests: interests.filter((it) => it.en.trim() || it.zh.trim() || it.desc.trim()),
+				p_freex_intro: freexIntro
 			});
 			if (error) throw error;
 			saveMessage = "✅ 保存成功，刷新关于我页面即可看到更新";
@@ -202,6 +214,28 @@
 				<span class="label">关于我正文</span>
 				<textarea class="field area" rows="6" bind:value={aboutText} placeholder={"一个热爱 AI、追求自由…\n\n（空行分段）"}></textarea>
 				<span class="hint">空行分隔段落；留空则使用默认文案</span>
+			</label>
+
+			<label class="row">
+				<span class="label">兴趣信号（02 区块，可增删）</span>
+				<div class="interests">
+					{#each interests as it, i}
+						<div class="interest-item">
+							<input class="field" type="text" bind:value={it.en} placeholder="英文 AI" />
+							<input class="field" type="text" bind:value={it.zh} placeholder="中文 人工智能" />
+							<input class="field" type="text" bind:value={it.desc} placeholder="描述：研究模型与工具…" />
+							<button class="btn-mini" type="button" on:click={() => interests = interests.filter((_, idx) => idx !== i)}>删除</button>
+						</div>
+					{/each}
+					<button class="btn-ghost" type="button" on:click={() => interests = [...interests, { en: "", zh: "", desc: "" }]}>＋ 添加一条兴趣</button>
+				</div>
+				<span class="hint">留空的行会自动忽略；顺序即显示顺序</span>
+			</label>
+
+			<label class="row">
+				<span class="label">关于这个小站正文（03 区块）</span>
+				<textarea class="field area" rows="3" bind:value={freexIntro} placeholder="FreeX 不是一个单纯的网站名称…"></textarea>
+				<span class="hint">留空则使用默认文案</span>
 			</label>
 
 			<div class="actions">
@@ -323,5 +357,30 @@
 		margin: 0;
 		font-size: 0.82rem;
 		color: #8ee6a8;
+	}
+	.interests {
+		display: flex;
+		flex-direction: column;
+		gap: 0.6rem;
+	}
+	.interest-item {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 0.5rem;
+	}
+	.interest-item .field {
+		font-size: 0.82rem;
+		padding: 0.55rem 0.7rem;
+	}
+	.interest-item .btn-mini {
+		grid-column: 1 / -1;
+		justify-self: start;
+		padding: 0.3rem 0.7rem;
+		font-size: 0.75rem;
+		color: #ff9b9b;
+		background: transparent;
+		border: 1px solid rgba(255, 155, 155, 0.25);
+		border-radius: 0.5rem;
+		cursor: pointer;
 	}
 </style>

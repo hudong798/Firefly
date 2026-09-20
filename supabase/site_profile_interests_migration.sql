@@ -1,29 +1,12 @@
 -- ============================================================
--- 个人资料（关于我）在线编辑：site_profile 单行表
--- 复用说说管理员账号（verify_admin_credentials('echo', uid, pwd)）
+-- 个人资料：增加 兴趣信号(interests) 与 关于小站介绍(freex_intro)
 -- ============================================================
-
-create table if not exists public.site_profile (
-  id           int primary key default 1 check (id = 1),
-  name         text,
-  tagline      text,
-  tags         text[],
-  manifesto    text[],          -- 宣言若干行
-  about_text   text,            -- 关于我正文（纯文本，换行分段）
-  avatar_url   text,
-  interests    jsonb,           -- 兴趣信号 [{en,zh,desc}]
-  freex_intro  text,            -- 关于这个小站正文
-  updated_at   timestamptz default now()
-);
 
 alter table public.site_profile
   add column if not exists interests jsonb,
   add column if not exists freex_intro text;
 
--- 关闭 RLS：所有读写都走 RPC，前端只持 anon key
-alter table public.site_profile enable row level security;
-
--- 公开读取（前台 about 页面用）
+-- 公开读取
 create or replace function public.get_site_profile()
 returns jsonb
 language sql
@@ -48,7 +31,7 @@ $$;
 
 grant execute on function public.get_site_profile() to anon, authenticated;
 
--- 管理员保存（复用说说账号）
+-- 管理员保存
 create or replace function public.admin_save_site_profile(
   p_uid        text,
   p_pwd        text,
@@ -58,8 +41,8 @@ create or replace function public.admin_save_site_profile(
   p_manifesto text[],
   p_about_text text,
   p_avatar_url text,
-  p_interests  jsonb,
-  p_freex_intro text
+  p_interests  jsonb default null,
+  p_freex_intro text default null
 )
 returns void
 language plpgsql

@@ -41,6 +41,18 @@ const interests = [
 	{ no: "03", en: "TRAVEL", zh: "旅行", desc: "City Walk · Photography · 用脚步和镜头记录世界", tone: "blue" },
 	{ no: "04", en: "CREATION", zh: "创造", desc: "Coding · Design · Experiment · 写代码、做设计、折腾数字实验", tone: "violet" },
 ];
+const defaultInterests = interests;
+const profileInterests =
+  Array.isArray(remoteProfile?.interests) && remoteProfile.interests.length
+    ? (remoteProfile.interests as any[]).map((it, i) => ({
+        no: String(i + 1).padStart(2, "0"),
+        en: it.en || "",
+        zh: it.zh || "",
+        desc: it.desc || "",
+        tone: defaultInterests[i] ? defaultInterests[i].tone : "violet",
+      }))
+    : defaultInterests;
+const profileFreexIntro = (remoteProfile?.freex_intro as string) || "";
 
 // 关于 FreeX —— 网站结构节点（链接到真实板块）
 const freexNodes = [
@@ -169,7 +181,7 @@ contacts.push({ name: "信号", icon: "material-symbols:forum-outline", url: "/g
 						<span class="po-section-line"></span>
 					</div>
 					<div class="interest-list">
-						{interests.map((it) => (
+						{profileInterests.map((it) => (
 							<div class={`interest-item tone-${it.tone}`}>
 								<span class="interest-signal-line" aria-hidden="true"></span>
 								<span class="interest-no">{it.no}</span>
@@ -195,8 +207,8 @@ contacts.push({ name: "信号", icon: "material-symbols:forum-outline", url: "/g
 						<span class="po-section-line"></span>
 					</div>
 					<p class="freex-intro">
-						FreeX 不是一个单纯的网站名称，而是一个记录生活、分享想法的小站——
-						碎碎念、AI 工具、影视与漫画收藏、旅行足迹，以及一些数字实验。
+						{profileFreexIntro ||
+							"FreeX 不是一个单纯的网站名称，而是一个记录生活、分享想法的小站——碎碎念、AI 工具、影视与漫画收藏、旅行足迹，以及一些数字实验。"}
 					</p>
 					<div class="freex-grid">
 						{freexNodes.map((n) => (
