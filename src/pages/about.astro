@@ -32,10 +32,11 @@ const profileManifesto: string[] =
 const profileAvatar = (remoteProfile?.avatar_url as string) || profileConfig.avatar;
 const profileAboutRaw = (remoteProfile?.about_text as string) || "";
 const defaultAboutHtml = marked.parse(
-  "一个热爱 AI、追求自由，也喜欢探索新事物的人。\n\n我喜欢研究 AI、折腾软件和各种新工具，也喜欢足球、旅行、摄影和记录生活。这里不是一份正式的个人简历，只是我留在数字宇宙里的一些足迹。"
+  "一个热爱 AI、追求自由，也喜欢探索新事物的人。\n\n我喜欢研究 AI、折腾软件和各种新工具，也喜欢足球、旅行、摄影和记录生活。这里不是一份正式的个人简历，只是我留在数字宇宙里的一些足迹。",
+  { breaks: true }
 );
 const profileAboutHtml = profileAboutRaw
-  ? marked.parse(profileAboutRaw)
+  ? marked.parse(profileAboutRaw, { breaks: true })
   : defaultAboutHtml;
 
 // 兴趣信号（Interest Signals）
@@ -207,7 +208,7 @@ const contacts =
 			if (d.about_text) {
 				const body = document.querySelector(".about-body");
 				if (body) {
-					body.innerHTML = marked.parse(String(d.about_text));
+					body.innerHTML = marked.parse(String(d.about_text), { breaks: true });
 				}
 			}
 

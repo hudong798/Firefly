@@ -230,7 +230,7 @@
 
 			<label class="row">
 				<span class="label">关于我正文</span>
-				<textarea class="field area" rows="6" bind:value={aboutText} placeholder={"一个热爱 AI、追求自由…\n\n（空行分段）"}></textarea>
+				<textarea class="field area" rows="8" bind:value={aboutText} placeholder={"在这里直接写，换行就换行、分段就分段；支持 Markdown 语法。"}></textarea>
 				<span class="hint">空行分隔段落；留空则使用默认文案</span>
 			</label>
 
