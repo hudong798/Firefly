@@ -243,6 +243,81 @@ const contacts =
 	</div>
 </MainGridLayout>
 
+<script>
+	import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+
+	// 客户端实时拉取最新个人资料，覆盖首屏静态快照
+	// 这样在管理页保存后，无需重新部署即可看到更新
+	(async () => {
+		if (!isSupabaseConfigured || !supabase) return;
+		try {
+			const { data } = await supabase.rpc("get_site_profile");
+			if (!data) return;
+			const d: any = data;
+
+			const setText = (sel: string, v: any) => {
+				const el = document.querySelector(sel);
+				if (el && v != null && v !== "") el.textContent = String(v);
+			};
+			setText(".id-name", d.name);
+			setText(".id-line", d.tagline);
+
+			const tagsEl = document.querySelector(".id-tags");
+			if (tagsEl && Array.isArray(d.tags) && d.tags.length) {
+				tagsEl.innerHTML = d.tags.map(() => `<span class="id-tag"></span>`).join("");
+				Array.from(tagsEl.children).forEach((c, i) => (c.textContent = d.tags[i]));
+			}
+
+			const manEl = document.querySelector(".id-manifesto");
+			if (manEl && Array.isArray(d.manifesto) && d.manifesto.length) {
+				manEl.innerHTML = d.manifesto.map(() => `<p></p>`).join("");
+				Array.from(manEl.children).forEach((c, i) => (c.textContent = d.manifesto[i]));
+			}
+
+			if (d.about_text) {
+				const body = document.querySelector(".about-body");
+				if (body) {
+					const paras = String(d.about_text).split(/\n\s*\n/).map((x: string) => x.trim()).filter(Boolean);
+					body.innerHTML = paras.map(() => `<p></p>`).join("");
+					Array.from(body.children).forEach((c, i) => (c.textContent = paras[i]));
+				}
+			}
+
+			setText(".freex-intro", d.freex_intro);
+
+			if (Array.isArray(d.interests) && d.interests.length) {
+				const list = document.querySelector(".interest-list");
+				if (list) {
+					const tones = ["cyan", "violet", "blue", "violet"];
+					list.innerHTML = d.interests.map((it: any, i: number) => `
+						<div class="interest-item tone-${tones[i] || "violet"}">
+							<span class="interest-signal-line" aria-hidden="true"></span>
+							<span class="interest-no"></span>
+							<span class="interest-node" aria-hidden="true"></span>
+							<div class="interest-text">
+								<div class="interest-title"><span class="interest-en"></span><span class="interest-zh"></span></div>
+								<p class="interest-desc"></p>
+							</div>
+						</div>`).join("");
+					Array.from(list.children).forEach((el, i) => {
+						const it = d.interests[i];
+						const no = el.querySelector(".interest-no");
+						if (no) no.textContent = String(i + 1).padStart(2, "0");
+						const en = el.querySelector(".interest-en");
+						if (en) en.textContent = it.en || "";
+						const zh = el.querySelector(".interest-zh");
+						if (zh) zh.textContent = it.zh || "";
+						const desc = el.querySelector(".interest-desc");
+						if (desc) desc.textContent = it.desc || "";
+					});
+				}
+			}
+		} catch {
+			/* 静默失败，保留首屏静态内容 */
+		}
+	})();
+</script>
+
 <style>
 	/* 解除父级 .wb-chat 的 52rem 居中限制，让档案页获得桌面宽幅 */
 	:global(.wb-chat:has(.po-container)) {
