@@ -210,13 +210,10 @@ const toolGroups = await getToolGroups();
 		padding-left: 72px;
 	}
 
-	/* 移动端隐藏侧边栏 */
+	/* 移动端保留侧边栏（窄屏仍显示 AI / 收藏入口） */
 	@media (max-width: 768px) {
-		.arch-sidebar {
-			display: none;
-		}
 		.arch-content {
-			padding-left: 0;
+			padding-left: 64px;
 		}
 	}
 
