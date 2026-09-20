@@ -131,30 +131,6 @@ const contacts =
 					))}
 				</blockquote>
 
-				<!-- 建立连接 -->
-				<div class="id-signal">
-					<div class="po-section-head">
-						<span class="po-section-no"></span>
-						<span class="po-section-en">SIGNAL</span>
-						<span class="po-section-zh">建立连接</span>
-					</div>
-					<div class="id-contacts">
-						{contacts.map((c) => (
-							c.copy ? (
-								<button class="contact-item" type="button" data-copy={c.copy} title={`微信 ${c.copy}，点击复制`}>
-									<Icon name={c.icon} />
-									<span>{c.name}</span>
-								</button>
-							) : (
-								<a class="contact-item" href={c.url} title={c.name}
-									{...c.external ? { target: "_blank", rel: "noopener noreferrer" } : {}}>
-									<Icon name={c.icon} />
-									<span>{c.name}</span>
-								</a>
-							)
-						))}
-					</div>
-				</div>
 			</aside>
 
 			<!-- 右侧：信息档案 -->

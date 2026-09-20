@@ -240,23 +240,6 @@
 				<span class="hint">空行分隔段落；留空则使用默认文案</span>
 			</label>
 
-			<label class="row">
-				<span class="label">建立连接（SIGNAL 区块，可增删）</span>
-				<div class="interests">
-					{#each contacts as c, i}
-						<div class="interest-item">
-							<input class="field" type="text" bind:value={c.name} placeholder="名称：微信" />
-							<input class="field" type="text" bind:value={c.icon} placeholder="图标：fa6-brands:weixin" />
-							<input class="field" type="text" bind:value={c.url} placeholder="链接：https://… 或 /guestbook/" />
-							<input class="field" type="text" bind:value={c.copy} placeholder="点击复制(可空)" />
-							<button class="btn-mini" type="button" on:click={() => contacts = contacts.filter((_, idx) => idx !== i)}>删除</button>
-						</div>
-					{/each}
-					<button class="btn-ghost" type="button" on:click={() => contacts = [...contacts, { name: "", icon: "", url: "", copy: "" }]}>＋ 添加一条连接</button>
-				</div>
-				<span class="hint">名称+链接非空才会显示；图标用图标名（如 fa6-brands:weixin / material-symbols:forum-outline）；留空的复制框则为普通链接</span>
-			</label>
-
 			<div class="actions">
 				<button class="btn-primary" on:click={handleSave} disabled={submitting}>
 					{submitting ? "保存中…" : "保存修改"}
