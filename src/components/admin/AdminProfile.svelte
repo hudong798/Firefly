@@ -21,6 +21,7 @@
 	let avatarUrl = "";
 	let freexIntro = "";
 	let interests: { en: string; zh: string; desc: string }[] = [];
+	let contacts: { name: string; icon: string; url: string; copy: string }[] = [];
 	let submitting = false;
 	let saveMessage = "";
 	let loadError = "";
@@ -114,6 +115,14 @@
 						desc: it.desc || ""
 					}));
 				}
+				if (Array.isArray(data.contacts) && data.contacts.length) {
+					contacts = data.contacts.map((c: any) => ({
+						name: c.name || "",
+						icon: c.icon || "",
+						url: c.url || "",
+						copy: c.copy || ""
+					}));
+				}
 			}
 		} catch (e: any) {
 			loadError = "加载失败：" + (e?.message || "未知错误");
@@ -144,9 +153,10 @@
 				p_tags: tags,
 				p_manifesto: manifesto,
 				p_about_text: aboutText,
-				p_avatar_url: avatarUrl.trim(),
+				p_avatar_url: null,
 				p_interests: interests.filter((it) => it.en.trim() || it.zh.trim() || it.desc.trim()),
-				p_freex_intro: freexIntro
+				p_freex_intro: freexIntro,
+				p_contacts: contacts.filter((c) => c.name.trim() && c.url.trim())
 			});
 			if (error) throw error;
 			saveMessage = "✅ 保存成功，刷新关于我页面即可看到更新";
@@ -182,12 +192,6 @@
 		{#if loadError}<p class="login-error">{loadError}</p>{/if}
 
 		<div class="form">
-			<label class="row">
-				<span class="label">头像地址 URL</span>
-				<input class="field" type="text" bind:value={avatarUrl} placeholder="/assets/images/avatar-freex.png" />
-				<span class="hint">留空则使用默认头像；可填图片 URL 或站内路径</span>
-			</label>
-
 			<label class="row">
 				<span class="label">昵称</span>
 				<input class="field" type="text" bind:value={name} placeholder="Idong" />
@@ -236,6 +240,23 @@
 				<span class="label">关于这个小站正文（03 区块）</span>
 				<textarea class="field area" rows="3" bind:value={freexIntro} placeholder="FreeX 不是一个单纯的网站名称…"></textarea>
 				<span class="hint">留空则使用默认文案</span>
+			</label>
+
+			<label class="row">
+				<span class="label">建立连接（SIGNAL 区块，可增删）</span>
+				<div class="interests">
+					{#each contacts as c, i}
+						<div class="interest-item">
+							<input class="field" type="text" bind:value={c.name} placeholder="名称：微信" />
+							<input class="field" type="text" bind:value={c.icon} placeholder="图标：fa6-brands:weixin" />
+							<input class="field" type="text" bind:value={c.url} placeholder="链接：https://… 或 /guestbook/" />
+							<input class="field" type="text" bind:value={c.copy} placeholder="点击复制(可空)" />
+							<button class="btn-mini" type="button" on:click={() => contacts = contacts.filter((_, idx) => idx !== i)}>删除</button>
+						</div>
+					{/each}
+					<button class="btn-ghost" type="button" on:click={() => contacts = [...contacts, { name: "", icon: "", url: "", copy: "" }]}>＋ 添加一条连接</button>
+				</div>
+				<span class="hint">名称+链接非空才会显示；图标用图标名（如 fa6-brands:weixin / material-symbols:forum-outline）；留空的复制框则为普通链接</span>
 			</label>
 
 			<div class="actions">

@@ -59,17 +59,27 @@ const freexNodes = [
 	{ code: "ECHO", name: "说说", desc: "碎片与想法", url: "/thoughts/" },
 ];
 
-// 联系方式：站点配置 + 微信
+// 联系方式（建立连接）：站点配置 + 微信 + 信号；支持后台在线编辑覆盖
 const wechat = "hd60819";
-const contacts = profileConfig.links.map((l) => ({
+const defaultContacts = profileConfig.links.map((l) => ({
 	name: l.name,
 	icon: l.icon,
 	url: l.url,
 	external: !l.url.startsWith("/") && !l.url.startsWith("mailto:"),
 	copy: null as string | null,
 }));
-contacts.push({ name: "微信", icon: "fa6-brands:weixin", url: "#", external: false, copy: wechat });
-contacts.push({ name: "信号", icon: "material-symbols:forum-outline", url: "/guestbook/", external: false, copy: null });
+defaultContacts.push({ name: "微信", icon: "fa6-brands:weixin", url: "#", external: false, copy: wechat });
+defaultContacts.push({ name: "信号", icon: "material-symbols:forum-outline", url: "/guestbook/", external: false, copy: null });
+const contacts =
+	Array.isArray(remoteProfile?.contacts) && remoteProfile.contacts.length
+		? (remoteProfile.contacts as any[]).map((c) => ({
+				name: c.name || "",
+				icon: c.icon || "material-symbols:link",
+				url: c.url || "#",
+				external: !!c.url && !String(c.url).startsWith("/") && !String(c.url).startsWith("mailto:"),
+				copy: (c.copy as string | null) ?? null,
+		  }))
+		: defaultContacts;
 ---
 
 <MainGridLayout title={i18n(I18nKey.about)} description="Idong 的个人数字观测档案">
