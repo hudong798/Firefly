@@ -91,8 +91,8 @@
 	}
 
 	onMount(() => {
-		checkAuth();
-		if (loggedIn) loadProfile();
+		// 每次进入管理页都要求登录，不自动恢复本地登录态
+		loggedIn = false;
 	});
 
 	async function loadProfile() {
