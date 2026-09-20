@@ -110,8 +110,13 @@
 	let newPinned = false;
 	let newLockPwd = "";
 	let submitting = false;
+	let showMoodPicker = false;
 
-	const moodOptions = ["🌙", "😆", "🌱", "😊", "🤔", "😴", "✨", "🔥", "💭", "☕"];
+	const moodOptions = [
+		"🌙", "😆", "🌱", "😊", "🤔", "😴", "✨", "🔥", "💭", "☕",
+		"😎", "🥰", "😢", "😤", "🤯", "🥳", "😐", "😬", "🙌", "🌊",
+		"🌸", "🍀", "🌅", "🌈", "⭐", "🌧️", "🍵", "🍺", "🎮", "📚"
+	];
 
 	async function loadEchoes() {
 		if (!supabase) return;
@@ -458,7 +463,8 @@
 					<p class="admin-panel-sub">共 {echoes.length} 条说说</p>
 				</div>
 				<div class="admin-panel-actions">
-					<button class="admin-btn admin-btn-primary" on:click={() => { showForm = !showForm; if (showForm) { newLocked = false; newPinned = false; newLockPwd = ""; } }}>
+					<a href="/thoughts/" class="admin-btn admin-btn-secondary">← 返回说说</a>
+					<button class="admin-btn admin-btn-primary" on:click={() => { showForm = !showForm; if (showForm) { newLocked = false; newPinned = false; newLockPwd = ""; showMoodPicker = false; } }}>
 						{#if showForm}取消{:else}+ 写说说{/if}
 					</button>
 					<button class="admin-btn admin-btn-secondary" on:click={loadEchoes}>刷新</button>
@@ -521,16 +527,22 @@
 					<div class="form-row">
 						<div class="form-group">
 							<label>心情</label>
-							<div class="mood-picker">
-								{#each moodOptions as mood}
-									<button
-										class="mood-btn"
-										class:active={newMood === mood}
-										on:click={() => (newMood = newMood === mood ? "" : mood)}
-										type="button"
-									>{mood}</button>
-								{/each}
-							</div>
+							<button type="button" class="mood-toggle" on:click={() => (showMoodPicker = !showMoodPicker)}>
+								<span>{newMood ? newMood : "选择心情"}</span>
+								<span class="mood-toggle-arrow">{showMoodPicker ? "▲" : "▼"}</span>
+							</button>
+							{#if showMoodPicker}
+								<div class="mood-picker">
+									{#each moodOptions as mood}
+										<button
+											class="mood-btn"
+											class:active={newMood === mood}
+											on:click={() => (newMood = newMood === mood ? "" : mood)}
+											type="button"
+										>{mood}</button>
+									{/each}
+								</div>
+							{/if}
 						</div>
 						<div class="form-group">
 							<label>标签（逗号分隔）</label>
@@ -922,6 +934,33 @@
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.4rem;
+		margin-top: 0.5rem;
+	}
+
+	.mood-toggle {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		width: 100%;
+		padding: 0.6rem 0.85rem;
+		background: rgba(30, 41, 59, 0.8);
+		border: 1px solid rgba(148, 163, 184, 0.2);
+		border-radius: 8px;
+		color: #f1f5f9;
+		font-size: 0.9rem;
+		font-family: inherit;
+		cursor: pointer;
+		transition: all 0.2s;
+		box-sizing: border-box;
+	}
+
+	.mood-toggle:hover {
+		border-color: rgba(99, 102, 241, 0.5);
+	}
+
+	.mood-toggle-arrow {
+		font-size: 0.7rem;
+		color: #94a3b8;
 	}
 
 	.mood-btn {
