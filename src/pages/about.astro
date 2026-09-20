@@ -7,6 +7,7 @@ import MainGridLayout from "@/layouts/MainGridLayout.astro";
 import { Icon } from "astro-icon/components";
 import { profileConfig } from "@/config";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { marked } from "marked";
 
 // 从 Supabase 读取个人资料（未配置/读取失败时回退静态默认）
 let remoteProfile: Record<string, any> | null = null;
@@ -30,9 +31,12 @@ const profileManifesto: string[] =
   Array.isArray(remoteProfile?.manifesto) && remoteProfile.manifesto.length ? remoteProfile.manifesto : defaultManifesto;
 const profileAvatar = (remoteProfile?.avatar_url as string) || profileConfig.avatar;
 const profileAboutRaw = (remoteProfile?.about_text as string) || "";
-const profileAboutParas = profileAboutRaw
-  ? profileAboutRaw.split(/\n\s*\n/).map((x) => x.trim()).filter(Boolean)
-  : [];
+const defaultAboutHtml = marked.parse(
+  "一个热爱 AI、追求自由，也喜欢探索新事物的人。\n\n我喜欢研究 AI、折腾软件和各种新工具，也喜欢足球、旅行、摄影和记录生活。这里不是一份正式的个人简历，只是我留在数字宇宙里的一些足迹。"
+);
+const profileAboutHtml = profileAboutRaw
+  ? marked.parse(profileAboutRaw)
+  : defaultAboutHtml;
 
 // 兴趣信号（Interest Signals）
 const interests = [
@@ -156,19 +160,7 @@ const contacts =
 						<span class="po-section-zh">关于我</span>
 						<span class="po-section-line"></span>
 					</div>
-					<div class="about-body">
-						{profileAboutParas.length ? (
-							profileAboutParas.map((para) => <p>{para}</p>)
-						) : (
-							<>
-								<p>一个热爱 AI、追求自由，也喜欢探索新事物的人。</p>
-								<p>
-									我喜欢研究 AI、折腾软件和各种新工具，也喜欢足球、旅行、摄影和记录生活。
-									这里不是一份正式的个人简历，只是我留在数字宇宙里的一些足迹。
-								</p>
-							</>
-						)}
-					</div>
+					<div class="about-body" set:html={profileAboutHtml}></div>
 				</section>
 
 				<footer class="po-end">
@@ -182,6 +174,7 @@ const contacts =
 
 <script>
 	import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+	import { marked } from "marked";
 
 	// 客户端实时拉取最新个人资料，覆盖首屏静态快照
 	// 这样在管理页保存后，无需重新部署即可看到更新
@@ -214,9 +207,7 @@ const contacts =
 			if (d.about_text) {
 				const body = document.querySelector(".about-body");
 				if (body) {
-					const paras = String(d.about_text).split(/\n\s*\n/).map((x: string) => x.trim()).filter(Boolean);
-					body.innerHTML = paras.map(() => `<p></p>`).join("");
-					Array.from(body.children).forEach((c, i) => (c.textContent = paras[i]));
+					body.innerHTML = marked.parse(String(d.about_text));
 				}
 			}
 
