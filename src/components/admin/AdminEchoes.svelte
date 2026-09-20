@@ -1175,10 +1175,28 @@
 
 		.admin-panel-header {
 			gap: 0.75rem;
+			align-items: center;
+			flex-wrap: nowrap;
+		}
+
+		.admin-panel-header > div:first-child {
+			flex: 1 1 auto;
+			min-width: 0;
+		}
+
+		.admin-panel-header h2 {
+			font-size: 1.1rem;
 		}
 
 		.admin-panel-actions {
-			width: 100%;
+			flex: 0 0 auto;
+			gap: 0.35rem;
+		}
+
+		.admin-panel-actions .admin-btn {
+			padding: 0.4rem 0.6rem;
+			font-size: 0.78rem;
+			white-space: nowrap;
 		}
 	}
 </style>
