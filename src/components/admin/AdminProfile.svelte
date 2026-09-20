@@ -241,28 +241,6 @@
 			</label>
 
 			<label class="row">
-				<span class="label">兴趣信号（02 区块，可增删）</span>
-				<div class="interests">
-					{#each interests as it, i}
-						<div class="interest-item">
-							<input class="field" type="text" bind:value={it.en} placeholder="英文 AI" />
-							<input class="field" type="text" bind:value={it.zh} placeholder="中文 人工智能" />
-							<input class="field" type="text" bind:value={it.desc} placeholder="描述：研究模型与工具…" />
-							<button class="btn-mini" type="button" on:click={() => interests = interests.filter((_, idx) => idx !== i)}>删除</button>
-						</div>
-					{/each}
-					<button class="btn-ghost" type="button" on:click={() => interests = [...interests, { en: "", zh: "", desc: "" }]}>＋ 添加一条兴趣</button>
-				</div>
-				<span class="hint">留空的行会自动忽略；顺序即显示顺序</span>
-			</label>
-
-			<label class="row">
-				<span class="label">关于这个小站正文（03 区块）</span>
-				<textarea class="field area" rows="3" bind:value={freexIntro} placeholder="FreeX 不是一个单纯的网站名称…"></textarea>
-				<span class="hint">留空则使用默认文案</span>
-			</label>
-
-			<label class="row">
 				<span class="label">建立连接（SIGNAL 区块，可增删）</span>
 				<div class="interests">
 					{#each contacts as c, i}
