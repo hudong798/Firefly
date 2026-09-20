@@ -463,7 +463,6 @@
 					<p class="admin-panel-sub">共 {echoes.length} 条说说</p>
 				</div>
 				<div class="admin-panel-actions">
-					<a href="/thoughts/" class="admin-btn admin-btn-secondary">← 返回说说</a>
 					<button class="admin-btn admin-btn-primary" on:click={() => { showForm = !showForm; if (showForm) { newLocked = false; newPinned = false; newLockPwd = ""; showMoodPicker = false; } }}>
 						{#if showForm}取消{:else}+ 写说说{/if}
 					</button>
