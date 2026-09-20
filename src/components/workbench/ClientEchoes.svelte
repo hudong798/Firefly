@@ -191,11 +191,7 @@
 
 					<!-- 右侧：内容主体 -->
 					<div class="echo-body">
-						{#if echo.mood}
-							<div class="echo-mood">{echo.mood}</div>
-						{/if}
-
-						<h3 class="echo-title">{echo.title}</h3>
+						<h3 class="echo-title">{echo.title}{#if echo.mood}<span class="echo-mood">{echo.mood}</span>{/if}</h3>
 
 						<div class="echo-content">
 							{#if echo.is_locked}
@@ -388,15 +384,17 @@
 	}
 
 	.echo-mood {
-		font-size: 1.3rem;
-		margin-bottom: 0.75rem;
+		display: inline-block;
+		margin-left: 0.5rem;
+		font-size: 1.15rem;
 		line-height: 1;
+		vertical-align: middle;
 	}
 
 	.echo-title {
 		font-size: 1.1rem;
 		font-weight: 600;
-		color: #F4F5FA;
+		color: #6FC3FF;
 		margin: 0 0 0.75rem 0;
 		line-height: 1.4;
 	}
