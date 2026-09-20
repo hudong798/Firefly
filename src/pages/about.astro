@@ -6,9 +6,33 @@ import { i18n } from "@/i18n/translation";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
 import { Icon } from "astro-icon/components";
 import { profileConfig } from "@/config";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+
+// 从 Supabase 读取个人资料（未配置/读取失败时回退静态默认）
+let remoteProfile: Record<string, any> | null = null;
+if (isSupabaseConfigured && supabase) {
+  try {
+    const { data } = await supabase.rpc("get_site_profile");
+    if (data) remoteProfile = data as Record<string, any>;
+  } catch {
+    remoteProfile = null;
+  }
+}
 
 // 身份标签
-const identityTags = ["AI 爱好者", "足球迷", "FreeX 站长", "数字探索者"];
+const defaultTags = ["AI 爱好者", "足球迷", "FreeX 站长", "数字探索者"];
+const profileName = (remoteProfile?.name as string) || "Idong";
+const profileTagline = (remoteProfile?.tagline as string) || "热爱 AI · 追求自由";
+const profileTags: string[] =
+  Array.isArray(remoteProfile?.tags) && remoteProfile.tags.length ? remoteProfile.tags : defaultTags;
+const defaultManifesto = ["你好，我是 Idong。", "一个热爱 AI、追求自由，", "也喜欢记录生活的人。"];
+const profileManifesto: string[] =
+  Array.isArray(remoteProfile?.manifesto) && remoteProfile.manifesto.length ? remoteProfile.manifesto : defaultManifesto;
+const profileAvatar = (remoteProfile?.avatar_url as string) || profileConfig.avatar;
+const profileAboutRaw = (remoteProfile?.about_text as string) || "";
+const profileAboutParas = profileAboutRaw
+  ? profileAboutRaw.split(/\n\s*\n/).map((x) => x.trim()).filter(Boolean)
+  : [];
 
 // 兴趣信号（Interest Signals）
 const interests = [
@@ -58,31 +82,31 @@ contacts.push({ name: "信号", icon: "material-symbols:forum-outline", url: "/g
 		<div class="po-grid">
 			<!-- 左侧：个人身份识别 -->
 			<aside class="po-identity">
-				<a href="/" class="id-orb-link" title="返回首页">
+				<a href="/admin/profile/" class="id-orb-link" title="管理个人信息">
 					<div class="id-orb">
 						<div class="id-orb-ring id-orb-ring--rotate" aria-hidden="true">
 							<span class="id-orb-comet"></span>
 						</div>
 						<div class="id-orb-ring id-orb-ring--static" aria-hidden="true"></div>
 						<div class="id-orb-core">
-							<img src={profileConfig.avatar} alt="Idong avatar" />
+							<img src={profileAvatar} alt={profileName + " avatar"} />
 						</div>
 						<span class="id-orb-status" title="online"></span>
 					</div>
 				</a>
 
-				<h1 class="id-name">Idong</h1>
-				<p class="id-line">热爱 AI · 追求自由</p>
+				<h1 class="id-name">{profileName}</h1>
+				<p class="id-line">{profileTagline}</p>
 
 				<div class="id-tags">
-					{identityTags.map((t) => <span class="id-tag">{t}</span>)}
+					{profileTags.map((t) => <span class="id-tag">{t}</span>)}
 				</div>
 
 				<!-- 个人宣言 -->
 				<blockquote class="id-manifesto">
-					<p>你好，我是 <em>Idong</em>。</p>
-					<p>一个热爱 AI、追求自由，</p>
-					<p>也喜欢记录生活的人。</p>
+					{profileManifesto.map((line) => (
+						<p>{line}</p>
+					))}
 				</blockquote>
 
 				<!-- 建立连接 -->
@@ -122,11 +146,17 @@ contacts.push({ name: "信号", icon: "material-symbols:forum-outline", url: "/g
 						<span class="po-section-line"></span>
 					</div>
 					<div class="about-body">
-						<p>一个热爱 AI、追求自由，也喜欢探索新事物的人。</p>
-						<p>
-							我喜欢研究 AI、折腾软件和各种新工具，也喜欢足球、旅行、摄影和记录生活。
-							这里不是一份正式的个人简历，只是我留在数字宇宙里的一些足迹。
-						</p>
+						{profileAboutParas.length ? (
+							profileAboutParas.map((para) => <p>{para}</p>)
+						) : (
+							<>
+								<p>一个热爱 AI、追求自由，也喜欢探索新事物的人。</p>
+								<p>
+									我喜欢研究 AI、折腾软件和各种新工具，也喜欢足球、旅行、摄影和记录生活。
+									这里不是一份正式的个人简历，只是我留在数字宇宙里的一些足迹。
+								</p>
+							</>
+						)}
 					</div>
 				</section>
 
