@@ -185,6 +185,17 @@
 					data-slug={echo.slug}
 					style={`--echo-index: ${index};`}
 				>
+					{#if echo.pinned}
+						<span class="echo-pin" title="置顶">
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+								<line x1="5" x2="19" y1="5" y2="5"></line>
+								<path d="m12 21-7-7"></path>
+								<path d="m12 21 7-7"></path>
+								<path d="M12 21V9"></path>
+							</svg>
+						</span>
+					{/if}
+
 					<!-- 左侧：Echo 编号 + 时间坐标 -->
 					<div class="echo-meta">
 						<span class="echo-number">ECHO / {echoNum}</span>
@@ -197,7 +208,7 @@
 
 					<!-- 右侧：内容主体 -->
 					<div class="echo-body">
-						<h3 class="echo-title">{#if echo.pinned}<span class="echo-pin" title="置顶">📌</span>{/if}{echo.title}{#if echo.mood}<span class="echo-mood">{echo.mood}</span>{/if}</h3>
+						<h3 class="echo-title">{echo.title}{#if echo.mood}<span class="echo-mood">{echo.mood}</span>{/if}</h3>
 
 						<div class="echo-content">
 							{#if echo.is_locked}
@@ -398,11 +409,21 @@
 	}
 
 	.echo-pin {
-		display: inline-block;
-		margin-right: 0.45rem;
-		font-size: 0.95rem;
-		line-height: 1;
-		vertical-align: middle;
+		position: absolute;
+		top: 0.9rem;
+		right: 1rem;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 22px;
+		height: 22px;
+		color: #f5c451;
+		filter: drop-shadow(0 0 4px rgba(245, 196, 81, 0.45));
+	}
+
+	.echo-pin svg {
+		width: 16px;
+		height: 16px;
 	}
 
 	.echo-title {
