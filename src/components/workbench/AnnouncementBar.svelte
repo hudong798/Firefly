@@ -118,7 +118,7 @@
 
 	.announcement-text {
 		font-size: 0.95rem;
-		color: rgba(245, 247, 255, 0.85);
+		color: rgba(134, 239, 172, 0.9);
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -126,7 +126,7 @@
 	}
 
 	.announcement-item:hover .announcement-text {
-		color: rgba(245, 247, 255, 0.95);
+		color: rgba(134, 239, 172, 1);
 	}
 
 	@media (max-width: 768px) {
