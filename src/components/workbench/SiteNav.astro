@@ -22,6 +22,8 @@ const currentPath = Astro.url.pathname;
   <div class="site-nav__left">
     <a href="/about/" class="site-nav__brand" id="site-nav-avatar-btn" title="关于我">
       <img src={profileConfig.avatar} alt="avatar" class="site-nav__avatar" />
+    </a>
+    <a href="/" class="site-nav__brand site-nav__brand-name-link" title="首页">
       <span class="site-nav__brand-name">{siteConfig.title}</span>
     </a>
   </div>
