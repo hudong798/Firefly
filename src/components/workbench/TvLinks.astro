@@ -61,7 +61,7 @@ const totalEntries = tvSites.length + tvOthers.length;
 								<h4 class="tv-card-name">{s.name}</h4>
 								<div class="tv-card-spacer"></div>
 								<div class="tv-card-bottom">
-									<span class="tv-card-rating">RATING {s.rating.toFixed(1)}</span>
+									<span class="tv-card-rating">RATING {s.rating != null ? s.rating.toFixed(1) : '--'}</span>
 									<span class="tv-card-arrow">↗</span>
 								</div>
 							</a>
