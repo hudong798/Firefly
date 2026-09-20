@@ -113,7 +113,7 @@
 	{#if loading}
 		<div class="ed-loading">
 			<div class="ed-spinner"></div>
-			<span>正在接收回声信号...</span>
+			<span>正在接收说说信号...</span>
 		</div>
 	{:else if error}
 		<div class="ed-error">

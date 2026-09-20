@@ -29,7 +29,9 @@ const tagHue = (tag: string) => {
 
 <!-- 助手欢迎消息 -->
 <div class="wb-msg wb-msg--assistant">
-	<img class="wb-avatar" src={profileConfig.avatar} alt="" />
+	<a href="/about/" class="wb-avatar-link" title="关于我">
+		<img class="wb-avatar" src={profileConfig.avatar} alt="关于我" />
+	</a>
 	<div class="wb-msg-main">
 		<div class="wb-msg-meta">
 			<span class="wb-msg-author">{profileConfig.name}</span>
@@ -127,3 +129,20 @@ const tagHue = (tag: string) => {
 	})
 }
 
+
+<style>
+	/* 首页头像：点击进入关于我 */
+	.wb-avatar-link {
+		display: inline-flex;
+		align-items: flex-start;
+		line-height: 0;
+		text-decoration: none;
+		border-radius: 50%;
+		flex-shrink: 0;
+		transition: transform 0.2s ease, box-shadow 0.2s ease;
+	}
+	.wb-avatar-link:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 0 16px rgba(155, 140, 255, 0.45);
+	}
+</style>

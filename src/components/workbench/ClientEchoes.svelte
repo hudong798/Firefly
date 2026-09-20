@@ -152,7 +152,7 @@
 	{#if loading}
 		<div class="echo-loading">
 			<div class="echo-spinner"></div>
-			<span>正在接收回声信号...</span>
+			<span>正在接收说说信号...</span>
 		</div>
 	{:else if error && echoes.length === 0}
 		<div class="echo-error">
@@ -162,8 +162,8 @@
 	{:else if echoes.length === 0}
 		<div class="echo-empty">
 			<div class="echo-empty-icon">✦</div>
-			<p>宇宙中还没有回声</p>
-			<p class="echo-empty-hint">点击右上角「写回声」发布第一条</p>
+			<p>宇宙中还没有说说</p>
+			<p class="echo-empty-hint">点击右上角「写说说」发布第一条</p>
 		</div>
 	{:else}
 		<div class="echoes">

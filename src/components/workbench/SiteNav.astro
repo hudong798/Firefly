@@ -7,8 +7,9 @@ import NavSearch from "@/components/workbench/NavSearch.svelte";
 const navItems = [
   { name: "观测站", url: "/", icon: "home" },
   { name: "说说", url: "/thoughts/", icon: "chat" },
+  { name: "Buddy", url: "/ai/", icon: "ai" },
   { name: "日程", url: "/schedule/", icon: "calendar", hidden: true },
-  { name: "信号", url: "/guestbook/", icon: "message" },
+  { name: "信号", url: "/guestbook/", icon: "message", hidden: true },
   { name: "档案", url: "/resources/", icon: "box", hidden: true },
   { name: "修仙界", url: "/cultivation/", icon: "cultivation", hidden: true },
 ];
@@ -19,7 +20,7 @@ const currentPath = Astro.url.pathname;
 
 <nav class="site-nav">
   <div class="site-nav__left">
-    <a href="/" class="site-nav__brand" id="site-nav-avatar-btn">
+    <a href="/about/" class="site-nav__brand" id="site-nav-avatar-btn" title="关于我">
       <img src={profileConfig.avatar} alt="avatar" class="site-nav__avatar" />
       <span class="site-nav__brand-name">{siteConfig.title}</span>
     </a>
