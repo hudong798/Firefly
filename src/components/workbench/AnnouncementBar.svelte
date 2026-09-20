@@ -63,7 +63,7 @@
 			</div>
 		{:else}
 			{#each announcements as item}
-				<a href="/thoughts/{item.slug}/" class="announcement-item">
+				<a href={"/thoughts/view/?slug=" + encodeURIComponent(item.slug)} class="announcement-item">
 					<span class="announcement-date">{formatDate(item.created_at)}</span>
 					<span class="announcement-text">{item.title || item.content.slice(0, 50)}</span>
 				</a>
