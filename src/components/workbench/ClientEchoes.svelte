@@ -14,6 +14,7 @@
 		created_at: string;
 		is_locked: boolean;
 		has_image: boolean;
+		pinned: boolean;
 	}
 
 	let echoes: Echo[] = [];
@@ -125,7 +126,12 @@
 				.rpc("list_public_echoes");
 
 			if (err) throw err;
-			echoes = (data as Echo[]) || [];
+			const list = (data as Echo[]) || [];
+			echoes = list.sort(
+				(a, b) =>
+					Number(!!b.pinned) - Number(!!a.pinned) ||
+					new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+			);
 
 			// 检查 URL 参数中是否有 slug，有则自动展开
 			if (typeof window !== "undefined") {
@@ -191,7 +197,7 @@
 
 					<!-- 右侧：内容主体 -->
 					<div class="echo-body">
-						<h3 class="echo-title">{echo.title}{#if echo.mood}<span class="echo-mood">{echo.mood}</span>{/if}</h3>
+						<h3 class="echo-title">{#if echo.pinned}<span class="echo-pin" title="置顶">📌</span>{/if}{echo.title}{#if echo.mood}<span class="echo-mood">{echo.mood}</span>{/if}</h3>
 
 						<div class="echo-content">
 							{#if echo.is_locked}
@@ -387,6 +393,14 @@
 		display: inline-block;
 		margin-left: 0.5rem;
 		font-size: 1.15rem;
+		line-height: 1;
+		vertical-align: middle;
+	}
+
+	.echo-pin {
+		display: inline-block;
+		margin-right: 0.45rem;
+		font-size: 0.95rem;
 		line-height: 1;
 		vertical-align: middle;
 	}

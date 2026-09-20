@@ -107,6 +107,7 @@
 	let newMood = "";
 	let newTags = "";
 	let newLocked = false;
+	let newPinned = false;
 	let newLockPwd = "";
 	let submitting = false;
 
@@ -181,6 +182,7 @@
 				p_tags: tagsArr.length > 0 ? tagsArr : null,
 				p_status: "published",
 				p_is_locked: newLocked,
+				p_pinned: newPinned,
 				p_lock_password: null
 			});
 
@@ -194,6 +196,7 @@
 			newMood = "";
 			newTags = "";
 			newLocked = false;
+			newPinned = false;
 			newLockPwd = "";
 			showForm = false;
 			loadEchoes();
@@ -353,6 +356,29 @@
 		}
 	}
 
+	async function togglePin(echo: any) {
+		if (!supabase) return;
+		try {
+			const creds = getAdminCredentials();
+			if (!creds) {
+				loggedIn = false;
+				localStorage.removeItem(ECHO_AUTH_KEY);
+				actionMessage = "登录已过期，请重新登录";
+				return;
+			}
+			const { error } = await supabase.rpc("admin_toggle_pin_echo", {
+				p_username: creds.username,
+				p_password: creds.password,
+				p_id: echo.id
+			});
+			if (error) throw error;
+			actionMessage = echo.pinned ? "已取消置顶" : "已置顶";
+			loadEchoes();
+		} catch (e: any) {
+			actionMessage = e?.message || "置顶失败";
+		}
+	}
+
 	function formatDate(dateStr: string): string {
 		const d = new Date(dateStr);
 		return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
@@ -432,7 +458,7 @@
 					<p class="admin-panel-sub">共 {echoes.length} 条说说</p>
 				</div>
 				<div class="admin-panel-actions">
-					<button class="admin-btn admin-btn-primary" on:click={() => { showForm = !showForm; if (showForm) { newLocked = false; newLockPwd = ""; } }}>
+					<button class="admin-btn admin-btn-primary" on:click={() => { showForm = !showForm; if (showForm) { newLocked = false; newPinned = false; newLockPwd = ""; } }}>
 						{#if showForm}取消{:else}+ 写说说{/if}
 					</button>
 					<button class="admin-btn admin-btn-secondary" on:click={loadEchoes}>刷新</button>
@@ -518,6 +544,12 @@
 							<span>🔒 上锁保护（访客需输入密码才能查看正文）</span>
 						</label>
 					</div>
+					<div class="lock-row">
+						<label class="lock-toggle">
+							<input type="checkbox" bind:checked={newPinned} />
+							<span>📌 置顶（在说说列表最上方显示）</span>
+						</label>
+					</div>
 
 					<button class="admin-submit-btn" on:click={submitEcho} disabled={submitting}>
 						{#if submitting}发布中...{:else}发布说说{/if}
@@ -538,6 +570,7 @@
 								<div class="echo-item-title">
 									{#if echo.mood}<span class="echo-mood">{echo.mood}</span>{/if}
 									<span>{echo.title}</span>
+									{#if echo.pinned}<span class="echo-locked-badge" title="已置顶">📌</span>{/if}
 									{#if echo.is_locked}<span class="echo-locked-badge" title="已上锁">🔒</span>{/if}
 								</div>
 								<div class="echo-item-meta">
@@ -550,6 +583,7 @@
 							</div>
 							<div class="echo-item-content">{toPlainExcerpt(echo.content)}</div>
 							<div class="echo-item-actions">
+								<button class="admin-btn {echo.pinned ? "admin-btn-pin" : "admin-btn-secondary"}" on:click={() => togglePin(echo)}>{echo.pinned ? "取消置顶" : "置顶"}</button>
 								<a href={`/thoughts/?slug=${encodeURIComponent(echo.slug)}`} target="_blank" class="admin-btn admin-btn-secondary">查看</a>
 								<button class="admin-btn admin-btn-danger" on:click={() => deleteEcho(echo.id)}>删除</button>
 							</div>
@@ -752,6 +786,11 @@
 		border: 1px solid rgba(148, 163, 184, 0.2);
 	}
 
+	.admin-btn-pin {
+		background: rgba(255, 196, 66, 0.16);
+		color: #ffd479;
+		border: 1px solid rgba(255, 196, 66, 0.35);
+	}
 	.admin-btn-danger {
 		background: rgba(239, 68, 68, 0.15);
 		color: #f87171;
