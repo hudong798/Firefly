@@ -25,14 +25,15 @@
 	$: curCats = mode === "ai" ? AI_CATEGORIES : CATEGORIES;
 	type Cat = typeof CATEGORIES[number];
 	type Filter = "全部" | string;
-	let activeCat: Filter = "全部";
+	let activeCat: Filter = "";
+	function subCatsFor(c: string) { return [...new Set(items.filter(i=>i.category===c).map(i=>(i.tags&&i.tags[0])||"").filter(Boolean))]; }
 	let subCat = "";
 	function setCat(c: Filter) { activeCat = c; subCat = ""; }
 	$: catList = mode === "ai"
-		? ["全部", ...AI_CATEGORIES]
-		: ["全部", ...[...new Set(items.map((i) => i.category).filter(Boolean))]];
-	$: baseItems = activeCat === "全部" ? items : items.filter((i) => i.category === activeCat);
-	$: subCats = [...new Set(baseItems.map((i) => (i.tags && i.tags[0]) || "").filter(Boolean))];
+		? [...AI_CATEGORIES]
+		: [...new Set(items.map((i) => i.category).filter(Boolean))];
+	$: baseItems = activeCat ? items.filter((i) => i.category === activeCat) : items;
+	$: subCats = activeCat === "影视" ? ["综合","动漫","短剧","其他"] : [...new Set(baseItems.map((i) => (i.tags && i.tags[0]) || "").filter(Boolean))];
 	let shownItems: ArchiveItem[] = [];
 	$: shownItems = (subCat ? baseItems.filter((i) => (i.tags && i.tags[0]) === subCat) : baseItems).filter((i) => i.id !== editingId);
 
@@ -110,6 +111,10 @@
 			const { data, error } = await supabase.rpc(rpc);
 			if (error) throw error;
 			items = (data || []) as ArchiveItem[];
+			if (!activeCat) {
+				const cats = mode === "ai" ? AI_CATEGORIES : [...new Set(items.map((i) => i.category).filter(Boolean))];
+				activeCat = cats.includes("影视") ? "影视" : cats[0];
+			}
 		} catch (e: any) {
 			actionMessage = "加载失败：" + (e?.message || "未知错误");
 		} finally {
@@ -145,7 +150,7 @@
 
 	function switchMode(m: Mode) {
 		if (mode === m) return;
-		mode = m; activeCat = "全部"; subCat = ""; showForm = false; actionMessage = "";
+		mode = m; activeCat = ""; subCat = ""; showForm = false; actionMessage = "";
 		loadItems();
 	}
 
@@ -297,10 +302,20 @@
 					<h2>{mode === "ai" ? "AI 管理" : "收藏管理"}</h2>
 					<p class="panel-sub">共 {items.length} 个{mode === "ai" ? "AI 工具" : "收藏链接"}</p>
 				</div>
-				<div class="cat-tabs">
-					{#each catList as c}
-						<button class="cat-tab" class:on={activeCat===c} on:click={() => setCat(c)}>{c}</button>
-					{/each}
+				<div class="cat-cascade">
+					<select class="cat-select" bind:value={activeCat} on:change={() => subCat = ""}>
+						{#each catList as c}
+							<option value={c}>{c}</option>
+						{/each}
+					</select>
+					{#if (activeCat === "影视" ? ["综合","动漫","短剧","其他"] : subCatsFor(activeCat)).length}
+						<select class="cat-select" bind:value={subCat}>
+							<option value="">全部</option>
+							{#each (activeCat === "影视" ? ["综合","动漫","短剧","其他"] : subCatsFor(activeCat)) as sc}
+								<option value={sc}>{sc}</option>
+							{/each}
+						</select>
+					{/if}
 				</div>
 				<div class="panel-actions">
 					<button class="btn-primary" on:click={() => { showForm = !showForm; if (showForm) resetForm(); }}>
@@ -325,11 +340,6 @@
 						</label>
 					</div>
 					<div class="form-row">
-						<label>分类
-							<select class="field" bind:value={fCategory}>
-								{#each curCats as c}<option value={c}>{c}</option>{/each}
-							</select>
-						</label>
 						{#if mode === "ai"}
 							<label>Logo
 								<div class="logo-row">
@@ -347,7 +357,7 @@
 										<option value="综合">综合</option>
 										<option value="动漫">动漫</option>
 										<option value="短剧">短剧</option>
-										<option value="AI影视">AI影视</option>
+										<option value="其他">其他</option>
 									</select>
 								</label>
 							</div>
@@ -459,6 +469,9 @@
 	.cat-tabs { display: flex; gap: 0.4rem; flex-wrap: wrap; }
 	.cat-tab { padding: 0.35rem 0.85rem; font-size: 0.82rem; border-radius: 999px; border: 1px solid rgba(111,195,255,0.25); background: transparent; color: #9fb4d8; cursor: pointer; }
 	.cat-tab.on { background: linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; border-color: transparent; }
+	.cat-cascade { display:flex; gap:0.5rem; }
+	.cat-select { padding: 0.4rem 0.7rem; font-size: 0.85rem; border-radius: 8px; border: 1px solid rgba(111,195,255,0.25); background: rgba(15,23,42,0.6); color: #cfe3ff; }
+	.sub-tabs .cat-tab { padding: 0.28rem 0.75rem; font-size: 0.78rem; }
 	.sub-tabs { display:flex; gap:0.35rem; flex-wrap:wrap; margin-top:0.5rem; }
 	.sub-tab { padding:0.25rem 0.7rem; font-size:0.76rem; border-radius:999px; border:1px solid rgba(111,195,255,0.18); background:transparent; color:#8aa0c8; cursor:pointer; }
 	.sub-tab.on { background:rgba(99,102,241,0.35); color:#dbe4ff; }

@@ -20,16 +20,26 @@ const { tvSites: staticTvSites } = await import("@/data/tv");
 const tvSites = sites && sites.length > 0 ? sites : staticTvSites;
 
 const typeLabel: Record<string, string> = {
-	综合: "ALL",
+	综合: "GENERAL",
 	动漫: "ANIME",
 	短剧: "DRAMA",
-	网盘: "NETDISK",
+	网盘: "OTHER",
 	其他: "OTHER",
 };
 
-const grouped = tvTypeOrder
-	.map((type) => ({ type, sites: tvSites.filter((s) => s.type === type) }))
-	.filter((g) => g.sites.length > 0);
+const mainTypes = ["综合", "动漫", "短剧"];
+const grouped = [
+	...mainTypes
+		.map((type) => ({ type, sites: tvSites.filter((s) => s.type === type) }))
+		.filter((g) => g.sites.length > 0),
+	{
+		type: "其他",
+		sites: [
+			...tvSites.filter((s) => s.type === "网盘" || s.type === "其他"),
+			...tvOthers,
+		],
+	},
+];
 
 // 全局编号计数器
 let globalIndex = 0;
@@ -37,13 +47,18 @@ const totalEntries = tvSites.length + tvOthers.length;
 ---
 
 <div class="tv-archive">
+	<nav class="tv-tabs">
+		{grouped.map((g,i) => (
+			<button class="tv-tab" data-cat={g.type} class:active={i===0}>{g.type}</button>
+		))}
+	</nav>
 	{
 		grouped.map((g) => (
-			<section class="tv-group">
+			<section class="tv-group" data-cat={g.type}>
 				<div class="tv-group-header">
 					<div class="tv-group-title">
 						<span class="tv-group-label">{typeLabel[g.type]}</span>
-						<span class="tv-group-name">{g.type === "综合" ? "全部" : g.type}</span>
+						<span class="tv-group-name">{g.type}</span>
 					</div>
 					<span class="tv-group-count">{g.sites.length} ENTRIES</span>
 				</div>
@@ -71,39 +86,6 @@ const totalEntries = tvSites.length + tvOthers.length;
 			</section>
 		))
 	}
-
-	<!-- 其他推荐 -->
-	<section class="tv-group">
-		<div class="tv-group-header">
-			<div class="tv-group-title">
-				<span class="tv-group-label">REFERENCE</span>
-				<span class="tv-group-name">其他推荐</span>
-			</div>
-			<span class="tv-group-count">{tvOthers.length} ENTRIES</span>
-		</div>
-		<div class="tv-grid">
-			{
-				tvOthers.map((o) => {
-					globalIndex++;
-					const archiveNum = String(globalIndex).padStart(3, "0");
-					return (
-						<a class="tv-card tv-card--simple" href={o.url} target="_blank" rel="noopener" style={`--tv-index: ${globalIndex};`}>
-							<div class="tv-card-top">
-								<span class="tv-card-id">ARCHIVE / {archiveNum}</span>
-								<span class="tv-card-type">REF</span>
-							</div>
-							<h4 class="tv-card-name">{o.name}</h4>
-							<div class="tv-card-spacer"></div>
-							<div class="tv-card-bottom">
-								<span></span>
-								<span class="tv-card-arrow">↗</span>
-							</div>
-						</a>
-					);
-				})
-			}
-		</div>
-	</section>
 
 	<!-- 解析接口 -->
 	<section class="tv-group">
@@ -156,10 +138,25 @@ const totalEntries = tvSites.length + tvOthers.length;
 	)}
 </div>
 
+<script>
+	const tabs = document.querySelectorAll<HTMLButtonElement>(".tv-tab");
+	const groups = document.querySelectorAll<HTMLElement>(".tv-group");
+	function applyTv(cat: string) {
+		tabs.forEach((t) => t.classList.toggle("active", t.dataset.cat === cat));
+		groups.forEach((g) => { g.style.display = g.dataset.cat === cat ? "" : "none"; });
+	}
+	tabs.forEach((t) => t.addEventListener("click", () => applyTv(t.dataset.cat!)));
+	if (tabs[0]) applyTv(tabs[0].dataset.cat!);
+</script>
+
 <style>
 	.tv-archive {
 		margin-top: 0.25rem;
 	}
+	.tv-tabs { display:flex; flex-wrap:wrap; gap:0.5rem; margin:0 0 1.5rem; }
+	.tv-tab { padding:0.45rem 1rem; border-radius:999px; border:1px solid rgba(155,140,255,0.25); background:rgba(20,24,44,0.6); color:#C7CCDB; font-size:0.85rem; cursor:pointer; transition:all .2s; }
+	.tv-tab:hover { border-color:rgba(155,140,255,0.6); color:#fff; }
+	.tv-tab.active { background:linear-gradient(135deg,#7c5cff,#5b8cff); border-color:transparent; color:#fff; }
 
 	/* 分组 */
 	.tv-group {
