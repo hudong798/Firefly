@@ -14,7 +14,7 @@
 		created_at: string;
 	}
 
-	// 复用说说/个人资料同一套管理员登录态（idong / 519931819）
+	// 复用同一套管理员登录态（Supabase RPC 验证）
 	const AUTH_KEY = "echo_admin_auth";
 	const AUTH_EXPIRE = 1000 * 60 * 60 * 8;
 

@@ -2,7 +2,7 @@
 	import { onMount } from "svelte";
 	import { supabase } from "@/lib/supabase";
 
-	// 复用说说管理员登录态（同一套账号体系 idong / 519931819）
+	// 复用同一套管理员登录态（Supabase RPC 验证）
 	const ECHO_AUTH_KEY = "echo_admin_auth";
 	const ECHO_AUTH_EXPIRE = 1000 * 60 * 60 * 8;
 
