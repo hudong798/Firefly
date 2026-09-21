@@ -300,17 +300,17 @@
 		<div class="panel">
 			<div class="panel-title-top">
 				<h2>{mode === "ai" ? "AI 管理" : "收藏管理"}</h2>
-				<p class="panel-sub">共 {items.length} 个{mode === "ai" ? "AI 工具" : "收藏链接"}</p>
+				<p class="panel-sub">共 {items.length} 个{mode === "ai" ? "AI 工具" : "收藏"}</p>
 			</div>
 			<div class="action-row">
 				<div class="mode-dropdown">
 					<button class="mode-dropdown-btn" on:click|preventDefault={() => modeMenuOpen = !modeMenuOpen}>
-						{mode === "ai" ? "AI 工具" : "收藏链接"} <span class="caret">▾</span>
+						{mode === "ai" ? "AI 工具" : "收藏"} <span class="caret">▾</span>
 					</button>
 					{#if modeMenuOpen}
 						<div class="mode-dropdown-pop">
 							<button class:on={mode==="ai"} on:click|preventDefault={() => { switchMode("ai"); modeMenuOpen = false; }}>AI 工具</button>
-							<button class:on={mode==="archive"} on:click|preventDefault={() => { switchMode("archive"); modeMenuOpen = false; }}>收藏链接</button>
+							<button class:on={mode==="archive"} on:click|preventDefault={() => { switchMode("archive"); modeMenuOpen = false; }}>收藏</button>
 						</div>
 					{/if}
 				</div>
@@ -345,7 +345,6 @@
 					<button class="btn-primary" on:click={() => { showForm = !showForm; if (showForm) resetForm(); }}>
 						{showForm ? "取消" : "+ 添加"}
 					</button>
-					<button class="btn-secondary" on:click={loadItems}>刷新</button>
 					<button class="btn-danger" on:click={handleLogout}>退出</button>
 				</div>
 			</div>
