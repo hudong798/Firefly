@@ -17,142 +17,73 @@ interface Props {
 const { items } = Astro.props;
 ---
 
-<div class="link-rows card-base rounded-[var(--radius-large)] overflow-hidden">
+<div class="tv-grid">
 	{
-		items.map((item) => (
+		items.map((item, idx) => (
 			<a
-				class="link-row"
+				class="tv-card"
 				href={item.url}
 				target="_blank"
 				rel="noopener noreferrer"
+				style={`--tv-index: ${idx};`}
 			>
-				<span class="link-icon">{item.icon}</span>
-				<span class="link-main">
-					<span class="link-title">
-						{item.name}
-						{item.cat && <span class="link-cat">{item.cat}</span>}
-					</span>
-					{item.desc && <span class="link-desc">{item.desc}</span>}
-				</span>
-				<span class="link-arrow">
-					<Icon name="material-symbols:chevron-right-rounded" />
-				</span>
+				<div class="tv-card-top">
+					<span class="tv-card-id">LINK / {String(idx + 1).padStart(2, "0")}</span>
+					{item.cat && <span class="tv-card-type">{item.cat}</span>}
+				</div>
+				<h4 class="tv-card-name">{item.icon} {item.name}</h4>
+				<div class="tv-card-spacer"></div>
+				<div class="tv-card-bottom">
+					{item.desc && <span class="tv-card-rating">{item.desc}</span>}
+					<span class="tv-card-arrow">↗</span>
+				</div>
 			</a>
 		))
 	}
 </div>
 
 <style>
-	.link-rows {
+	.tv-grid {
+		display: grid;
+		grid-template-columns: repeat(10, minmax(0, 1fr));
+		gap: 0.6rem;
+	}
+	.tv-card {
 		display: flex;
 		flex-direction: column;
-	}
-
-	.link-row {
-		display: flex;
-		align-items: center;
-		gap: 1rem;
-		padding: 0.9rem 1.5rem;
+		min-height: 115px;
+		padding: 0.7rem 0.8rem;
+		border-radius: 12px;
+		background: rgba(255, 255, 255, 0.015);
+		border: 1px solid rgba(255, 255, 255, 0.07);
 		text-decoration: none;
 		color: inherit;
-		transition: background 0.2s ease;
+		cursor: pointer;
 		position: relative;
-	}
-
-	/* 行间分隔线 */
-	.link-row:not(:last-child)::after {
-		content: "";
-		position: absolute;
-		left: 1.5rem;
-		right: 1.5rem;
-		bottom: 0;
-		height: 1px;
-		background: var(--line-divider);
-		opacity: 0.6;
-	}
-
-	.link-row:hover {
-		background: var(--btn-plain-bg-hover);
-	}
-
-	.link-row:active {
-		background: var(--btn-plain-bg-active);
-	}
-
-	.link-icon {
-		flex-shrink: 0;
-		width: 2.4rem;
-		height: 2.4rem;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-size: 1.4rem;
-		border-radius: 0.7rem;
-		background: var(--btn-regular-bg);
-	}
-
-	.link-main {
-		flex: 1;
-		min-width: 0;
-		display: flex;
-		flex-direction: column;
-		gap: 0.15rem;
-	}
-
-	.link-title {
-		font-weight: 700;
-		font-size: 0.98rem;
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		transition: color 0.2s ease;
-	}
-
-	.link-row:hover .link-title {
-		color: var(--primary);
-	}
-
-	.link-cat {
-		font-size: 0.68rem;
-		font-weight: 500;
-		padding: 0.08rem 0.5rem;
-		border-radius: 999px;
-		color: var(--primary);
-		background: color-mix(in oklch, var(--primary) 14%, transparent);
-	}
-
-	.link-desc {
-		font-size: 0.8rem;
-		color: var(--content-meta);
 		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
+		animation: tv-card-in 0.4s ease-out both;
+		animation-delay: calc(min(var(--tv-index), 10) * 30ms);
+		transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease;
 	}
-
-	.link-arrow {
-		flex-shrink: 0;
-		color: var(--content-meta);
-		font-size: 1.6rem;
-		display: flex;
-		transition:
-			color 0.2s ease,
-			transform 0.2s ease;
+	@keyframes tv-card-in {
+		from { opacity: 0; transform: translateY(12px); }
+		to { opacity: 1; transform: translateY(0); }
 	}
-
-	.link-row:hover .link-arrow {
-		color: var(--primary);
-		transform: translateX(2px);
+	.tv-card::before {
+		content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+		background: linear-gradient(to bottom, rgba(155,140,255,0.5), rgba(155,140,255,0.05));
+		opacity: 0; transition: opacity 0.25s ease;
 	}
-
-	@media (max-width: 768px) {
-		.link-row {
-			padding: 0.8rem 1rem;
-			gap: 0.75rem;
-		}
-
-		.link-row:not(:last-child)::after {
-			left: 1rem;
-			right: 1rem;
-		}
-	}
+	.tv-card:hover { transform: translateY(-3px); border-color: rgba(155,140,255,0.22); background: rgba(255,255,255,0.025); }
+	.tv-card:hover::before { opacity: 1; }
+	.tv-card-top { display:flex; align-items:center; justify-content:space-between; gap:0.5rem; margin-bottom:0.5rem; }
+	.tv-card-id { font-family:"JetBrains Mono","Fira Code",ui-monospace,monospace; font-size:0.48rem; letter-spacing:0.08em; color:rgba(255,255,255,0.24); text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+	.tv-card-type { font-family:"JetBrains Mono",ui-monospace,monospace; font-size:0.48rem; letter-spacing:0.08em; color:rgba(255,255,255,0.3); text-transform:uppercase; padding:0.06rem 0.35rem; border:1px solid rgba(255,255,255,0.06); border-radius:3px; line-height:1.5; }
+	.tv-card-name { margin:0; font-size:0.92rem; font-weight:600; color:#4ade80; line-height:1.25; transition:color 0.2s ease; word-break:break-all; }
+	.tv-card:hover .tv-card-name { color:#fff; }
+	.tv-card-spacer { flex:1; }
+	.tv-card-bottom { display:flex; align-items:center; justify-content:space-between; margin-top:0.4rem; padding-top:0.35rem; border-top:1px solid rgba(255,255,255,0.04); }
+	.tv-card-rating { font-family:"JetBrains Mono",ui-monospace,monospace; font-size:0.48rem; letter-spacing:0.04em; color:rgba(255,255,255,0.26); text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+	.tv-card-arrow { color:rgba(255,255,255,0.2); font-size:0.65rem; transition:color 0.2s ease, transform 0.2s ease; flex-shrink:0; }
+	.tv-card:hover .tv-card-arrow { color:rgba(155,140,255,0.75); transform:translate(2px,-2px); }
 </style>

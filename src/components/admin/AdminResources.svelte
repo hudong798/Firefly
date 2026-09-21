@@ -29,9 +29,13 @@
 	function subCatsFor(c: string) { return [...new Set(items.filter(i=>i.category===c).map(i=>(i.tags&&i.tags[0])||"").filter(Boolean))]; }
 	let subCat = "";
 	function setCat(c: Filter) { activeCat = c; subCat = ""; }
+	let openMenu: string | null = null;
+	let menuOpen = false;
+	let closeTimer: any = null;
+	let matchMediaDesktop = typeof window !== "undefined" ? window.matchMedia("(min-width: 769px)").matches : true;
 	$: catList = mode === "ai"
 		? [...AI_CATEGORIES]
-		: [...new Set(items.map((i) => i.category).filter(Boolean))];
+		: ["影视","社区","工具"];
 	$: baseItems = activeCat ? items.filter((i) => i.category === activeCat) : items;
 	$: subCats = activeCat === "影视" ? ["综合","动漫","短剧","其他"] : [...new Set(baseItems.map((i) => (i.tags && i.tags[0]) || "").filter(Boolean))];
 	let shownItems: ArchiveItem[] = [];
@@ -168,7 +172,7 @@
 
 	function resetForm() {
 		editingId = null;
-		fTitle = ""; fUrl = ""; fCategory = curCats[0]; fDesc = ""; fGroup = subCat; fLogo = "";
+		fTitle = ""; fUrl = ""; fCategory = (activeCat || curCats[0]) as any; fDesc = ""; fGroup = subCat; fLogo = "";
 	}
 
 	function startEdit(it: ArchiveItem) {
@@ -302,20 +306,32 @@
 					<h2>{mode === "ai" ? "AI 管理" : "收藏管理"}</h2>
 					<p class="panel-sub">共 {items.length} 个{mode === "ai" ? "AI 工具" : "收藏链接"}</p>
 				</div>
-				<div class="cat-cascade">
-					<select class="cat-select" bind:value={activeCat} on:change={() => subCat = ""}>
-						{#each catList as c}
-							<option value={c}>{c}</option>
-						{/each}
-					</select>
-					{#if (activeCat === "影视" ? ["综合","动漫","短剧","其他"] : subCatsFor(activeCat)).length}
-						<select class="cat-select" bind:value={subCat}>
-							<option value="">全部</option>
-							{#each (activeCat === "影视" ? ["综合","动漫","短剧","其他"] : subCatsFor(activeCat)) as sc}
-								<option value={sc}>{sc}</option>
-							{/each}
-						</select>
-					{/if}
+				<div class="cat-single" role="navigation">
+					<div class="cat-single-wrap">
+						<button class="cat-single-btn" on:click|preventDefault={() => menuOpen = !menuOpen}>
+							{activeCat || "全部分类"}
+							{#if activeCat && subCat} · {subCat}{/if}
+							<span class="caret">▾</span>
+						</button>
+						{#if menuOpen}
+							<div class="cat-pop">
+								{#each catList as c}
+									{@const subs = c === "影视" ? ["综合","动漫","短剧","其他"] : subCatsFor(c)}
+									<div class="cat-pop-group">
+										<button class="cat-pop-title"
+											class:active={activeCat===c && subCat===""}
+											on:click|preventDefault={() => { setCat(c); menuOpen = false; }}>{c}</button>
+										<div class="cat-pop-subs">
+											{#each subs as sc}
+												<button class="cat-chip" class:active={activeCat===c && subCat===sc}
+													on:click|preventDefault={() => { activeCat = c; subCat = sc; menuOpen = false; }}>{sc}</button>
+											{/each}
+										</div>
+									</div>
+								{/each}
+							</div>
+						{/if}
+					</div>
 				</div>
 				<div class="panel-actions">
 					<button class="btn-primary" on:click={() => { showForm = !showForm; if (showForm) resetForm(); }}>
@@ -359,6 +375,17 @@
 										<option value="短剧">短剧</option>
 										<option value="其他">其他</option>
 									</select>
+								</label>
+							</div>
+						{:else if mode !== "ai" && (fCategory === "工具" || fCategory === "社区")}
+							<div class="form-row">
+								<label>分组 / 分类名
+									<input class="field" list="group-list" bind:value={fGroup} placeholder="选现有分组或输入新分组名" />
+									<datalist id="group-list">
+										{#each subCatsFor(fCategory) as g}
+											<option value={g}></option>
+										{/each}
+									</datalist>
 								</label>
 							</div>
 						{/if}
@@ -469,8 +496,45 @@
 	.cat-tabs { display: flex; gap: 0.4rem; flex-wrap: wrap; }
 	.cat-tab { padding: 0.35rem 0.85rem; font-size: 0.82rem; border-radius: 999px; border: 1px solid rgba(111,195,255,0.25); background: transparent; color: #9fb4d8; cursor: pointer; }
 	.cat-tab.on { background: linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; border-color: transparent; }
-	.cat-cascade { display:flex; gap:0.5rem; }
-	.cat-select { padding: 0.4rem 0.7rem; font-size: 0.85rem; border-radius: 8px; border: 1px solid rgba(111,195,255,0.25); background: rgba(15,23,42,0.6); color: #cfe3ff; }
+	.cat-single-wrap { position: relative; }
+	.cat-single-btn {
+		padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: 999px;
+		border: 1px solid rgba(111,195,255,0.22); background: rgba(20,28,48,0.55);
+		color: #cfe3ff; cursor: pointer; white-space: nowrap; backdrop-filter: blur(14px);
+		transition: all 0.2s ease;
+	}
+	.cat-single-btn:hover { border-color: rgba(106,179,255,0.5); color:#fff; }
+	.caret { font-size:0.65rem; opacity:0.6; margin-left:0.2rem; }
+	.cat-pop {
+		position: absolute; top: 100%; left: 0; margin-top: 0.6rem; min-width: 300px;
+		display:flex; flex-direction:column; gap:0.1rem; padding: 0.9rem; z-index: 60;
+		border-radius: 18px; border: 1px solid rgba(255,255,255,0.09);
+		background: linear-gradient(160deg, rgba(28,38,66,0.78), rgba(14,20,38,0.82));
+		backdrop-filter: blur(24px) saturate(160%);
+		box-shadow: 0 18px 50px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06);
+		animation: catPopIn 180ms ease-out;
+	}
+	@keyframes catPopIn {
+		from { opacity: 0; transform: translateY(-8px); }
+		to { opacity: 1; transform: translateY(0); }
+	}
+	.cat-pop-group { padding: 0.35rem 0.2rem; }
+	.cat-pop-group + .cat-pop-group { border-top: 1px solid rgba(255,255,255,0.06); }
+	.cat-pop-title {
+		text-align:left; padding: 0.25rem 0.1rem; font-size: 0.72rem; font-weight:600;
+		letter-spacing:0.12em; text-transform:uppercase;
+		background: transparent; border: none; color: rgba(160,200,255,0.55); cursor: pointer;
+		transition: color 0.2s ease, text-shadow 0.2s ease;
+	}
+	.cat-pop-title:hover, .cat-pop-title.active { color:#9fd0ff; text-shadow: 0 0 12px rgba(106,179,255,0.5); }
+	.cat-pop-subs { display:flex; flex-wrap:wrap; gap:0.35rem; margin-top:0.45rem; }
+	.cat-chip {
+		padding: 0.32rem 0.8rem; font-size: 0.8rem; border-radius: 999px;
+		background: rgba(255,255,255,0.045); border: 1px solid rgba(255,255,255,0.07);
+		color: #d6e6ff; cursor: pointer; transition: all 0.18s ease;
+	}
+	.cat-chip:hover { background: rgba(106,179,255,0.16); border-color: rgba(106,179,255,0.35); transform: translateY(-1px); }
+	.cat-chip.active { background: rgba(106,179,255,0.28); border-color: rgba(106,179,255,0.55); color:#fff; }
 	.sub-tabs .cat-tab { padding: 0.28rem 0.75rem; font-size: 0.78rem; }
 	.sub-tabs { display:flex; gap:0.35rem; flex-wrap:wrap; margin-top:0.5rem; }
 	.sub-tab { padding:0.25rem 0.7rem; font-size:0.76rem; border-radius:999px; border:1px solid rgba(111,195,255,0.18); background:transparent; color:#8aa0c8; cursor:pointer; }
