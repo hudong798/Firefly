@@ -1,4 +1,4 @@
-export type TvType = "综合" | "动漫" | "短剧" | "网盘" | "其他";
+export type TvType = "综合" | "动漫" | "短剧" | "网盘" | "其他" | "AI影视";
 
 export interface TvSite {
 	name: string;
@@ -73,4 +73,4 @@ export const tvParsers: TvParser[] = [
 export const tvAdult: TvAdult[] = [];
 
 // 分组顺序
-export const tvTypeOrder: TvType[] = ["综合", "动漫", "短剧", "网盘", "其他"];
+export const tvTypeOrder: TvType[] = ["综合", "动漫", "短剧", "AI影视", "网盘", "其他"];

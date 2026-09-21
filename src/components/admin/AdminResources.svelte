@@ -340,6 +340,18 @@
 							</label>
 						{/if}
 					</div>
+						{#if mode !== "ai" && fCategory === "影视"}
+							<div class="form-row">
+								<label>影视子分类
+									<select class="field" bind:value={fGroup}>
+										<option value="综合">综合</option>
+										<option value="动漫">动漫</option>
+										<option value="短剧">短剧</option>
+										<option value="AI影视">AI影视</option>
+									</select>
+								</label>
+							</div>
+						{/if}
 					<div class="form-actions">
 						<button class="btn-primary" on:click={handleSave} disabled={submitting}>
 							{submitting ? "保存中…" : "保存"}

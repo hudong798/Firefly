@@ -36,9 +36,24 @@ const aiGroups = await getAiToolGroups();
 	<div class="ai-content">
 		<p class="section-hint">点击直达官网，收藏你常用的 AI 助手吧。</p>
 
+		<select class="ai-select" id="ai-select">
+			<option value="国内">国内</option>
+			<option value="国外">国外</option>
+			<option value="视频生成">视频生成</option>
+			<option value="图片生成">图片生成</option>
+			<option value="模型">模型</option>
+		</select>
+		<div class="ai-tabs" id="ai-tabs">
+						<button class="ai-tab" data-cat="国内">国内</button>
+			<button class="ai-tab" data-cat="国外">国外</button>
+			<button class="ai-tab" data-cat="视频生成">视频生成</button>
+			<button class="ai-tab" data-cat="图片生成">图片生成</button>
+			<button class="ai-tab" data-cat="模型">模型</button>
+		</div>
+
 		{
 			aiGroups.map((g) => (
-				<section class="ai-group">
+				<section class="ai-group" data-cat={g.title}>
 					<h2 class="ai-group-title">{g.title}</h2>
 					<LinkGrid items={g.items} perRow={6} />
 				</section>
@@ -47,6 +62,19 @@ const aiGroups = await getAiToolGroups();
 
 		<p class="section-tip">💡 想推荐其他好用的 AI 工具？欢迎去<a href="/guestbook/">讨论区</a>留言！</p>
 	</div>
+<script>
+	const tabs = document.querySelectorAll<HTMLButtonElement>(".ai-tab");
+	const groups = document.querySelectorAll<HTMLElement>(".ai-group");
+	const select = document.getElementById("ai-select") as HTMLSelectElement | null;
+	function applyCat(cat: string) {
+		tabs.forEach((x) => x.classList.toggle("active", x.dataset.cat === cat));
+		groups.forEach((g) => { g.style.display = g.dataset.cat === cat ? "" : "none"; });
+		if (select) select.value = cat;
+	}
+	if (select) select.addEventListener("change", () => applyCat(select.value));
+	tabs.forEach((t) => t.addEventListener("click", () => applyCat(t.dataset.cat!)));
+	applyCat("国内");
+</script>
 </MainGridLayout>
 
 <style>
@@ -56,7 +84,7 @@ const aiGroups = await getAiToolGroups();
 		left: 0;
 		top: 0;
 		bottom: 0;
-		width: 72px;
+		width: 60px;
 		background: rgba(8, 10, 20, 0.95);
 		border-right: 1px solid rgba(155, 140, 255, 0.12);
 		display: flex;
@@ -113,11 +141,17 @@ const aiGroups = await getAiToolGroups();
 	/* 移动端保留侧边栏（窄屏仍显示 AI / 收藏入口） */
 	@media (max-width: 768px) {
 		.ai-content {
-			padding-left: 64px;
+			padding-left: 52px;
 		}
 	}
 
-	.section-hint {
+		.ai-tabs { display:flex; flex-wrap:wrap; gap:10px; margin: 6px 0 22px; }
+	.ai-tab { padding: 0.45rem 1.15rem; border-radius: 999px; border: 1px solid rgba(155,140,255,0.25); background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.65); font-size: 0.88rem; cursor:pointer; transition: all .18s; }
+	.ai-tab:hover { border-color: rgba(155,140,255,0.6); color:#fff; }
+	.ai-tab.active { background: linear-gradient(135deg,#7c5cff,#5b8cff); border-color: transparent; color:#fff; box-shadow: 0 4px 14px rgba(108,92,255,0.35); }
+	.ai-select { display:none; width:100%; margin:6px 0 16px; padding:0.6rem 0.9rem; border-radius:12px; border:1px solid rgba(155,140,255,0.25); background:rgba(20,24,44,0.9); color:#e6ebf5; font-size:0.92rem; }
+	@media (max-width: 768px) { .ai-tabs { display:none; } .ai-select { display:block; } .ai-group-title { display:none; } }
+.section-hint {
 		color: var(--content-meta);
 		font-size: 0.88rem;
 		margin: 0 0 1.1rem;
@@ -130,7 +164,7 @@ const aiGroups = await getAiToolGroups();
 		margin-top: 0.2rem;
 	}
 
-	.ai-group-title {
+	.ai-group-title { display:none;
 		display: flex;
 		align-items: center;
 		gap: 0.55rem;
