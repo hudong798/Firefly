@@ -18,12 +18,17 @@
 	const AUTH_KEY = "echo_admin_auth";
 	const AUTH_EXPIRE = 1000 * 60 * 60 * 8;
 
+	type Mode = "archive" | "ai";
+	let mode: Mode = "archive";
 	const CATEGORIES = ["影视", "漫画", "社区", "工具"] as const;
 	type Cat = typeof CATEGORIES[number];
-	type Filter = "全部" | Cat;
+	type Filter = "全部" | string;
 	let activeCat: Filter = "全部";
 	let subCat = "";
 	function setCat(c: Filter) { activeCat = c; subCat = ""; }
+	$: catList = activeCat === "全部"
+		? ["全部", ...[...new Set(items.map((i) => i.category).filter(Boolean))]]
+		: ["全部", ...[...new Set(items.map((i) => i.category).filter(Boolean))]];
 	$: baseItems = activeCat === "全部" ? items : items.filter((i) => i.category === activeCat);
 	$: subCats = [...new Set(baseItems.map((i) => (i.tags && i.tags[0]) || "").filter(Boolean))];
 	$: shownItems = subCat ? baseItems.filter((i) => (i.tags && i.tags[0]) === subCat) : baseItems;
@@ -98,7 +103,8 @@
 		if (!supabase) return;
 		loading = true;
 		try {
-			const { data, error } = await supabase.rpc("admin_list_archives");
+			const rpc = mode === "ai" ? "admin_list_ai_tools" : "admin_list_archives";
+			const { data, error } = await supabase.rpc(rpc);
 			if (error) throw error;
 			items = (data || []) as ArchiveItem[];
 		} catch (e: any) {
@@ -106,6 +112,12 @@
 		} finally {
 			loading = false;
 		}
+	}
+
+	function switchMode(m: Mode) {
+		if (mode === m) return;
+		mode = m; activeCat = "全部"; subCat = ""; showForm = false; actionMessage = "";
+		loadItems();
 	}
 
 	// 表单
@@ -150,7 +162,9 @@
 				p_password: creds?.password
 			};
 			if (editingId) payload.p_id = editingId;
-			const { error } = await supabase.rpc(editingId ? "admin_update_archive" : "admin_create_archive", payload);
+			const createRpc = mode === "ai" ? "admin_create_ai_tool" : "admin_create_archive";
+			const updateRpc = mode === "ai" ? "admin_update_ai_tool" : "admin_update_archive";
+			const { error } = await supabase.rpc(editingId ? updateRpc : createRpc, payload);
 			if (error) throw error;
 			actionMessage = editingId ? "已保存修改" : "已添加";
 			showForm = false;
@@ -167,7 +181,8 @@
 		if (!confirm(`确定删除「${it.title}」吗？`)) return;
 		try {
 			const creds = getCreds();
-			const { error } = await supabase.rpc("admin_delete_archive", {
+			const delRpc = mode === "ai" ? "admin_delete_ai_tool" : "admin_delete_archive";
+			const { error } = await supabase.rpc(delRpc, {
 				p_id: it.id, p_username: creds?.username, p_password: creds?.password
 			});
 			if (error) throw error;
@@ -187,33 +202,43 @@
 <div class="admin-wrap">
 	{#if !loggedIn}
 		<div class="login-card">
-			<h2>收藏管理登录</h2>
-			<p class="login-sub">使用管理员账号密码登录</p>
+			<div class="login-mark">OBSERVING / ADMIN</div>
+			<h2>管理登录</h2>
+			<p class="login-sub">请输入管理员账号密码以继续</p>
 			{#if loginError}<p class="login-error">{loginError}</p>{/if}
-			<input class="field" type="text" placeholder="账号" bind:value={loginUser} />
-			<input class="field" type="password" placeholder="密码" bind:value={loginPass}
-				on:keydown={(e) => e.key === "Enter" && handleLogin()} />
-			<button class="btn-primary" on:click={handleLogin} disabled={loginLoading}>
-				{loginLoading ? "登录中…" : "登录"}
+			<div class="field-wrap">
+				<span class="field-ic">@</span>
+				<input class="field" type="text" placeholder="账号" bind:value={loginUser} />
+			</div>
+			<div class="field-wrap">
+				<span class="field-ic">•</span>
+				<input class="field" type="password" placeholder="密码" bind:value={loginPass}
+					on:keydown={(e) => e.key === "Enter" && handleLogin()} />
+			</div>
+			<button class="btn-primary login-btn" on:click={handleLogin} disabled={loginLoading}>
+				{loginLoading ? "登录中…" : "进入管理"}
 			</button>
 			<a class="back-link" href="/resources/">← 返回收藏页</a>
 		</div>
 	{:else}
 		<div class="panel">
+			<div class="mode-tabs">
+				<button class="mode-tab" class:on={mode==="ai"} on:click={() => switchMode("ai")}>AI 工具</button>
+				<button class="mode-tab" class:on={mode==="archive"} on:click={() => switchMode("archive")}>收藏链接</button>
+			</div>
 			<div class="panel-header">
 				<div>
-					<h2>收藏管理</h2>
-					<p class="panel-sub">共 {items.length} 个收藏链接</p>
+					<h2>{mode === "ai" ? "AI 管理" : "收藏管理"}</h2>
+					<p class="panel-sub">共 {items.length} 个{mode === "ai" ? "AI 工具" : "收藏链接"}</p>
 				</div>
 				<div class="cat-tabs">
-					<button class="cat-tab" class:on={activeCat==="全部"} on:click={() => setCat("全部")}>全部</button>
-					{#each CATEGORIES as c}
+					{#each catList as c}
 						<button class="cat-tab" class:on={activeCat===c} on:click={() => setCat(c)}>{c}</button>
 					{/each}
 				</div>
 				<div class="panel-actions">
 					<button class="btn-primary" on:click={() => { showForm = !showForm; if (showForm) resetForm(); }}>
-						{showForm ? "取消" : "+ 添加收藏"}
+						{showForm ? "取消" : (mode === "ai" ? "+ 添加 AI" : "+ 添加收藏")}
 					</button>
 					<button class="btn-secondary" on:click={loadItems}>刷新</button>
 					<button class="btn-danger" on:click={handleLogout}>退出</button>
@@ -224,7 +249,7 @@
 
 			{#if showForm}
 				<div class="form-card">
-					<h3>{editingId ? "编辑收藏" : `添加收藏 · ${fCategory}`}</h3>
+					<h3>{editingId ? (mode==="ai"?"编辑 AI":"编辑收藏") : (mode==="ai"?`添加 AI · ${fCategory}`:`添加收藏 · ${fCategory}`)}</h3>
 					<div class="form-row">
 						<label>名称 *
 							<input class="field" type="text" bind:value={fTitle} placeholder="例如：GitHub" />
@@ -302,6 +327,18 @@
 		padding: 28px;
 		backdrop-filter: blur(8px);
 	}
+	.login-card {
+		max-width: 400px;
+		margin: 8vh auto 0;
+		padding: 38px 34px;
+		box-shadow: 0 20px 60px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.04);
+	}
+	.login-mark {
+		font-size: 0.68rem;
+		letter-spacing: 0.25em;
+		color: #6ea8ff;
+		margin-bottom: 10px;
+	}
 	.login-card h2, .panel h2 { margin: 0 0 6px; font-size: 1.3rem; }
 	.login-sub, .panel-sub { color: #8b96ad; font-size: 0.85rem; margin: 0 0 18px; }
 	.login-error { color: #f87171; font-size: 0.85rem; }
@@ -309,13 +346,17 @@
 		width: 100%;
 		box-sizing: border-box;
 		padding: 0.6rem 0.8rem;
-		margin: 0.3rem 0 0.9rem;
 		background: rgba(8, 12, 26, 0.7);
 		border: 1px solid rgba(111, 195, 255, 0.22);
 		border-radius: 8px;
 		color: #e6ebf5;
 		font-size: 0.92rem;
 	}
+	.field-wrap { position: relative; margin: 0 0 0.9rem; }
+	.field-wrap .field { padding-left: 2.1rem; }
+	.field-wrap .field:focus { outline: none; border-color: rgba(99,102,241,0.7); box-shadow: 0 0 0 3px rgba(99,102,241,0.18); }
+	.field-ic { position: absolute; left: 0.8rem; top: 50%; transform: translateY(-50%); color: #6ea8ff; font-size: 0.9rem; }
+	.login-btn { width: 100%; margin-top: 0.4rem; padding: 0.7rem; font-size: 0.95rem; letter-spacing: 0.05em; }
 	label { display: block; font-size: 0.85rem; color: #aab4cc; }
 	.btn-primary, .btn-secondary, .btn-danger {
 		padding: 0.55rem 1.1rem;
@@ -331,6 +372,9 @@
 	.back-link { display: inline-block; margin-top: 14px; color: #8b96ad; font-size: 0.85rem; text-decoration: none; }
 	.panel-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1rem; }
 	.panel-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+	.mode-tabs { display:flex; gap:0.5rem; margin-bottom:1rem; }
+	.mode-tab { padding:0.5rem 1.2rem; font-size:0.9rem; border-radius:10px; border:1px solid rgba(111,195,255,0.25); background:transparent; color:#9fb4d8; cursor:pointer; }
+	.mode-tab.on { background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; border-color:transparent; }
 	.cat-tabs { display: flex; gap: 0.4rem; flex-wrap: wrap; }
 	.cat-tab { padding: 0.35rem 0.85rem; font-size: 0.82rem; border-radius: 999px; border: 1px solid rgba(111,195,255,0.25); background: transparent; color: #9fb4d8; cursor: pointer; }
 	.cat-tab.on { background: linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; border-color: transparent; }
