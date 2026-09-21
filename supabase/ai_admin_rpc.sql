@@ -24,7 +24,7 @@ $$;
 -- 2. 新增
 create or replace function public.admin_create_ai_tool(
   p_name text, p_url text, p_category text,
-  p_description text default null, p_tags text[] default null,
+  p_description text default null, p_tags text[] default null, p_logo text default null,
   p_username text default null, p_password text default null
 )
 returns void language plpgsql security definer set search_path = public as $$
@@ -33,14 +33,14 @@ begin
     raise exception '未授权';
   end if;
   insert into public.ai_tools (name, url, category, description, tags, status, sort_order)
-  values (p_name, p_url, p_category, p_description, coalesce(p_tags,'{}'), 'published', 999);
+  values (p_name, p_url, p_category, p_description, coalesce(p_tags,'{}'), p_logo, 'published', 999);
 end;
 $$;
 
 -- 3. 编辑
 create or replace function public.admin_update_ai_tool(
   p_id uuid, p_name text, p_url text, p_category text,
-  p_description text default null, p_tags text[] default null,
+  p_description text default null, p_tags text[] default null, p_logo text default null,
   p_username text default null, p_password text default null
 )
 returns void language plpgsql security definer set search_path = public as $$
@@ -50,7 +50,7 @@ begin
   end if;
   update public.ai_tools
      set name = p_name, url = p_url, category = p_category,
-         description = p_description, tags = p_tags, updated_at = now()
+         description = p_description, tags = p_tags, logo = p_logo, updated_at = now()
    where id = p_id;
 end;
 $$;
@@ -69,6 +69,21 @@ end;
 $$;
 
 grant execute on function public.admin_list_ai_tools to anon, authenticated;
-grant execute on function public.admin_create_ai_tool(text, text, text, text, text[], text, text) to anon, authenticated;
-grant execute on function public.admin_update_ai_tool(uuid, text, text, text, text, text[], text, text) to anon, authenticated;
+grant execute on function public.admin_create_ai_tool(text, text, text, text, text[], text, text, text) to anon, authenticated;
+grant execute on function public.admin_update_ai_tool(uuid, text, text, text, text, text[], text, text, text) to anon, authenticated;
 grant execute on function public.admin_delete_ai_tool(uuid, text, text) to anon, authenticated;
+
+-- 5. 排序
+create or replace function public.admin_reorder_ai_tools(
+  p_ids uuid[], p_username text default null, p_password text default null
+) returns void language plpgsql security definer set search_path = public as $$
+begin
+  if not public.verify_admin_credentials('echo', p_username, p_password) then
+    raise exception '未授权';
+  end if;
+  for i in 1..array_length(p_ids,1) loop
+    update public.ai_tools set sort_order = i where id = p_ids[i];
+  end loop;
+end;
+$$;
+grant execute on function public.admin_reorder_ai_tools(uuid[], text, text) to anon, authenticated;

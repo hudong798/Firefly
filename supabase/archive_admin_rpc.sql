@@ -74,3 +74,18 @@ grant execute on function public.admin_list_archives to anon, authenticated;
 grant execute on function public.admin_create_archive(text, text, text, text, text[], text, text) to anon, authenticated;
 grant execute on function public.admin_update_archive(uuid, text, text, text, text, text[], text, text) to anon, authenticated;
 grant execute on function public.admin_delete_archive(uuid, text, text) to anon, authenticated;
+
+-- 5. 排序
+create or replace function public.admin_reorder_archives(
+  p_ids uuid[], p_username text default null, p_password text default null
+) returns void language plpgsql security definer set search_path = public as $$
+begin
+  if not public.verify_admin_credentials('echo', p_username, p_password) then
+    raise exception '未授权';
+  end if;
+  for i in 1..array_length(p_ids,1) loop
+    update public.archives set sort_order = i where id = p_ids[i];
+  end loop;
+end;
+$$;
+grant execute on function public.admin_reorder_archives(uuid[], text, text) to anon, authenticated;
