@@ -53,8 +53,8 @@ const totalEntries = tvSites.length + tvOthers.length;
 		))}
 	</nav>
 	{
-		grouped.map((g) => (
-			<section class="tv-group" data-cat={g.type}>
+		grouped.map((g, gi) => (
+			<section class="tv-group" data-cat={g.type} style={gi === 0 ? "" : "display:none"}>
 				<div class="tv-group-header">
 					<div class="tv-group-title">
 						<span class="tv-group-label">{typeLabel[g.type]}</span>
