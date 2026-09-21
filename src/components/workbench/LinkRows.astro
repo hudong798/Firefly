@@ -45,8 +45,11 @@ const { items } = Astro.props;
 <style>
 	.tv-grid {
 		display: grid;
-		grid-template-columns: repeat(10, minmax(0, 1fr));
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 		gap: 0.6rem;
+	}
+	@media (min-width: 769px) {
+		.tv-grid { grid-template-columns: repeat(10, minmax(0, 1fr)); }
 	}
 	.tv-card {
 		display: flex;

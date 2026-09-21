@@ -31,6 +31,7 @@
 	function setCat(c: Filter) { activeCat = c; subCat = ""; }
 	let openMenu: string | null = null;
 	let menuOpen = false;
+	let modeMenuOpen = false;
 	let closeTimer: any = null;
 	let matchMediaDesktop = typeof window !== "undefined" ? window.matchMedia("(min-width: 769px)").matches : true;
 	$: catList = mode === "ai"
@@ -297,14 +298,21 @@
 		</div>
 	{:else}
 		<div class="panel">
-			<div class="mode-tabs">
-				<button class="mode-tab" class:on={mode==="ai"} on:click={() => switchMode("ai")}>AI 工具</button>
-				<button class="mode-tab" class:on={mode==="archive"} on:click={() => switchMode("archive")}>收藏链接</button>
+			<div class="panel-title-top">
+				<h2>{mode === "ai" ? "AI 管理" : "收藏管理"}</h2>
+				<p class="panel-sub">共 {items.length} 个{mode === "ai" ? "AI 工具" : "收藏链接"}</p>
 			</div>
-			<div class="panel-header">
-				<div>
-					<h2>{mode === "ai" ? "AI 管理" : "收藏管理"}</h2>
-					<p class="panel-sub">共 {items.length} 个{mode === "ai" ? "AI 工具" : "收藏链接"}</p>
+			<div class="action-row">
+				<div class="mode-dropdown">
+					<button class="mode-dropdown-btn" on:click|preventDefault={() => modeMenuOpen = !modeMenuOpen}>
+						{mode === "ai" ? "AI 工具" : "收藏链接"} <span class="caret">▾</span>
+					</button>
+					{#if modeMenuOpen}
+						<div class="mode-dropdown-pop">
+							<button class:on={mode==="ai"} on:click|preventDefault={() => { switchMode("ai"); modeMenuOpen = false; }}>AI 工具</button>
+							<button class:on={mode==="archive"} on:click|preventDefault={() => { switchMode("archive"); modeMenuOpen = false; }}>收藏链接</button>
+						</div>
+					{/if}
 				</div>
 				<div class="cat-single" role="navigation">
 					<div class="cat-single-wrap">
@@ -335,7 +343,7 @@
 				</div>
 				<div class="panel-actions">
 					<button class="btn-primary" on:click={() => { showForm = !showForm; if (showForm) resetForm(); }}>
-						{showForm ? "取消" : (mode === "ai" ? "+ 添加 AI" : "+ 添加收藏")}
+						{showForm ? "取消" : "+ 添加"}
 					</button>
 					<button class="btn-secondary" on:click={loadItems}>刷新</button>
 					<button class="btn-danger" on:click={handleLogout}>退出</button>
@@ -346,7 +354,7 @@
 
 			{#if showForm}
 				<div class="form-card">
-					<h3>{editingId ? (mode==="ai" ? `编辑 · ${fTitle || "AI"}` : `编辑 · ${fTitle || "收藏"}`) : (mode==="ai"?`添加 AI · ${fCategory}`:`添加收藏 · ${fCategory}`)}</h3>
+					<h3>{editingId ? (mode==="ai" ? `编辑 · ${fTitle || "AI"}` : `编辑 · ${fTitle || "收藏"}`) : (mode==="ai"?`添加 · ${fCategory}`:`添加 · ${fCategory}`)}</h3>
 					<div class="form-row">
 						<label>名称 *
 							<input class="field" type="text" bind:value={fTitle} placeholder="例如：GitHub" />
@@ -401,7 +409,7 @@
 			{#if loading}
 				<p class="empty">加载中…</p>
 			{:else if shownItems.length === 0}
-				<p class="empty">该分类下暂无收藏，点击「+ 添加收藏」</p>
+				<p class="empty">该分类下暂无收藏，点击「+ 添加」</p>
 			{:else}
 				<div class="item-list">
 					{#each shownItems as it, i (it.id)}
@@ -488,6 +496,16 @@
 	.btn-danger { background: transparent; border-color: rgba(248,113,113,0.4); color: #fca5a5; }
 	.btn-primary:disabled { opacity: 0.6; }
 	.back-link { display: inline-block; margin-top: 14px; color: #8b96ad; font-size: 0.85rem; text-decoration: none; }
+	.panel-title-top { margin-bottom: 0.75rem; }
+	.panel-title-top h2 { margin: 0; font-size: 1.3rem; }
+	.panel-title-top .panel-sub { margin: 0.2rem 0 0; font-size: 0.8rem; color: #8b96ad; }
+	.action-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: nowrap; margin-bottom: 1rem; overflow-x: auto; }
+	.mode-dropdown { position: relative; flex-shrink: 0; }
+	.mode-dropdown-btn { padding: 0.5rem 0.9rem; font-size: 0.85rem; border-radius: 8px; border: 1px solid rgba(111,195,255,0.25); background: rgba(111,195,255,0.08); color: #cfe6ff; cursor: pointer; white-space: nowrap; }
+	.mode-dropdown-pop { position: absolute; top: calc(100% + 6px); left: 0; z-index: 50; min-width: 130px; background: rgba(15,20,38,0.95); backdrop-filter: blur(16px); border: 1px solid rgba(111,195,255,0.18); border-radius: 10px; padding: 6px; box-shadow: 0 12px 32px rgba(0,0,0,0.5); }
+	.mode-dropdown-pop button { display: block; width: 100%; text-align: left; padding: 0.5rem 0.7rem; font-size: 0.85rem; border: none; background: transparent; color: #c7d2fe; cursor: pointer; border-radius: 6px; }
+	.mode-dropdown-pop button:hover { background: rgba(99,102,241,0.18); color: #fff; }
+	.mode-dropdown-pop button.on { background: rgba(99,102,241,0.25); color: #fff; }
 	.panel-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1rem; }
 	.panel-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 	.mode-tabs { display:flex; gap:0.5rem; margin-bottom:1rem; }
