@@ -126,6 +126,7 @@
 	.section-tip a:hover { text-decoration:underline; }
 
 	.link-grid { display:grid; grid-template-columns:repeat(var(--per-row,6),1fr); gap:0.9rem; }
+		@media (max-width: 768px) { .link-grid { grid-template-columns:repeat(4,1fr); gap:0.6rem; } }
 	.link-cell { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0.55rem; padding:1.15rem 0.5rem; border-radius:var(--radius-large,14px); background:var(--card-bg,rgba(255,255,255,0.04)); border:1px solid var(--line-divider,rgba(255,255,255,0.08)); text-decoration:none; color:inherit; transition:transform 0.18s ease, border-color 0.18s ease, background 0.18s ease; }
 	.link-cell:hover { transform:translateY(-2px); border-color:rgba(155,140,255,0.3); background:rgba(255,255,255,0.06); }
 	.link-cell-logo-img { width:40px; height:40px; border-radius:10px; object-fit:cover; }
