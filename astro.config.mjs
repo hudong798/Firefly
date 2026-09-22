@@ -49,7 +49,11 @@ export default defineConfig({
 			// when the Tailwind class `transition-all` is used
 			containers: ["main", "#right-sidebar-dynamic", "#floating-toc-wrapper"],
 			smoothScrolling: false,
-			cache: true,
+			cache: (page) => {
+				// 收藏页和AI页数据来自数据库，禁用swup缓存确保实时更新
+				const url = page?.url || "";
+				return !url.includes("/resources/") && !url.includes("/ai/");
+			},
 			preload: true,
 			accessibility: true,
 			updateHead: true,
