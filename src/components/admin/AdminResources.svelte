@@ -108,6 +108,17 @@
 		localStorage.removeItem(AUTH_KEY);
 	}
 
+	// 清除 swup 中收藏页和AI页的缓存，确保管理后台修改后前台实时更新
+	function clearFrontCache() {
+		try {
+			const swup = (window as any).swup;
+			if (swup?.cache) {
+				swup.cache.remove("/resources/");
+				swup.cache.remove("/ai/");
+			}
+		} catch (e) {}
+	}
+
 	async function loadItems() {
 		if (!supabase) return;
 		loading = true;
@@ -147,6 +158,7 @@
 			});
 			if (error) throw error;
 			actionMessage = "顺序已保存";
+			clearFrontCache();
 			loadItems();
 		} catch (e: any) {
 			actionMessage = "保存顺序失败：" + (e?.message || "未知错误");
@@ -210,6 +222,7 @@
 			const { error } = await supabase.rpc(editingId ? updateRpc : createRpc, payload);
 			if (error) throw error;
 			actionMessage = editingId ? "已保存修改" : "已添加";
+			clearFrontCache();
 			showForm = false;
 			resetForm();
 			loadItems();
@@ -230,6 +243,7 @@
 			});
 			if (error) throw error;
 			actionMessage = "已删除";
+			clearFrontCache();
 			loadItems();
 		} catch (e: any) {
 			actionMessage = "删除失败：" + (e?.message || "未知错误");

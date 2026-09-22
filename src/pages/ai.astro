@@ -74,6 +74,13 @@ const aiGroups = await getAiToolGroups();
 	if (select) select.addEventListener("change", () => applyCat(select.value));
 	tabs.forEach((t) => t.addEventListener("click", () => applyCat(t.dataset.cat!)));
 	applyCat("国内");
+	// 页面加载后清除自身 swup 缓存，确保下次导航时重新从服务器获取最新数据
+	setTimeout(() => {
+		try {
+			const swup = window.swup;
+			if (swup?.cache) swup.cache.remove(location.pathname);
+		} catch (e) {}
+	}, 200);
 </script>
 </MainGridLayout>
 
