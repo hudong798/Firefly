@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from "svelte";
+	import { marked } from "marked";
 	import { supabase } from "@/lib/supabase";
 
 	// 复用同一套管理员登录态（Supabase RPC 验证）
@@ -18,6 +19,7 @@
 	let tagsText = "";
 	let manifestoText = "";
 	let aboutText = "";
+	$: aboutHtml = aboutText ? marked.parse(String(aboutText), { breaks: true }) : "";
 	let avatarUrl = "";
 	let freexIntro = "";
 	let interests: { en: string; zh: string; desc: string }[] = [];
@@ -121,7 +123,7 @@
 				tagline = data.tagline || "热爱 AI · 追求自由";
 				tagsText = Array.isArray(data.tags) && data.tags.length ? data.tags.join("，") : defaultTags.join("，");
 				manifestoText = Array.isArray(data.manifesto) && data.manifesto.length ? data.manifesto.join("\n") : defaultManifesto.join("\n");
-				aboutText = data.about_text || "";
+				aboutText = data.about_text ? String(data.about_text).replace(/\\n/g, "\n") : "";
 				avatarUrl = data.avatar_url || "";
 				freexIntro = data.freex_intro || "";
 				if (Array.isArray(data.interests) && data.interests.length) {
@@ -229,9 +231,13 @@
 			</label>
 
 			<label class="row">
-				<span class="label">关于我正文</span>
+				<span class="label">关于我正文（支持 Markdown）</span>
 				<textarea class="field area" rows="8" bind:value={aboutText} placeholder={"在这里直接写，换行就换行、分段就分段；支持 Markdown 语法。"}></textarea>
 				<span class="hint">空行分隔段落；留空则使用默认文案</span>
+					<div class="md-preview-wrap">
+						<div class="md-preview-label">实时预览</div>
+						<div class="md-preview-content">{@html aboutHtml}</div>
+					</div>
 			</label>
 
 			<label class="row">
@@ -396,4 +402,62 @@
 		border-radius: 0.5rem;
 		cursor: pointer;
 	}
-</style>
+.md-preview-wrap {
+		margin-top: 0.8rem;
+		border: 1px solid rgba(255,255,255,0.1);
+		border-radius: 10px;
+		background: rgba(255,255,255,0.03);
+		overflow: hidden;
+	}
+	.md-preview-label {
+		padding: 0.4rem 0.8rem;
+		font-size: 0.72rem;
+		font-weight: 600;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: rgba(140,200,255,0.7);
+		background: rgba(140,200,255,0.06);
+		border-bottom: 1px solid rgba(255,255,255,0.06);
+	}
+	.md-preview-content {
+		padding: 0.9rem 1rem;
+		font-size: 0.88rem;
+		line-height: 1.7;
+		color: rgba(220,230,245,0.9);
+	}
+	.md-preview-content :global(h1), .md-preview-content :global(h2), .md-preview-content :global(h3) {
+		margin: 0.8rem 0 0.4rem;
+		color: #93c5fd;
+		font-weight: 700;
+	}
+	.md-preview-content :global(h1) { font-size: 1.3rem; }
+	.md-preview-content :global(h2) { font-size: 1.15rem; }
+	.md-preview-content :global(h3) { font-size: 1rem; }
+	.md-preview-content :global(p) { margin: 0.5rem 0; }
+	.md-preview-content :global(ul), .md-preview-content :global(ol) { margin: 0.5rem 0; padding-left: 1.4rem; }
+	.md-preview-content :global(li) { margin: 0.25rem 0; }
+	.md-preview-content :global(blockquote) {
+		margin: 0.6rem 0;
+		padding: 0.4rem 0.9rem;
+		border-left: 3px solid rgba(140,200,255,0.4);
+		background: rgba(140,200,255,0.05);
+		color: rgba(200,215,235,0.8);
+		border-radius: 0 6px 6px 0;
+	}
+	.md-preview-content :global(code) {
+		padding: 0.15rem 0.4rem;
+		background: rgba(255,255,255,0.08);
+		border-radius: 4px;
+		font-size: 0.82rem;
+		color: #fbbf24;
+	}
+	.md-preview-content :global(pre) {
+		padding: 0.8rem;
+		background: rgba(0,0,0,0.3);
+		border-radius: 8px;
+		overflow-x: auto;
+	}
+	.md-preview-content :global(pre code) { background: transparent; padding: 0; }
+	.md-preview-content :global(a) { color: #60a5fa; text-decoration: underline; }
+	.md-preview-content :global(hr) { border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 0.8rem 0; }
+	</style>
