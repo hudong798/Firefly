@@ -113,8 +113,8 @@
 		try {
 			const swup = (window as any).swup;
 			if (swup?.cache) {
-				swup.cache.remove("/resources/");
-				swup.cache.remove("/ai/");
+				swup.cache.delete("/resources/");
+				swup.cache.delete("/ai/");
 			}
 		} catch (e) {}
 	}

@@ -669,7 +669,7 @@ const toolGroups = await getToolGroups();
 	setTimeout(() => {
 		try {
 			const swup = window.swup;
-			if (swup?.cache) swup.cache.remove(location.pathname);
+			if (swup?.cache) swup.cache.delete(location.pathname);
 		} catch (e) {}
 	}, 200);
 </script>
