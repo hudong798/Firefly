@@ -381,6 +381,13 @@
 						</label>
 					</div>
 					<div class="form-row">
+						<label>分类
+							<select class="field" bind:value={fCategory}>
+								{#each (mode === "ai" ? AI_CATEGORIES : CATEGORIES) as c}
+									<option value={c}>{c}</option>
+								{/each}
+							</select>
+						</label>
 						{#if mode === "ai"}
 							<label>Logo
 								<div class="logo-row">
