@@ -1,13 +1,9 @@
 ---
-import LinkGrid from "@/components/workbench/LinkGrid.astro";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
-import { getAiToolGroups } from "@/services/ai.service";
+import ClientAiTools from "@/components/workbench/ClientAiTools.svelte";
 
 const title = "AI";
 const description = "AI 工具导航";
-
-// 从 Supabase 获取 AI 工具数据（未配置时自动降级到静态数据）
-const aiGroups = await getAiToolGroups();
 ---
 
 <MainGridLayout title={title} description={description}>
@@ -33,48 +29,12 @@ const aiGroups = await getAiToolGroups();
 		</a>
 	</aside>
 
-	<div class="ai-content">
-		<p class="section-hint">点击直达官网，收藏你常用的 AI 助手吧。</p>
-
-		<select class="ai-select" id="ai-select">
-			<option value="国内">国内</option>
-			<option value="国外">国外</option>
-			<option value="视频生成">视频生成</option>
-			<option value="图片生成">图片生成</option>
-			<option value="模型">模型</option>
-		</select>
-		<div class="ai-tabs" id="ai-tabs">
-						<button class="ai-tab" data-cat="国内">国内</button>
-			<button class="ai-tab" data-cat="国外">国外</button>
-			<button class="ai-tab" data-cat="视频生成">视频生成</button>
-			<button class="ai-tab" data-cat="图片生成">图片生成</button>
-			<button class="ai-tab" data-cat="模型">模型</button>
-		</div>
-
-		{
-			aiGroups.map((g) => (
-				<section class="ai-group" data-cat={g.title}>
-					<h2 class="ai-group-title">{g.title}</h2>
-					<LinkGrid items={g.items} perRow={6} />
-				</section>
-			))
-		}
-
-		<p class="section-tip">💡 想推荐其他好用的 AI 工具？欢迎去<a href="/guestbook/">讨论区</a>留言！</p>
+	<div class="ai-content-wrap">
+		<ClientAiTools client:load />
 	</div>
+
 <script>
-	const tabs = document.querySelectorAll<HTMLButtonElement>(".ai-tab");
-	const groups = document.querySelectorAll<HTMLElement>(".ai-group");
-	const select = document.getElementById("ai-select") as HTMLSelectElement | null;
-	function applyCat(cat: string) {
-		tabs.forEach((x) => x.classList.toggle("active", x.dataset.cat === cat));
-		groups.forEach((g) => { g.style.display = g.dataset.cat === cat ? "" : "none"; });
-		if (select) select.value = cat;
-	}
-	if (select) select.addEventListener("change", () => applyCat(select.value));
-	tabs.forEach((t) => t.addEventListener("click", () => applyCat(t.dataset.cat!)));
-	applyCat("国内");
-	// 页面加载后清除自身 swup 缓存，确保下次导航时重新从服务器获取最新数据
+	// 页面加载后清除自身 swup 缓存
 	setTimeout(() => {
 		try {
 			const swup = window.swup;
@@ -85,120 +45,26 @@ const aiGroups = await getAiToolGroups();
 </MainGridLayout>
 
 <style>
-	/* 左侧边导航栏 */
 	.ai-sidebar {
 		position: fixed;
-		left: 0;
-		top: 0;
-		bottom: 0;
+		left: 0; top: 0; bottom: 0;
 		width: 60px;
 		background: rgba(8, 10, 20, 0.95);
 		border-right: 1px solid rgba(155, 140, 255, 0.12);
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		padding-top: 100px;
-		gap: 1rem;
-		z-index: 100;
-		backdrop-filter: blur(12px);
+		display: flex; flex-direction: column; align-items: center;
+		padding-top: 100px; gap: 1rem;
+		z-index: 100; backdrop-filter: blur(12px);
 	}
-
 	.sidebar-btn {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		gap: 0.35rem;
-		width: 56px;
-		height: 56px;
-		border-radius: 12px;
-		color: rgba(255, 255, 255, 0.5);
-		text-decoration: none;
-		transition: all 0.25s ease;
-		cursor: pointer;
+		display: flex; flex-direction: column; align-items: center; justify-content: center;
+		gap: 0.35rem; width: 56px; height: 56px; border-radius: 12px;
+		color: rgba(255,255,255,0.5); text-decoration: none;
+		transition: all 0.25s ease; cursor: pointer;
 	}
-
-	.sidebar-btn:hover {
-		background: rgba(155, 140, 255, 0.12);
-		color: rgba(155, 140, 255, 0.9);
-		transform: translateY(-1px);
-	}
-
-	.sidebar-btn.active {
-		background: rgba(155, 140, 255, 0.15);
-		color: rgba(155, 140, 255, 0.95);
-		border: 1px solid rgba(155, 140, 255, 0.2);
-	}
-
-	.sidebar-icon {
-		width: 1.3rem;
-		height: 1.3rem;
-	}
-
-	.sidebar-label {
-		font-size: 0.65rem;
-		font-weight: 500;
-		letter-spacing: 0.05em;
-	}
-
-	.ai-content {
-		padding-left: 72px;
-	}
-
-	/* 移动端保留侧边栏（窄屏仍显示 AI / 收藏入口） */
-	@media (max-width: 768px) {
-		.ai-content {
-			padding-left: 52px;
-		}
-	}
-
-		.ai-tabs { display:flex; flex-wrap:wrap; gap:10px; margin: 6px 0 22px; }
-	.ai-tab { padding: 0.45rem 1.15rem; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); backdrop-filter: blur(14px) saturate(160%); -webkit-backdrop-filter: blur(14px) saturate(160%); color: rgba(255,255,255,0.7); font-size: 0.88rem; cursor:pointer; transition: all .18s; box-shadow: 0 2px 10px rgba(0,0,0,0.15); }
-	.ai-tab:hover { border-color: rgba(255,255,255,0.28); background: rgba(255,255,255,0.1); color:#fff; }
-	.ai-tab.active { background: rgba(59,130,246,0.22); border-color: rgba(96,165,250,0.5); color:#93c5fd; box-shadow: 0 4px 16px rgba(59,130,246,0.25), inset 0 1px 0 rgba(147,197,253,0.2); }
-	.ai-select { display:none; width:100%; margin:6px 0 16px; padding:0.6rem 0.9rem; border-radius:12px; border:1px solid rgba(155,140,255,0.25); background:rgba(20,24,44,0.9); color:#e6ebf5; font-size:0.92rem; }
-	@media (max-width: 768px) { .ai-tabs { display:none; } .ai-select { display:block; } .ai-group-title { display:none; } }
-.section-hint {
-		color: #4ade80;
-		font-size: 0.88rem;
-		margin: 0 0 1.1rem;
-	}
-
-	.ai-group {
-		margin-top: 1.7rem;
-	}
-	.ai-group:first-of-type {
-		margin-top: 0.2rem;
-	}
-
-	.ai-group-title { display:none;
-		display: flex;
-		align-items: center;
-		gap: 0.55rem;
-		font-size: 1.08rem;
-		font-weight: 700;
-		margin: 0 0 0.9rem;
-		color: #4ade80;
-	}
-	.ai-group :global(.link-cell-name) { color: #60a5fa !important; }
-	.ai-group-title::before {
-		content: "";
-		width: 4px;
-		height: 1.05rem;
-		border-radius: 2px;
-		background: var(--primary);
-	}
-
-	.section-tip {
-		margin-top: 1.6rem;
-		font-size: 0.85rem;
-		color: #4ade80;
-	}
-	.section-tip a {
-		color: var(--primary);
-		text-decoration: none;
-	}
-	.section-tip a:hover {
-		text-decoration: underline;
-	}
+	.sidebar-btn:hover { background: rgba(155,140,255,0.12); color: rgba(155,140,255,0.9); transform: translateY(-1px); }
+	.sidebar-btn.active { background: rgba(155,140,255,0.15); color: rgba(155,140,255,0.95); border: 1px solid rgba(155,140,255,0.2); }
+	.sidebar-icon { width: 1.3rem; height: 1.3rem; }
+	.sidebar-label { font-size: 0.65rem; font-weight: 500; letter-spacing: 0.05em; }
+	.ai-content-wrap { padding-left: 72px; }
+	@media (max-width: 768px) { .ai-content-wrap { padding-left: 52px; } }
 </style>
