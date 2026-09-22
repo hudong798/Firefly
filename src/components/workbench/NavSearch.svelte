@@ -205,17 +205,16 @@
 		width: 38px;
 		height: 38px;
 		border-radius: 50%;
-		color: rgb(255 200 170 / 0.8);
-		background: rgb(255 140 100 / 0.08);
-		border: 1px solid rgb(255 160 120 / 0.2);
+		color: rgba(255,255,255,0.85);
+		background: transparent;
+		border: none;
 		cursor: pointer;
 		transition: all 0.2s ease;
 	}
 	.nav-search__btn:hover,
 	.nav-search__btn[aria-expanded="true"] {
-		color: rgb(255 220 190 / 1);
-		background: rgb(255 140 100 / 0.18);
-		border-color: rgb(255 160 120 / 0.45);
+		color: #fff;
+		background: rgba(255,255,255,0.08);
 		transform: scale(1.05);
 	}
 	.nav-search__btn svg {
