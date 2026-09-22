@@ -207,15 +207,19 @@
 		try {
 			const creds = getCreds();
 			const payload: Record<string, any> = {
-				p_title: fTitle.trim(),
 				p_url: fUrl.trim(),
 				p_category: fCategory,
 				p_description: fDesc.trim() || null,
 				p_tags: fGroup.trim() ? [fGroup.trim()] : null,
-				p_logo: fLogo.trim() || null,
 				p_username: creds?.username,
 				p_password: creds?.password
 			};
+			if (mode === "ai") {
+				payload.p_name = fTitle.trim();
+				payload.p_logo = fLogo.trim() || null;
+			} else {
+				payload.p_title = fTitle.trim();
+			}
 			if (editingId) payload.p_id = editingId;
 			const createRpc = mode === "ai" ? "admin_create_ai_tool" : "admin_create_archive";
 			const updateRpc = mode === "ai" ? "admin_update_ai_tool" : "admin_update_archive";
