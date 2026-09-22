@@ -305,7 +305,7 @@
 			<div class="action-row">
 				<div class="mode-dropdown">
 					<button class="mode-dropdown-btn" on:click|preventDefault={() => modeMenuOpen = !modeMenuOpen}>
-						{mode === "ai" ? "AI 工具" : "收藏"} <span class="caret">▾</span>
+						{mode === "ai" ? "AI 工具" : "收藏"}<span class="caret"></span>
 					</button>
 					{#if modeMenuOpen}
 						<div class="mode-dropdown-pop">
@@ -319,7 +319,7 @@
 						<button class="cat-single-btn" on:click|preventDefault={() => menuOpen = !menuOpen}>
 							{activeCat || "全部分类"}
 							{#if activeCat && subCat} · {subCat}{/if}
-							<span class="caret">▾</span>
+							<span class="caret"></span>
 						</button>
 						{#if menuOpen}
 							<div class="cat-pop">
@@ -498,9 +498,9 @@
 	.panel-title-top { margin-bottom: 0.75rem; }
 	.panel-title-top h2 { margin: 0; font-size: 1.3rem; }
 	.panel-title-top .panel-sub { margin: 0.2rem 0 0; font-size: 0.8rem; color: #8b96ad; }
-	.action-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: nowrap; margin-bottom: 1rem; overflow-x: auto; }
+	.action-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; overflow: visible; }
 	.mode-dropdown { position: relative; flex-shrink: 0; }
-	.mode-dropdown-btn { padding: 0.5rem 0.9rem; font-size: 0.85rem; border-radius: 8px; border: 1px solid rgba(111,195,255,0.25); background: rgba(111,195,255,0.08); color: #cfe6ff; cursor: pointer; white-space: nowrap; }
+	.mode-dropdown-btn { padding: 0.4rem 0.7rem; font-size: 0.8rem; border-radius: 8px; border: 1px solid rgba(111,195,255,0.25); background: rgba(111,195,255,0.08); color: #cfe6ff; cursor: pointer; white-space: nowrap; }
 	.mode-dropdown-pop { position: absolute; top: calc(100% + 6px); left: 0; z-index: 50; min-width: 130px; background: rgba(15,20,38,0.95); backdrop-filter: blur(16px); border: 1px solid rgba(111,195,255,0.18); border-radius: 10px; padding: 6px; box-shadow: 0 12px 32px rgba(0,0,0,0.5); }
 	.mode-dropdown-pop button { display: block; width: 100%; text-align: left; padding: 0.5rem 0.7rem; font-size: 0.85rem; border: none; background: transparent; color: #c7d2fe; cursor: pointer; border-radius: 6px; }
 	.mode-dropdown-pop button:hover { background: rgba(99,102,241,0.18); color: #fff; }
@@ -514,14 +514,14 @@
 	.cat-tab { padding: 0.35rem 0.85rem; font-size: 0.82rem; border-radius: 999px; border: 1px solid rgba(111,195,255,0.25); background: transparent; color: #9fb4d8; cursor: pointer; }
 	.cat-tab.on { background: linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; border-color: transparent; }
 	.cat-single-wrap { position: relative; }
-	.cat-single-btn {
-		padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: 999px;
+		.cat-single-btn {
+			padding: 0.4rem 0.75rem; font-size: 0.8rem; border-radius: 999px;
 		border: 1px solid rgba(111,195,255,0.22); background: rgba(20,28,48,0.55);
 		color: #cfe3ff; cursor: pointer; white-space: nowrap; backdrop-filter: blur(14px);
 		transition: all 0.2s ease;
 	}
 	.cat-single-btn:hover { border-color: rgba(106,179,255,0.5); color:#fff; }
-	.caret { font-size:0.65rem; opacity:0.6; margin-left:0.2rem; }
+	.caret { display:inline-block; width:0; height:0; margin-left:0.35rem; border-left:4px solid transparent; border-right:4px solid transparent; border-top:5px solid currentColor; opacity:0.6; vertical-align:middle; }
 	.cat-pop {
 		position: absolute; top: 100%; left: 0; margin-top: 0.6rem; min-width: 300px;
 		display:flex; flex-direction:column; gap:0.1rem; padding: 0.9rem; z-index: 60;
@@ -538,7 +538,7 @@
 	.cat-pop-group { padding: 0.35rem 0.2rem; }
 	.cat-pop-group + .cat-pop-group { border-top: 1px solid rgba(255,255,255,0.06); }
 	.cat-pop-title {
-		text-align:left; padding: 0.25rem 0.1rem; font-size: 0.72rem; font-weight:600;
+		text-align:left; padding: 0.25rem 0.1rem; font-size: 0.88rem; font-weight:600;
 		letter-spacing:0.12em; text-transform:uppercase;
 		background: transparent; border: none; color: rgba(160,200,255,0.55); cursor: pointer;
 		transition: color 0.2s ease, text-shadow 0.2s ease;
