@@ -36,7 +36,7 @@
 	let matchMediaDesktop = typeof window !== "undefined" ? window.matchMedia("(min-width: 769px)").matches : true;
 	$: catList = mode === "ai"
 		? [...AI_CATEGORIES]
-		: ["影视","社区","工具"];
+		: [...CATEGORIES];
 	$: baseItems = activeCat ? items.filter((i) => i.category === activeCat) : items;
 	$: subCats = activeCat === "影视" ? ["综合","动漫","短剧","其他"] : [...new Set(baseItems.map((i) => (i.tags && i.tags[0]) || "").filter(Boolean))];
 	let shownItems: ArchiveItem[] = [];
@@ -128,7 +128,7 @@
 			if (error) throw error;
 			items = (data || []) as ArchiveItem[];
 			if (!activeCat) {
-				const cats = mode === "ai" ? AI_CATEGORIES : [...new Set(items.map((i) => i.category).filter(Boolean))];
+				const cats = mode === "ai" ? AI_CATEGORIES : [...CATEGORIES];
 				activeCat = cats.includes("影视") ? "影视" : cats[0];
 			}
 		} catch (e: any) {
