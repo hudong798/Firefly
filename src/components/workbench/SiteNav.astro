@@ -2,16 +2,17 @@
 // 全站统一导航栏：头像 + 站点名 + 导航板块 + 搜索放大镜
 import { profileConfig, siteConfig } from "@/config";
 import NavSearch from "@/components/workbench/NavSearch.svelte";
+import { Icon } from "astro-icon/components";
 
 // 顶部导航板块
 const navItems = [
-  { name: "观测站", url: "/", icon: "home" },
-  { name: "说说", url: "/thoughts/", icon: "wechat" },
-  { name: "Buddy", url: "/ai/", icon: "snowflake" },
-  { name: "日程", url: "/schedule/", icon: "calendar", hidden: true },
-  { name: "信号", url: "/guestbook/", icon: "message", hidden: true },
-  { name: "档案", url: "/resources/", icon: "box", hidden: true },
-  { name: "修仙界", url: "/cultivation/", icon: "cultivation", hidden: true },
+  { name: "观测站", url: "/", icon: "lucide:radar" },
+  { name: "说说", url: "/thoughts/", icon: "lucide:message-circle" },
+  { name: "Buddy", url: "/ai/", icon: "lucide:bot" },
+  { name: "日程", url: "/schedule/", icon: "lucide:calendar", hidden: true },
+  { name: "信号", url: "/guestbook/", icon: "lucide:mail", hidden: true },
+  { name: "档案", url: "/resources/", icon: "lucide:archive", hidden: true },
+  { name: "修仙界", url: "/cultivation/", icon: "lucide:sparkles", hidden: true },
 ];
 
 // 当前路径，用于高亮当前导航项
@@ -33,19 +34,7 @@ const currentPath = Astro.url.pathname;
       return (
         <a href={item.url} data-nav-href={item.url} class={`site-nav__item${isActive ? " is-active" : ""}`}>
           <span class="site-nav__icon">
-            {item.icon === "home" && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>}
-            {item.icon === "chat" && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>}
-            {item.icon === "calendar" && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>}
-            {item.icon === "ai" && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 10v6m11-11h-6M7 12H1m15.5-7.5l-4.2 4.2m-4.6 4.6l-4.2 4.2m0-13l4.2 4.2m4.6 4.6l4.2 4.2"/></svg>}
-            {item.icon === "box" && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>}
-            {item.icon === "book" && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>}
-            {item.icon === "community" && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>}
-            {item.icon === "tool" && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>}
-            {item.icon === "user" && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>}
-            {item.icon === "message" && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>}
-            {item.icon === "cultivation" && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4m10-10h-4M6 12H2m15.5-7.5l-2.8 2.8m-5.4 5.4l-2.8 2.8m0-11l2.8 2.8m5.4 5.4l2.8 2.8"/></svg>}
-            {item.icon === "wechat" && <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 4.9 5.4.8-3.9 3.8.9 5.4L12 14.3l-4.8 2.6.9-5.4L4.2 7.7l5.4-.8z"/></svg>}
-            {item.icon === "snowflake" && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2l-2 3 2 3 2-3z"/><path d="M12 22l-2-3 2-3 2 3z"/><path d="M2 12l3-2 3 2-3 2z"/><path d="M22 12l-3-2-3 2 3 2z"/><path d="M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>}
+            <Icon name={item.icon} />
           </span>
           <span class="site-nav__text">{item.name}</span>
         </a>
@@ -206,9 +195,10 @@ const currentPath = Astro.url.pathname;
   .site-nav__item.is-active {
     color: #F5F7FF;
     font-weight: 600;
-    background: linear-gradient(135deg, rgba(155, 140, 255, 0.2), rgba(99, 216, 255, 0.12));
-    border: 1px solid rgba(155, 140, 255, 0.35);
-    box-shadow: 0 0 12px rgba(155, 140, 255, 0.2), inset 0 0 8px rgba(99, 216, 255, 0.1);
+  }
+  .site-nav__item.is-active .site-nav__icon {
+    color: #8ab8ff;
+    filter: drop-shadow(0 0 6px rgba(138, 184, 255, 0.9)) drop-shadow(0 0 14px rgba(138, 184, 255, 0.45));
   }
   .site-nav__icon {
     display: flex;
@@ -216,6 +206,7 @@ const currentPath = Astro.url.pathname;
     justify-content: center;
     width: 16px;
     height: 16px;
+    transition: color 0.2s ease, filter 0.2s ease;
   }
   .site-nav__icon svg {
     width: 100%;

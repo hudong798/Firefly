@@ -8,6 +8,7 @@ import { Icon } from "astro-icon/components";
 import { profileConfig } from "@/config";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { marked } from "marked";
+import "@/styles/markdown.css";
 
 // 从 Supabase 读取个人资料（未配置/读取失败时回退静态默认）
 let remoteProfile: Record<string, any> | null = null;
@@ -164,7 +165,7 @@ const contacts =
 						<span class="po-section-zh">关于我</span>
 						<span class="po-section-line"></span>
 					</div>
-					<div class="about-body" set:html={profileAboutHtml}></div>
+					<div class="about-body custom-md" set:html={profileAboutHtml}></div>
 				</section>
 
 				<footer class="po-end">
@@ -529,33 +530,84 @@ const contacts =
 		background: linear-gradient(90deg, rgba(255, 255, 255, 0.1), transparent);
 	}
 
-	.about-body p {
+	.about-body :global(p) {
 		margin: 0 0 1.3rem;
 		font-size: 0.98rem;
 		line-height: 2.15;
 		color: #b9c0d0;
 		max-width: 640px;
 	}
-	.about-body p:last-child {
+	.about-body :global(p:last-child) {
 		margin-bottom: 0;
 	}
-	.about-body h2,
-	.about-body h3 {
+	.about-body :global(h1) {
+		margin: 0 0 1rem;
+		font-size: 1.5rem;
+		font-weight: 700;
+		line-height: 1.5;
+		color: #e6ebf5;
+	}
+	.about-body :global(h2),
+	.about-body :global(h3) {
 		margin: 1.6rem 0 0.8rem;
 		line-height: 1.6;
 		color: #e6ebf5;
 	}
-	.about-body ul,
-	.about-body ol {
+	.about-body :global(blockquote) {
+		margin: 0 0 1.3rem;
+		padding: 0.6rem 1rem;
+		border-left: 3px solid rgba(155, 140, 255, 0.4);
+		background: rgba(155, 140, 255, 0.04);
+		border-radius: 0 0.4rem 0.4rem 0;
+		color: #b9c0d0;
+	}
+	.about-body :global(blockquote p) {
+		margin: 0;
+		max-width: none;
+	}
+	.about-body :global(hr) {
+		margin: 1.5rem 0;
+		border: none;
+		border-top: 1px solid rgba(255, 255, 255, 0.08);
+	}
+	.about-body :global(strong) {
+		font-weight: 600;
+		color: #d8dce7;
+	}
+	.about-body :global(em) {
+		font-style: italic;
+		color: #b7acff;
+	}
+	.about-body :global(code) {
+		font-family: "JetBrains Mono", "Fira Code", monospace;
+		font-size: 0.85em;
+		padding: 0.15em 0.4em;
+		border-radius: 0.3rem;
+		background: rgba(255, 255, 255, 0.06);
+		color: #b7acff;
+	}
+	.about-body :global(pre) {
+		margin: 0 0 1.3rem;
+		padding: 1rem;
+		border-radius: 0.6rem;
+		background: rgba(0, 0, 0, 0.3);
+		overflow-x: auto;
+	}
+	.about-body :global(pre code) {
+		padding: 0;
+		background: none;
+	}
+	.about-body :global(ul),
+	.about-body :global(ol) {
 		margin: 0 0 1.3rem;
 		padding-left: 1.4rem;
 		line-height: 2.1;
 		color: #b9c0d0;
 	}
-	.about-body li {
+	.about-body :global(li) {
 		margin-bottom: 0.5rem;
 	}
-	.about-body a {
+	.about-body :global(a) {
 		color: #6fc3ff;
 	}
 
