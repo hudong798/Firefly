@@ -24,6 +24,7 @@
 		{ key: "tv", num: "01", name: "影视" },
 		{ key: "community", num: "02", name: "社区" },
 		{ key: "tool", num: "03", name: "工具" },
+		{ key: "game", num: "04", name: "游戏" },
 	];
 	const TV_SUBTYPES = ["综合", "动漫", "短剧", "其他"];
 	const typeLabel: Record<string, string> = {
@@ -35,6 +36,7 @@
 	let tvSites: TvSite[] = [];
 	let communities: CommunitySite[] = [];
 	let toolGroups: ToolGroup[] = [];
+		let games: CommunitySite[] = [];
 	let loading = true;
 	let error = "";
 
@@ -71,6 +73,8 @@
 				gmap.get(gn)!.push({ name: r.title, url: r.url || "", desc: r.description || undefined });
 			}
 			toolGroups = Array.from(gmap.entries()).map(([title, items]) => ({ title, items }));
+			// 游戏
+			games = rows.filter((r) => r.category === "游戏").map((r) => ({ name: r.title, url: r.url || "", desc: r.description || undefined }));
 		} catch (e: any) {
 			error = e?.message || "加载失败";
 		}
@@ -193,6 +197,22 @@
 					</div>
 				</section>
 			{/each}
+		{/if}
+
+		<!-- 游戏面板 -->
+		{#if activeMainTab === "game"}
+			<div class="arch-section-header">
+				<span class="arch-section-label">GAME INDEX</span>
+				<span class="arch-section-count">{games.length} ENTRIES</span>
+			</div>
+			<div class="arch-grid">
+				{#each games as g, index}
+					<a class="arch-card arch-card-mini" href={g.url} target="_blank" rel="noopener" style={`--arch-index:${index + 1};`}>
+						<h3 class="arch-card-name">{g.name}</h3>
+						{#if g.desc}<p class="arch-card-mini-desc">{g.desc}</p>{/if}
+					</a>
+				{/each}
+			</div>
 		{/if}
 	{/if}
 </div>

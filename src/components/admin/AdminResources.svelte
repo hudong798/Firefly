@@ -7,7 +7,7 @@
 		title: string;
 		url: string;
 		description: string | null;
-		category: "影视" | "漫画" | "社区" | "工具";
+		category: "影视" | "漫画" | "社区" | "工具" | "游戏";
 		tags: string[] | null;
 		status: string;
 		sort_order: number;
@@ -20,7 +20,7 @@
 
 	type Mode = "archive" | "ai";
 	let mode: Mode = "archive";
-	const CATEGORIES = ["影视", "漫画", "社区", "工具"] as const;
+	const CATEGORIES = ["影视", "社区", "工具", "游戏"] as const;
 	const AI_CATEGORIES = ["国内", "国外", "视频生成", "图片生成", "模型"] as const;
 	$: curCats = mode === "ai" ? AI_CATEGORIES : CATEGORIES;
 	type Cat = typeof CATEGORIES[number];
