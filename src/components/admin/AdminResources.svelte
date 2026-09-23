@@ -409,7 +409,7 @@
 									</select>
 								</label>
 							</div>
-						{:else if mode !== "ai" && (fCategory === "工具" || fCategory === "社区")}
+						{:else if mode !== "ai" && (fCategory === "工具" || fCategory === "社区" || fCategory === "游戏")}
 							<div class="form-row">
 								<label>分组 / 分类名
 									<input class="field" list="group-list" bind:value={fGroup} placeholder="选现有分组或输入新分组名" />

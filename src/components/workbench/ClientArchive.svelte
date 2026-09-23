@@ -36,7 +36,7 @@
 	let tvSites: TvSite[] = [];
 	let communities: CommunitySite[] = [];
 	let toolGroups: ToolGroup[] = [];
-		let games: CommunitySite[] = [];
+		let gameGroups: ToolGroup[] = [];
 	let loading = true;
 	let error = "";
 
@@ -73,8 +73,15 @@
 				gmap.get(gn)!.push({ name: r.title, url: r.url || "", desc: r.description || undefined });
 			}
 			toolGroups = Array.from(gmap.entries()).map(([title, items]) => ({ title, items }));
-			// 游戏
-			games = rows.filter((r) => r.category === "游戏").map((r) => ({ name: r.title, url: r.url || "", desc: r.description || undefined }));
+			// 游戏：按 tags[0] 分组
+			const gameRows = rows.filter((r) => r.category === "游戏");
+			const gmap2 = new Map<string, ToolSite[]>();
+			for (const r of gameRows) {
+				const gn = r.tags?.[0] || "其他游戏";
+				if (!gmap2.has(gn)) gmap2.set(gn, []);
+				gmap2.get(gn)!.push({ name: r.title, url: r.url || "", desc: r.description || undefined });
+			}
+			gameGroups = Array.from(gmap2.entries()).map(([title, items]) => ({ title, items }));
 		} catch (e: any) {
 			error = e?.message || "加载失败";
 		}
@@ -201,18 +208,31 @@
 
 		<!-- 游戏面板 -->
 		{#if activeMainTab === "game"}
-			<div class="arch-section-header">
-				<span class="arch-section-label">GAME INDEX</span>
-				<span class="arch-section-count">{games.length} ENTRIES</span>
-			</div>
-			<div class="arch-grid">
-				{#each games as g, index}
-					<a class="arch-card arch-card-mini" href={g.url} target="_blank" rel="noopener" style={`--arch-index:${index + 1};`}>
-						<h3 class="arch-card-name">{g.name}</h3>
-						{#if g.desc}<p class="arch-card-mini-desc">{g.desc}</p>{/if}
-					</a>
-				{/each}
-			</div>
+			<p class="arch-tool-hint">精选游戏推荐，点击直达。</p>
+			{#each gameGroups as g, gi}
+				<section class="arch-tool-group" style={`--arch-index:${gi + 1};`}>
+					<h2 class="arch-tool-group-title">
+						<span class="arch-tool-group-num">{String(gi + 1).padStart(2, "0")}</span>
+						{g.title}
+					</h2>
+					<div class="tv-grid">
+						{#each g.items as item, idx}
+							<a class="tv-card" href={item.url} target="_blank" rel="noopener" style={`--tv-index:${idx + 1};`}>
+								<div class="tv-card-top">
+									<span class="tv-card-id">LINK / {String(idx + 1).padStart(2, "0")}</span>
+									<span class="tv-card-type">{g.title}</span>
+								</div>
+								<h4 class="tv-card-name">{item.name}</h4>
+								<div class="tv-card-spacer"></div>
+								<div class="tv-card-bottom">
+									{#if item.desc}<span class="tv-card-rating">{item.desc}</span>{/if}
+									<span class="tv-card-arrow">↗</span>
+								</div>
+							</a>
+						{/each}
+					</div>
+				</section>
+			{/each}
 		{/if}
 	{/if}
 </div>
