@@ -2,6 +2,13 @@
 	import { onMount } from "svelte";
 	import { supabase } from "@/lib/supabase";
 
+	// ---------- 工具函数 ----------
+	function fixUrl(u: string): string {
+		if (!u) return "#";
+		if (u.startsWith("http://") || u.startsWith("https://") || u.startsWith("/")) return u;
+		return "https://" + u;
+	}
+
 	// ---------- 类型 ----------
 	interface ArchiveRow {
 		id: string;
@@ -63,14 +70,14 @@
 			// 社区
 			communities = rows
 				.filter((r) => r.category === "社区")
-				.map((r) => ({ name: r.title, url: r.url || "", desc: r.description || undefined }));
+				.map((r) => ({ name: r.title, url: fixUrl(r.url || ""), desc: r.description || undefined }));
 			// 工具：按 tags[0] 分组
 			const toolRows = rows.filter((r) => r.category === "工具");
 			const gmap = new Map<string, ToolSite[]>();
 			for (const r of toolRows) {
 				const gn = r.tags?.[0] || "其他工具";
 				if (!gmap.has(gn)) gmap.set(gn, []);
-				gmap.get(gn)!.push({ name: r.title, url: r.url || "", desc: r.description || undefined });
+				gmap.get(gn)!.push({ name: r.title, url: fixUrl(r.url || ""), desc: r.description || undefined });
 			}
 			toolGroups = Array.from(gmap.entries()).map(([title, items]) => ({ title, items }));
 			// 游戏：按 tags[0] 分组
@@ -79,7 +86,7 @@
 			for (const r of gameRows) {
 				const gn = r.tags?.[0] || "其他游戏";
 				if (!gmap2.has(gn)) gmap2.set(gn, []);
-				gmap2.get(gn)!.push({ name: r.title, url: r.url || "", desc: r.description || undefined });
+				gmap2.get(gn)!.push({ name: r.title, url: fixUrl(r.url || ""), desc: r.description || undefined });
 			}
 			gameGroups = Array.from(gmap2.entries()).map(([title, items]) => ({ title, items }));
 		} catch (e: any) {

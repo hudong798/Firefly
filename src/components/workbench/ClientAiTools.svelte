@@ -15,6 +15,12 @@
 	const CATS = ["国内", "国外", "视频生成", "图片生成", "模型"];
 	let activeCat = "国内";
 	let groups: AiGroup[] = [];
+	function fixUrl(u: string): string {
+		if (!u) return "#";
+		if (u.startsWith("http://") || u.startsWith("https://") || u.startsWith("/")) return u;
+		return "https://" + u;
+	}
+
 	let loading = true;
 	let error = "";
 
@@ -36,7 +42,7 @@
 			for (const t of data || []) {
 				const cat = t.category || "其他";
 				if (!map.has(cat)) map.set(cat, []);
-				map.get(cat)!.push({ name: t.name, url: t.url || "", logo: t.logo || undefined });
+				map.get(cat)!.push({ name: t.name, url: fixUrl(t.url || ""), logo: t.logo || undefined });
 			}
 			groups = Array.from(map.entries()).map(([title, items]) => ({ title, items }));
 		} catch (e: any) {
