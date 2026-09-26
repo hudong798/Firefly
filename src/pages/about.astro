@@ -183,10 +183,11 @@ const contacts =
 
 	// 客户端实时拉取最新个人资料，覆盖首屏静态快照
 	// 这样在管理页保存后，无需重新部署即可看到更新
-	(async () => {
+	async function refreshProfile() {
 		if (!isSupabaseConfigured || !supabase) return;
 		try {
-			const { data } = await supabase.rpc("get_site_profile");
+			const { data, error } = await supabase.rpc("get_site_profile");
+			if (error) { console.warn("[about] get_site_profile error:", error); return; }
 			if (!data) return;
 			const d: any = data;
 
@@ -194,8 +195,8 @@ const contacts =
 				const el = document.querySelector(sel);
 				if (el && v != null && v !== "") el.textContent = String(v);
 			};
-			setText(".id-name", d.name);
-			setText(".id-line", d.tagline);
+			if (d.name) setText(".id-name", d.name);
+			if (d.tagline) setText(".id-line", d.tagline);
 
 			const tagsEl = document.querySelector(".id-tags");
 			if (tagsEl && Array.isArray(d.tags) && d.tags.length) {
@@ -216,7 +217,7 @@ const contacts =
 				}
 			}
 
-			setText(".freex-intro", d.freex_intro);
+			if (d.freex_intro) setText(".freex-intro", d.freex_intro);
 
 			if (Array.isArray(d.interests) && d.interests.length) {
 				const list = document.querySelector(".interest-list");
@@ -245,10 +246,27 @@ const contacts =
 					});
 				}
 			}
-		} catch {
-			/* 静默失败，保留首屏静态内容 */
+
+			// 更新联系方式
+			if (Array.isArray(d.contacts) && d.contacts.length) {
+				const contEl = document.querySelector(".id-contacts");
+				if (contEl) {
+					contEl.innerHTML = d.contacts.map((c: any) => {
+						const label = `<span>${c.name || ""}</span>`;
+						if (c.copy) {
+							return `<button class="contact-item" type="button" data-copy="${c.copy}" title="点击复制">${label}</button>`;
+						}
+						const ext = c.url && c.url.startsWith("http") ? ' target="_blank" rel="noopener noreferrer"' : "";
+						return `<a class="contact-item" href="${c.url || "#"}" title="${c.name || ""}"${ext}>${label}</a>`;
+					}).join("");
+				}
+			}
+		} catch (e) {
+			console.warn("[about] refreshProfile failed:", e);
 		}
-	})();
+	}
+
+	refreshProfile();
 </script>
 
 <style>
